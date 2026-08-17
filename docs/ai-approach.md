@@ -1,0 +1,2 @@
+# AI Yaklaşım Dokümanı
+TODO

@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  # TODO: her servis için build context, env_file, depends_on, ports tanımla
+  # api-gateway:
+  #   build: ./backend/api-gateway
+  # identity-service:
+  #   build: ./backend/identity-service
+  # campaign-service:
+  #   build: ./backend/campaign-service
+  # ai-service:
+  #   build: ./backend/ai-service
+  # gamification-service:
+  #   build: ./backend/gamification-service
