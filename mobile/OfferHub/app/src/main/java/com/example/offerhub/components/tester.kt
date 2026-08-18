@@ -22,29 +22,3 @@ import androidx.compose.ui.unit.sp
 import com.example.offerhub.ui.theme.Primary
 import com.example.offerhub.ui.theme.Secondary
 
-@Composable
-fun RoleButton(   text:String,
-                  onClick:()->Unit)
-{
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(70.dp),
-        colors= ButtonDefaults.buttonColors(Color.Transparent)
-    ){
-        Box(modifier=Modifier
-            .fillMaxWidth()
-            .heightIn(70.dp)
-            .background(
-                brush=Brush.horizontalGradient(listOf(Secondary, Primary)),
-                shape= RoundedCornerShape(50.dp)
-            ),
-        contentAlignment= Alignment.Center){
-            Text(text=text,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold)
-        }
-    }
-
-}

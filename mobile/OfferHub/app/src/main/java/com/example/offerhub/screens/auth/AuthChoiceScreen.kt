@@ -27,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
-import com.example.offerhub.components.RoleButton
+import com.example.offerhub.components.AuthButton
 
 @Composable
 fun AuthChoiceScreen()
@@ -68,14 +68,14 @@ fun AuthChoiceScreen()
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            RoleButton(
+            AuthButton(
                 text = "Subscriber",
                 onClick = {
 
                 }
             )
             Spacer(modifier = Modifier.height(16.dp))
-            RoleButton(
+            AuthButton(
                 text = "Staff",
                 onClick = {
 
@@ -83,7 +83,9 @@ fun AuthChoiceScreen()
             )
             Spacer(modifier= Modifier.height(40.dp))     //Kaldırılabilir
             Text(
-                text="Do you need help?"
+                text="Do you need help?",
+                fontSize=15.sp,
+                fontWeight= FontWeight.Normal
             )
         }
     }
