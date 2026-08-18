@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
 import com.example.offerhub.components.AuthButton
+import com.example.offerhub.components.ClickableText
 
 @Composable
 fun AuthChoiceScreen()
@@ -54,17 +55,17 @@ fun AuthChoiceScreen()
             Spacer(modifier= Modifier.height(24.dp))
             Text(
                 text = "Welcome to OfferHub",
-                fontSize = 30.sp,
+                fontSize = 27.sp,
                 //fontFamily,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Choose your role",
-                fontSize = 25.sp,
+                text = "How would you like to continue?",
+                fontSize = 18.sp,
                 //fontFamily,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Normal
             )
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -82,10 +83,11 @@ fun AuthChoiceScreen()
                 }
             )
             Spacer(modifier= Modifier.height(40.dp))     //Kaldırılabilir
-            Text(
-                text="Do you need help?",
-                fontSize=15.sp,
-                fontWeight= FontWeight.Normal
+            ClickableText(
+                text="Do you need help ↗",
+                onClick = {
+                    //
+                }
             )
         }
     }

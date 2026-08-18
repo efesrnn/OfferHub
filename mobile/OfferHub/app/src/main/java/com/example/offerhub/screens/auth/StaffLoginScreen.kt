@@ -2,6 +2,7 @@ package com.example.offerhub.screens.auth
 
 import android.util.Patterns
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,10 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
+import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
 
@@ -62,16 +65,17 @@ fun StaffLoginScreen()
             verticalArrangement= Arrangement.Center
         ){
             Text(
-                text="Please enter your details",
-                fontSize=15.sp,
-                //fontfamily,
-                fontWeight= FontWeight.Normal
+                text="Welcome back",
+                fontSize=27.sp,
+                fontWeight=FontWeight.Bold
             )
+
             Spacer(modifier=Modifier.height(18.dp))
             Text(
-                text="Welcome back",
-                fontSize=25.sp,
-                fontWeight=FontWeight.Bold
+                text="Sign in to continue",
+                fontSize=18.sp,
+                //fontfamily,
+                fontWeight= FontWeight.Normal
             )
             Spacer(modifier=Modifier.height(20.dp))
             TextFieldComponent(
@@ -104,12 +108,16 @@ fun StaffLoginScreen()
             )
             Spacer(modifier=Modifier.height(18.dp))
             AuthButton(
-                text="Login",
+                text="Log In",
                 onClick = {
 
                 }
             )
+            Spacer(modifier=Modifier.height(18.dp))
+            ClickableText  (text="Forgot your password?",
+                onClick={
 
+            } )
 
         }
     }

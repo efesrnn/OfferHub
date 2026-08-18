@@ -1,6 +1,7 @@
 package com.example.offerhub.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,8 +15,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +28,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.ui.theme.Primary
@@ -91,22 +95,63 @@ fun AuthButton(   text:String,
     }
 
 }
+
 @Composable
-fun AuathButton(text:String,
-               onClick:()->Unit)
-{
-    Button(
-        onClick=onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min=56.dp)
-    ){
-        Text(
-            text=text,
-            fontSize=18.sp,
-            fontWeight = FontWeight.SemiBold
-        )
+fun gsmTextFieldComponent(
+    value: String,
+    onValueChange:(String)->Unit,
+    isError: Boolean=false,
+    errorMessage: String?=null
+) {
+    OutlinedTextField(
+        value=value,
+        onValueChange={ newValue->
+
+            val digitsOnly=newValue.filter{it.isDigit()}
+            if(digitsOnly.length<=10)
+            {
+                onValueChange(digitsOnly)
+            }
+        },
+        label={ Text("GSM")},
+        prefix={Text("+90 ")},
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Phone
+        ),
+        isError=isError,
+        supportingText = {
+            if(isError&&errorMessage !=null){
+                Text(errorMessage)
+            }
+        },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth()
+    )
+
+}
+
+@Composable
+fun ClickableText(text:String,
+    onClick: () -> Unit
+) {
+    var clicked by remember {
+        mutableStateOf(false)
     }
+
+    Text(
+        text = text,
+        fontSize = 14.sp,
+        textDecoration = TextDecoration.Underline,
+        color = if (clicked) {
+            Color.Blue
+        } else {
+            Color.Gray
+        },
+        modifier = Modifier.clickable {
+            clicked = true
+            onClick()
+        }
+    )
 }
 
 
