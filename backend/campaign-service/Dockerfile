@@ -1,5 +1,5 @@
 # TODO: multi-stage build (Maven/Gradle -> JRE runtime)
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

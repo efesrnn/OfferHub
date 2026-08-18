@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: identity-service
+              uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/v1/auth/**,/api/v1/users/**,/api/v1/admin/**
+            - id: campaign-service
+              uri: ${CAMPAIGN_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/v1/campaigns/**,/api/v1/cases/**,/api/v1/offers/**
+            - id: ai-service
+              uri: ${AI_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/v1/ai/**
+            - id: gamification-service
+              uri: ${GAMIFICATION_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/api/v1/game/**
+
+server:
+  port: 8080
