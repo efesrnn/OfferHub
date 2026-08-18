@@ -1,14 +1,195 @@
-version: "3.9"
-
 services:
-  # TODO: her servis için build context, env_file, depends_on, ports tanımla
-  # api-gateway:
-  #   build: ./backend/api-gateway
-  # identity-service:
-  #   build: ./backend/identity-service
-  # campaign-service:
-  #   build: ./backend/campaign-service
-  # ai-service:
-  #   build: ./backend/ai-service
-  # gamification-service:
-  #   build: ./backend/gamification-service
+
+  # ---------------------------------------------------------------------
+  # Ortak altyapı: mesaj kuyruğu
+  # ---------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------
+  # Identity Service + kendi veritabanı
+  # ---------------------------------------------------------------------
+  identity-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: identity
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - identity-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  identity-service:
+    build: ./backend/identity-service
+    ports:
+      - "8081:8080"
+    environment:
+      DB_URL: jdbc:postgresql://identity-db:5432/identity
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      identity-db:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------
+  # Campaign Service + kendi veritabanı
+  # ---------------------------------------------------------------------
+  campaign-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: campaign
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - campaign-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  campaign-service:
+    build: ./backend/campaign-service
+    ports:
+      - "8082:8080"
+    environment:
+      DB_URL: jdbc:postgresql://campaign-db:5432/campaign
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    depends_on:
+      campaign-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------
+  # AI Service + kendi veritabanı
+  # ---------------------------------------------------------------------
+  ai-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ai-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ai-service:
+    build: ./backend/ai-service
+    ports:
+      - "8083:8080"
+    environment:
+      DB_URL: jdbc:postgresql://ai-db:5432/ai
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    depends_on:
+      ai-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------
+  # Gamification Service + kendi veritabanı + Redis
+  # ---------------------------------------------------------------------
+  gamification-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: gamification
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - gamification-data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gamification-redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gamification-service:
+    build: ./backend/gamification-service
+    ports:
+      - "8084:8080"
+    environment:
+      DB_URL: jdbc:postgresql://gamification-db:5432/gamification
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: gamification-redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    depends_on:
+      gamification-db:
+        condition: service_healthy
+      gamification-redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------
+  # API Gateway — mobil/Postman'in tek muhatabı, kendi veritabanı yok
+  # ---------------------------------------------------------------------
+  api-gateway:
+    build: ./backend/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      IDENTITY_SERVICE_URL: http://identity-service:8080
+      CAMPAIGN_SERVICE_URL: http://campaign-service:8080
+      AI_SERVICE_URL: http://ai-service:8080
+      GAMIFICATION_SERVICE_URL: http://gamification-service:8080
+    depends_on:
+      - identity-service
+      - campaign-service
+      - ai-service
+      - gamification-service
+
+volumes:
+  identity-data:
+  campaign-data:
+  ai-data:
+  gamification-data:
