@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
+import com.example.offerhub.components.EmailTextFieldComponent
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
 
@@ -78,21 +79,18 @@ fun StaffLoginScreen()
                 fontWeight= FontWeight.Normal
             )
             Spacer(modifier=Modifier.height(20.dp))
-            TextFieldComponent(
+            EmailTextFieldComponent(
                 value=email,
-                onValueChange={
+                onValueChange = {
                     email=it
                 },
-                label="Email",
-                keyboardType= KeyboardType.Email,
-                onFocusChanged={ isFocused->
-                    if(!isFocused)
-                    {emailTouched=true}
-                },
-                isError = emailTouched &&emailIsInvalid,
-                errorMessage =
-                    if(email.isBlank()) {"Please enter a valid email address"}
-                else {"Please enter a valid email address"}
+                emailTouched=emailTouched,
+                onFocusChanged = {
+                    isFocused->
+                    if(!isFocused){
+                        emailTouched=true
+                    }
+                }
             )
             Spacer(modifier=Modifier.height(18.dp))
             TextFieldComponent(

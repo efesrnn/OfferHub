@@ -1,5 +1,6 @@
 package com.example.offerhub.components
 
+import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -129,7 +130,31 @@ fun gsmTextFieldComponent(
     )
 
 }
+@Composable
+fun EmailTextFieldComponent(
+    value: String,
+    onValueChange: (String) -> Unit,
+    emailTouched: Boolean,
+    onFocusChanged: (Boolean) -> Unit,
+    required:Boolean=true
+) {
+    val emailIsInvalid =
+        value.isBlank() ||
+                !Patterns.EMAIL_ADDRESS.matcher(value).matches()
 
+    TextFieldComponent(
+        value = value,
+        onValueChange = onValueChange,
+        label = "Email",
+        keyboardType = KeyboardType.Email,
+        onFocusChanged = onFocusChanged,
+        isError = emailTouched && emailIsInvalid,
+        errorMessage = when {
+            value.isBlank() -> "Email cannot be empty"
+            else -> "Please enter a valid email address"
+        }
+    )
+}
 @Composable
 fun ClickableText(text:String,
     onClick: () -> Unit
