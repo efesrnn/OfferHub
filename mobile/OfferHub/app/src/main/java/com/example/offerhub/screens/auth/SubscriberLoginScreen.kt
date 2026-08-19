@@ -30,7 +30,10 @@ import com.example.offerhub.components.gsmTextFieldComponent
 import java.util.concurrent.Flow
 
 @Composable
-fun SubscriberLoginScreen()
+fun SubscriberLoginScreen(
+    onSendCodeClick:(String)->Unit,
+    onRegisterClick:()->Unit
+)
 {
     Surface(
         color=Color.White,
@@ -74,15 +77,13 @@ fun SubscriberLoginScreen()
             AuthButton(
                 text="Send Code",
                 onClick={
-
+                    onSendCodeClick(gsm)
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))
             ClickableText(
                 text="Don't have an account? Register",
-                onClick={
-
-                }
+                onClick=onRegisterClick
             )
         }
     }
@@ -92,7 +93,10 @@ fun SubscriberLoginScreen()
 @Composable
 fun SubscriberLoginScreenPreview()
 {
-    SubscriberLoginScreen()
+    SubscriberLoginScreen(
+        onSendCodeClick = {gsm->},
+        onRegisterClick = {}
+    )
 }
 
 

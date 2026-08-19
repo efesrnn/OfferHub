@@ -31,7 +31,10 @@ import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
 
 @Composable
-fun AuthChoiceScreen()
+fun AuthChoiceScreen(
+    onSubscriberClick:()->Unit,
+    onStaffClick:()->Unit
+)
 {
     Surface(
         color=Color.White,
@@ -71,16 +74,12 @@ fun AuthChoiceScreen()
 
             AuthButton(
                 text = "Subscriber",
-                onClick = {
-
-                }
+                onClick = onSubscriberClick
             )
             Spacer(modifier = Modifier.height(16.dp))
             AuthButton(
                 text = "Staff",
-                onClick = {
-
-                }
+                onClick = onStaffClick
             )
             Spacer(modifier= Modifier.height(18.dp))     //Kaldırılabilir
             ClickableText(
@@ -97,5 +96,8 @@ fun AuthChoiceScreen()
 @Composable
 fun AuthChoicePreview()
 {
-    AuthChoiceScreen()
+    AuthChoiceScreen(
+        onSubscriberClick={},
+        onStaffClick={}
+    )
 }

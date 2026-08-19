@@ -168,7 +168,7 @@ fun ClickableText(text:String,
         fontSize = 14.sp,
         textDecoration = TextDecoration.Underline,
         color = if (clicked) {
-            Color.Blue
+            Color.DarkGray
         } else {
             Color.Gray
         },

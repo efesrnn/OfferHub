@@ -35,7 +35,13 @@ import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
 
 @Composable
-fun StaffLoginScreen()
+fun StaffLoginScreen(
+    onLoginClick: (
+        email: String,
+        password: String
+    ) -> Unit
+    /*onForgotClick:()->*/
+)
 {
     Surface(
         color=Color.White,
@@ -108,13 +114,16 @@ fun StaffLoginScreen()
             AuthButton(
                 text="Log In",
                 onClick = {
-
+                    onLoginClick(
+                        email,
+                        password
+                    )
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))
             ClickableText  (text="Forgot your password?",
                 onClick={
-
+                    /*onForgotClick*/
             } )
 
         }
@@ -125,6 +134,6 @@ fun StaffLoginScreen()
 @Composable
 fun StaffLoginPreview()
 {
-    StaffLoginScreen()
+    StaffLoginScreen(onLoginClick = {_,_->})
 
 }

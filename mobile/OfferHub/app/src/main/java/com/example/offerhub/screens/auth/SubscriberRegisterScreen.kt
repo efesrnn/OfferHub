@@ -31,13 +31,13 @@ import com.example.offerhub.components.gsmTextFieldComponent
 
 @Composable
 fun SubscriberRegisterScreen(
-    /*onRegisterClick: (
+    onRegisterClick: (
         firstName: String,
         lastName: String,
         gsm: String,
         email: String
     ) -> Unit,
-    onLoginClick: () -> Unit*/
+    onLoginClick: () -> Unit
 ){
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -106,18 +106,19 @@ fun SubscriberRegisterScreen(
             AuthButton(
                 text="Register",
                 onClick = {
-
+                    onRegisterClick(
+                        firstName,
+                        lastName,
+                        gsm,
+                        email
+                    )
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))
             ClickableText(text="Already have an account? Log in",
-                onClick={
-
-                })
-
-
+                onClick=onLoginClick
+            )
         }
-
 
     }
 }
@@ -126,5 +127,8 @@ fun SubscriberRegisterScreen(
 @Composable
 fun SubscriberRegisterPreview()
 {
-    SubscriberRegisterScreen()
+    SubscriberRegisterScreen(
+        onRegisterClick = { _, _, _, _ -> },
+        onLoginClick = {}
+    )
 }

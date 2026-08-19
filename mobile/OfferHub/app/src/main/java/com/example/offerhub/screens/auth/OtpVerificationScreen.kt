@@ -29,9 +29,9 @@ import com.example.offerhub.components.TextFieldComponent
 
 @Composable
 fun OtpVerificationScreen(
-    /*phoneNumber: String,
+    phoneNumber: String,
     onVerifyClick:(String)->Unit,
-    onResendClick:()->Unit*/
+    onResendClick:()->Unit
 )
 {
     Surface(
@@ -75,21 +75,14 @@ fun OtpVerificationScreen(
             AuthButton(
                 text = "Verify",
                 onClick = {
-
+                    onVerifyClick(otp)
                 }
             )
             Spacer(modifier = Modifier.height(18.dp))
             ClickableText(text="Resend Code",
-                onClick = {
-
-                }
+                onClick = onResendClick
             )
-
-
-
-
         }
-
     }
 }
 
@@ -97,5 +90,9 @@ fun OtpVerificationScreen(
 @Composable
 fun OtpVerificationPreview()
 {
-    OtpVerificationScreen()
+    OtpVerificationScreen(
+        phoneNumber="+90 *** *** ** **",
+        onVerifyClick = {_->},
+        onResendClick = {}
+    )
 }

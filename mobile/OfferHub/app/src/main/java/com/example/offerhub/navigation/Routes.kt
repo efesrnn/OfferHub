@@ -7,4 +7,6 @@ object Routes{
     const val SUBSCRIBER_LOGIN="subscriber_login"
     const val SUBSCRIBER_REGISTER="subscriber_register"
     const val OTP_VERIFICATION="otp_verification"
+    const val OTP_VERIFICATION_WITH_PHONE="otp_verification/{phoneNumber}"
+
 }
