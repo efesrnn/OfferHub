@@ -82,7 +82,7 @@ fun AuthChoiceScreen()
 
                 }
             )
-            Spacer(modifier= Modifier.height(40.dp))     //Kaldırılabilir
+            Spacer(modifier= Modifier.height(18.dp))     //Kaldırılabilir
             ClickableText(
                 text="Do you need help ↗",
                 onClick = {

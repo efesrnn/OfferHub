@@ -92,7 +92,7 @@ fun StaffLoginScreen()
                     }
                 }
             )
-            Spacer(modifier=Modifier.height(18.dp))
+            Spacer(modifier=Modifier.height(3.dp))
             TextFieldComponent(
                 value=password,
                 onValueChange={

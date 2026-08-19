@@ -76,18 +76,18 @@ fun SubscriberRegisterScreen(
                 onValueChange={firstName=it},
                 label="First Name",
                 keyboardType = KeyboardType.Text)
-            Spacer(modifier=Modifier.height(18.dp))
+            Spacer(modifier=Modifier.height(3.dp))
             TextFieldComponent(
                 value=lastName,
                 onValueChange={lastName=it},
                 label="Last Name",
                 keyboardType = KeyboardType.Text)
-            Spacer(modifier=Modifier.height(18.dp))
+            Spacer(modifier=Modifier.height(3.dp))
             gsmTextFieldComponent(value=gsm,
                 onValueChange = {
                     gsm=it
                 })
-            Spacer(modifier=Modifier.height(18.dp))
+            Spacer(modifier=Modifier.height(3.dp))
             EmailTextFieldComponent(
                 value=email,
                 onValueChange = {
