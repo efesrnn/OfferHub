@@ -9,11 +9,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -29,56 +33,132 @@ import com.example.offerhub.R
 import com.example.offerhub.ui.theme.Primary
 import com.example.offerhub.ui.theme.Secondary
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.ui.graphics.Color
 
 @Composable
 fun OfferHubTopBar(
-    title: String = "T-Hub",
+    title: String = "OfferHub",
     onMenuClick:()->Unit
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(65.dp)
+            .height(90.dp)
             .background(
                 brush = Brush.horizontalGradient(
                     listOf(Secondary, Primary)
                 )
             )
-            .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .statusBarsPadding()
     ) {
 
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(95.dp)
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Image(
-                painter = painterResource(R.drawable.logo),
-                contentDescription = "OfferHub Logo",
-                modifier = Modifier.size(34.dp)
+            IconButton(
+                onClick = onMenuClick
             )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = title,
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Menu",
+                    tint = Color.White
+                )
+            }
+            Spacer(modifier=Modifier.width(18.dp))
+           Row(
+               verticalAlignment = Alignment.CenterVertically,
+           ) {
+               Image(
+                   painter = painterResource(R.drawable.logo),
+                   contentDescription = "OfferHub Logo",
+                   modifier = Modifier.size(34.dp)
+               )
+               Spacer(modifier=Modifier.width(7.dp))
+               Text(
+                   text = title,
+                   fontSize = 27.sp,
+                   fontWeight = FontWeight.Bold,
+                   color = Color.White
+               )
+           }
         }
-        IconButton(
-            onClick = onMenuClick
+
+    }
+}
+
+@Composable
+fun OfferHubBottomBar(
+    selectedItem: String,
+    onHomeClick: () -> Unit,
+    onOffersClick: () -> Unit,
+    onProfileClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+
+        NavigationBar(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                imageVector = Icons.Default.Menu,
-                contentDescription = "Menu",
-                tint = Color.White
+
+            NavigationBarItem(
+                selected = selectedItem == "home",
+                onClick = onHomeClick,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "Home"
+                    )
+                },
+                label = {
+                    Text("Home")
+                }
+            )
+
+            NavigationBarItem(
+                selected = selectedItem == "offers",
+                onClick = onOffersClick,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.LocalOffer,
+                        contentDescription = "Offers"
+                    )
+                },
+                label = {
+                    Text("Offers")
+                }
+            )
+
+            NavigationBarItem(
+                selected = selectedItem == "profile",
+                onClick = onProfileClick,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profile"
+                    )
+                },
+                label = {
+                    Text("Profile")
+                }
             )
         }
     }
 }
+

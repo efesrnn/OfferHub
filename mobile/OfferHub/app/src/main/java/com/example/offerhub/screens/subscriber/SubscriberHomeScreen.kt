@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
 import com.example.offerhub.components.CampaignCard
+import com.example.offerhub.components.OfferHubBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.data.model.Campaign
 import com.example.offerhub.navigation.Routes
@@ -53,19 +54,36 @@ fun SubscriberHomeScreen(
     val flingBehavior = rememberSnapFlingBehavior(
         lazyListState = listState
     )
-    Surface(
-        color = Color.White,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .padding(top=30.dp)
-        ) {
+    Scaffold(
+        topBar = {
             OfferHubTopBar(
-                onMenuClick = {}
+                onMenuClick = {
+                    // menu sonra
+                }
             )
+        },
+
+        bottomBar = {
+            OfferHubBottomBar(
+                selectedItem = "home",
+                onHomeClick = {
+                    // zaten home
+                },
+                onOffersClick = {
+                    // Offers'a git
+                },
+                onProfileClick = {
+                    // Profile'a git
+                }
+            )
+        }
+    ) { innerPadding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             Spacer(modifier = Modifier.height(18.dp))
             Text(
                 text = "Hello, $firstName",
