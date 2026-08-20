@@ -115,6 +115,7 @@ fun SubscriberHomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
+                    .height(120.dp)
                     .clickable {
                         onAcceptedCampaignsClick()
                     },

@@ -36,13 +36,13 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun OfferHubTopBar(
-    title: String = "OfferHub",
+    title: String = "T-Hub",
     onMenuClick:()->Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(65.dp)
             .background(
                 brush = Brush.horizontalGradient(
                     listOf(Secondary, Primary)

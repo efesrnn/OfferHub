@@ -43,7 +43,10 @@ fun OtpVerificationScreen(
             .padding(horizontal=32.dp,vertical=60.dp)
     )
     {
-        var otp by remember{mutableStateOf("")}
+        var otp by remember { mutableStateOf("") }
+        var otpTouched by remember { mutableStateOf(false) }
+        val otpIsInvalid =
+            otp.isBlank() || otp.length != 4||otp!="1234"
         Column(
             modifier= Modifier
                 .fillMaxSize() ,
@@ -64,21 +67,42 @@ fun OtpVerificationScreen(
             Spacer(modifier = Modifier.height(18.dp))
             TextFieldComponent(
                 value = otp,
-                onValueChange = {
-                    if (it.length <= 4 && it.all { char -> char.isDigit() }) {
-                        otp = it
+                onValueChange = { newValue ->
+                    val digitsOnly = newValue.filter { it.isDigit() }
+
+                    if (digitsOnly.length <= 4) {
+                        otp = digitsOnly
                     }
                 },
                 label = "OTP Code",
+                prefix = "",
                 keyboardType = KeyboardType.Number,
-                prefix=""
+
+                isError = otpTouched && otpIsInvalid,
+
+                errorMessage = when {
+                    otp.isBlank() ->
+                        "OTP code cannot be empty"
+
+                    otp.length < 4 ->
+                        "OTP code must be 4 digits"
+
+                    otp != "1234" ->
+                        "Invalid OTP code"
+
+                    else ->
+                        null
+                }
             )
             Spacer(modifier = Modifier.height(18.dp))
             AuthButton(
                 text = "Verify",
                 onClick = {
+                    otpTouched = true
 
-                    onVerifyClick(otp)
+                    if (!otpIsInvalid) {
+                        onVerifyClick(otp)
+                    }
                 }
             )
             Spacer(modifier = Modifier.height(18.dp))
