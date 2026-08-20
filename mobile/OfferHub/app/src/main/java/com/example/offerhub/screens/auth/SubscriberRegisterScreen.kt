@@ -1,5 +1,6 @@
 package com.example.offerhub.screens.auth
 
+import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,9 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
-import com.example.offerhub.components.EmailTextFieldComponent
 import com.example.offerhub.components.TextFieldComponent
-import com.example.offerhub.components.gsmTextFieldComponent
+
 
 @Composable
 fun SubscriberRegisterScreen(
@@ -47,7 +47,17 @@ fun SubscriberRegisterScreen(
         var lastName by remember {mutableStateOf("")}
         var gsm by remember {mutableStateOf("")}
         var email by remember {mutableStateOf("")}
+        var firstNameTouched by remember { mutableStateOf(false) }
+        var lastNameTouched by remember { mutableStateOf(false) }
+        var gsmTouched by remember { mutableStateOf(false) }
         var emailTouched by remember { mutableStateOf(false) }
+        val firstNameIsInvalid=firstName.isBlank()
+        val lastNameIsInvalid=lastName.isBlank()
+        val gsmIsInvalid=gsm.isBlank()||gsm.length!=10
+        val emailIsInvalid=email.isNotBlank()&&
+                !Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        val formIsValid=
+            !firstNameIsInvalid && !lastNameIsInvalid&& !gsmIsInvalid&& !emailIsInvalid
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -75,43 +85,99 @@ fun SubscriberRegisterScreen(
                 value=firstName,
                 onValueChange={firstName=it},
                 label="First Name",
-                keyboardType = KeyboardType.Text)
+                prefix = "",
+                keyboardType = KeyboardType.Text,
+            isError=firstNameTouched&&firstNameIsInvalid,
+            errorMessage="First name cannot be empty",
+            onFocusChanged= { isFocused ->
+                if (!isFocused) {
+                    firstNameTouched = true
+                }
+            }
+            )
             Spacer(modifier=Modifier.height(3.dp))
             TextFieldComponent(
                 value=lastName,
                 onValueChange={lastName=it},
                 label="Last Name",
-                keyboardType = KeyboardType.Text)
+                prefix = "",
+                keyboardType = KeyboardType.Text,
+            isError=firstNameTouched&&firstNameIsInvalid,
+            errorMessage="First name cannot be empty",
+            onFocusChanged={isFocused->
+                if(!isFocused)
+                {
+                    firstNameTouched=true
+                }
+            })
             Spacer(modifier=Modifier.height(3.dp))
-            gsmTextFieldComponent(value=gsm,
-                onValueChange = {
-                    gsm=it
-                })
+            TextFieldComponent(
+                value=gsm,
+                onValueChange = { newValue ->
+                    val digitsOnly = newValue.filter { it.isDigit() }
+                    if (digitsOnly.length <= 10) {
+                        gsm=digitsOnly
+                    }
+                },
+                label="GSM",
+                prefix="+90 ",
+                keyboardType = KeyboardType.Phone,
+                isError = gsmTouched&&gsmIsInvalid,
+                errorMessage = when {
+                    gsm.isBlank() ->
+                        "GSM cannot be empty"
+
+                    gsm.length < 10 ->
+                        "Phone number is too short"
+
+                    else ->
+                        "Please enter a valid GSM number"
+                },
+                onFocusChanged={isFocused->
+                    if(!isFocused)
+                    {
+                        gsmTouched=true
+                    }
+                }
+            )
             Spacer(modifier=Modifier.height(3.dp))
-            EmailTextFieldComponent(
+            TextFieldComponent(
                 value=email,
                 onValueChange = {
                     email=it
                 },
-                emailTouched=emailTouched,
+                label="Email",
+                prefix="",
+                keyboardType = KeyboardType.Text,
+                isError = emailTouched && emailIsInvalid,
+                errorMessage = when {
+                    email.isBlank() -> "Email cannot be empty"
+                    else -> "Please enter a valid email address"
+                },
                 onFocusChanged = {
                         isFocused->
                     if(!isFocused){
                         emailTouched=true
                     }
                 },
-                required=false
             )
             Spacer(modifier=Modifier.height(18.dp))
             AuthButton(
                 text="Register",
                 onClick = {
-                    onRegisterClick(
-                        firstName,
-                        lastName,
-                        gsm,
-                        email
-                    )
+                    firstNameTouched=true
+                    lastNameTouched=true
+                    gsmTouched=true
+                    emailTouched=true
+                    if(formIsValid)
+                    {
+                        onRegisterClick(
+                            firstName,
+                            lastName,
+                            gsm,
+                            email
+                        )
+                    }
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))

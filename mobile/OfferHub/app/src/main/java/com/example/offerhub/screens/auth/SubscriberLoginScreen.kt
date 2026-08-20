@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
-import com.example.offerhub.components.gsmTextFieldComponent
 import java.util.concurrent.Flow
 
 @Composable
@@ -46,7 +45,7 @@ fun SubscriberLoginScreen(
         var gsm by remember {
             mutableStateOf("")
         }
-        val gsmIsInvalid=gsm.isBlank()
+        val gsmIsInvalid=gsm.isBlank()||gsm.length!=10
         var gsmTouched by remember {
             mutableStateOf(false)
         }
@@ -69,15 +68,44 @@ fun SubscriberLoginScreen(
                 fontWeight= FontWeight.Normal
             )
             Spacer(modifier=Modifier.height(20.dp))
-            gsmTextFieldComponent(value=gsm,
-                onValueChange = {
-                    gsm=it
-                })
+            TextFieldComponent(
+                value=gsm,
+                onValueChange = { newValue ->
+                    val digitsOnly = newValue.filter { it.isDigit() }
+                    if (digitsOnly.length <= 10) {
+                        gsm=digitsOnly
+                    }
+                },
+                label="GSM",
+                prefix="+90 ",
+                keyboardType = KeyboardType.Phone,
+                isError = gsmTouched&&gsmIsInvalid,
+                errorMessage = when {
+                    gsm.isBlank() ->
+                        "GSM cannot be empty"
+
+                    gsm.length < 10 ->
+                        "Phone number is too short"
+
+                    else ->
+                        "Please enter a valid GSM number"
+                },
+                onFocusChanged={isFocused->
+                    if(!isFocused)
+                    {
+                        gsmTouched=true
+                    }
+                }
+            )
             Spacer(modifier=Modifier.height(18.dp))
             AuthButton(
                 text="Send Code",
                 onClick={
-                    onSendCodeClick(gsm)
+                    gsmTouched=true
+                    if(!gsmIsInvalid)
+                    {
+                        onSendCodeClick(gsm)
+                    }
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))

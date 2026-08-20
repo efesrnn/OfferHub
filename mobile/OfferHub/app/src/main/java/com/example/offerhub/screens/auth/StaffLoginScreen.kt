@@ -30,10 +30,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
-import com.example.offerhub.components.EmailTextFieldComponent
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
 
+fun isPasswordValid(password: String): Boolean {
+    return password.length >= 8 &&
+            password.any { it.isUpperCase() } &&
+            password.any { it.isDigit() } &&
+            password.any { !it.isLetterOrDigit() }
+}
 @Composable
 fun StaffLoginScreen(
     onLoginClick: (
@@ -51,21 +56,12 @@ fun StaffLoginScreen(
             .padding(horizontal = 32.dp,vertical=60.dp)
     )
     {
-        var email by remember{
-            mutableStateOf("")
-        }
-        var password by remember{
-            mutableStateOf("")
-        }
-        var passwordTouched by remember {
-            mutableStateOf(false)
-        }
+        var email by remember{ mutableStateOf("") }
+        var password by remember{ mutableStateOf("") }
+        var passwordTouched by remember { mutableStateOf(false) }
         val emailIsInvalid=email.isBlank()||!Patterns.EMAIL_ADDRESS.matcher(email).matches()
-        var emailTouched by remember {
-            mutableStateOf(false)
-        }
-       val passwordIsInvalid=
-           password.isEmpty()
+        var emailTouched by remember { mutableStateOf(false) }
+       val passwordIsInvalid= password.isBlank()||!isPasswordValid(password)
         Column(
             modifier=Modifier.fillMaxSize(),
             horizontalAlignment=Alignment.CenterHorizontally,
@@ -85,18 +81,25 @@ fun StaffLoginScreen(
                 fontWeight= FontWeight.Normal
             )
             Spacer(modifier=Modifier.height(20.dp))
-            EmailTextFieldComponent(
+            TextFieldComponent(
                 value=email,
                 onValueChange = {
                     email=it
                 },
-                emailTouched=emailTouched,
+                label="Email",
+                prefix="",
+                keyboardType = KeyboardType.Text,
+                isError = emailTouched && emailIsInvalid,
+                errorMessage = when {
+                    email.isBlank() -> "Email cannot be empty"
+                    else -> "Please enter a valid email address"
+                },
                 onFocusChanged = {
-                    isFocused->
+                        isFocused->
                     if(!isFocused){
                         emailTouched=true
                     }
-                }
+                },
             )
             Spacer(modifier=Modifier.height(3.dp))
             TextFieldComponent(
@@ -107,17 +110,42 @@ fun StaffLoginScreen(
                 label="Password",
                 keyboardType= KeyboardType.Password,
                 visualTransformation = PasswordVisualTransformation(),
-                isError = passwordTouched&&password.isBlank(),
-                errorMessage = "Password cannot be empty"
+                isError = passwordTouched&&passwordIsInvalid,
+                errorMessage = when {
+                    password.isBlank() ->
+                        "Password cannot be empty"
+
+                    password.length < 8 ->
+                        "Password must be at least 8 characters"
+
+                    password.none { it.isUpperCase() } ->
+                        "Password must contain an uppercase letter"
+
+                    password.none { it.isDigit() } ->
+                        "Password must contain a number"
+
+                    password.none { !it.isLetterOrDigit() } ->
+                        "Password must contain a special character"
+
+                    else ->
+                        null
+                },
+                prefix="",
+                onFocusChanged = { isFocused ->
+                    if (!isFocused) {
+                        passwordTouched = true
+                    }
+                }
             )
             Spacer(modifier=Modifier.height(18.dp))
             AuthButton(
                 text="Log In",
                 onClick = {
-                    onLoginClick(
-                        email,
-                        password
-                    )
+                    emailTouched = true
+                    passwordTouched = true
+                    if (!emailIsInvalid && !passwordIsInvalid) {
+                        onLoginClick(email, password)
+                    }
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))

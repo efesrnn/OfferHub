@@ -40,6 +40,7 @@ fun TextFieldComponent(
     value:String,
     onValueChange:(String)->Unit,
     label:String,
+    prefix:String,
     keyboardType: KeyboardType= KeyboardType.Text,
     visualTransformation: VisualTransformation= VisualTransformation.None,
     isError: Boolean=false,
@@ -49,9 +50,14 @@ fun TextFieldComponent(
 {
  OutlinedTextField(
      value=value,
-     onValueChange=onValueChange,  //?
+     onValueChange = onValueChange,
      label={
          Text(text=label)
+     },
+     prefix = {
+         if (prefix.isNotEmpty()) {
+             Text(text = prefix)
+         }
      },
      keyboardOptions = KeyboardOptions(
          keyboardType=keyboardType
@@ -66,7 +72,6 @@ fun TextFieldComponent(
      },
      singleLine=true,  //?
      modifier=Modifier.fillMaxWidth()
-
  )
 }
 
@@ -94,67 +99,8 @@ fun AuthButton(   text:String,
                 fontWeight = FontWeight.Bold)
         }
     }
-
 }
 
-@Composable
-fun gsmTextFieldComponent(
-    value: String,
-    onValueChange:(String)->Unit,
-    isError: Boolean=false,
-    errorMessage: String?=null
-) {
-    OutlinedTextField(
-        value=value,
-        onValueChange={ newValue->
-
-            val digitsOnly=newValue.filter{it.isDigit()}
-            if(digitsOnly.length<=10)
-            {
-                onValueChange(digitsOnly)
-            }
-        },
-        label={ Text("GSM")},
-        prefix={Text("+90 ")},
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Phone
-        ),
-        isError=isError,
-        supportingText = {
-            if(isError&&errorMessage !=null){
-                Text(errorMessage)
-            }
-        },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth()
-    )
-
-}
-@Composable
-fun EmailTextFieldComponent(
-    value: String,
-    onValueChange: (String) -> Unit,
-    emailTouched: Boolean,
-    onFocusChanged: (Boolean) -> Unit,
-    required:Boolean=true
-) {
-    val emailIsInvalid =
-        value.isBlank() ||
-                !Patterns.EMAIL_ADDRESS.matcher(value).matches()
-
-    TextFieldComponent(
-        value = value,
-        onValueChange = onValueChange,
-        label = "Email",
-        keyboardType = KeyboardType.Email,
-        onFocusChanged = onFocusChanged,
-        isError = emailTouched && emailIsInvalid,
-        errorMessage = when {
-            value.isBlank() -> "Email cannot be empty"
-            else -> "Please enter a valid email address"
-        }
-    )
-}
 @Composable
 fun ClickableText(text:String,
     onClick: () -> Unit

@@ -34,6 +34,7 @@ fun OtpVerificationScreen(
     onResendClick:()->Unit
 )
 {
+
     Surface(
         color=Color.White,
         modifier=Modifier
@@ -69,12 +70,14 @@ fun OtpVerificationScreen(
                     }
                 },
                 label = "OTP Code",
-                keyboardType = KeyboardType.Number
+                keyboardType = KeyboardType.Number,
+                prefix=""
             )
             Spacer(modifier = Modifier.height(18.dp))
             AuthButton(
                 text = "Verify",
                 onClick = {
+
                     onVerifyClick(otp)
                 }
             )
