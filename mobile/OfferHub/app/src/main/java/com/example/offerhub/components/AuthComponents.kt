@@ -4,6 +4,7 @@ import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -124,5 +125,33 @@ fun ClickableText(text:String,
         }
     )
 }
+
+@Composable
+fun PasswordRequirements(
+    password: String
+) {
+    val isValid =
+        password.length >= 8 &&
+                password.any { it.isUpperCase() } &&
+                password.any { it.isDigit() } &&
+                password.any { !it.isLetterOrDigit() }
+
+    Text(
+        text = if (isValid) {
+            "✓ Your password meets the requirements"
+        } else {
+            "ⓘ Your password must be at least 8 characters and include an uppercase letter, a number, and a special character."
+        },
+        fontSize = 12.sp,
+        color = if (isValid) {
+            Color(0xFF2E7D32)
+        } else {
+            Color.Gray
+        }
+    )
+}
+
+
+
 
 

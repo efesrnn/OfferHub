@@ -32,6 +32,7 @@ import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
+import com.example.offerhub.components.PasswordRequirements
 
 fun isPasswordValid(password: String): Boolean {
     return password.length >= 8 &&
@@ -115,17 +116,8 @@ fun StaffLoginScreen(
                     password.isBlank() ->
                         "Password cannot be empty"
 
-                    password.length < 8 ->
-                        "Password must be at least 8 characters"
-
-                    password.none { it.isUpperCase() } ->
-                        "Password must contain an uppercase letter"
-
-                    password.none { it.isDigit() } ->
-                        "Password must contain a number"
-
-                    password.none { !it.isLetterOrDigit() } ->
-                        "Password must contain a special character"
+                    !isPasswordValid(password) ->
+                        "ⓘ Password must be at least 8 characters and include an uppercase letter, a number, and a special character."
 
                     else ->
                         null
