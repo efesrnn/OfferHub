@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.offerhub.app.OfferHubApp
 import com.example.offerhub.ui.theme.OfferHubTheme
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

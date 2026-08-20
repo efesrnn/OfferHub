@@ -15,7 +15,8 @@ import com.example.offerhub.screens.auth.SplashScreen
 import com.example.offerhub.screens.auth.StaffLoginScreen
 import com.example.offerhub.screens.auth.SubscriberLoginScreen
 import com.example.offerhub.screens.auth.SubscriberRegisterScreen
-
+import com.example.offerhub.data.model.Campaign
+import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
 @Composable
 fun AppNavigation()
 {
@@ -25,6 +26,40 @@ fun AppNavigation()
         navController=navController,
         startDestination=Routes.SPLASH
     ){
+        composable(Routes.SUBSCRIBER_HOME) {
+
+            val mockCampaigns = listOf(
+                Campaign(
+                    campaignId = "1",
+                    title = "20 GB Internet",
+                    description = "Personalized offer for you.",
+                    price = 249.90
+                ),
+                Campaign(
+                    campaignId = "2",
+                    title = "Social Media Plus",
+                    description = "More data for your favorite apps.",
+                    price = 199.90
+                ),
+                Campaign(
+                    campaignId = "3",
+                    title = "Weekend Package",
+                    description = "Extra internet for weekends.",
+                    price = 129.90
+                )
+            )
+
+            SubscriberHomeScreen(
+                firstName = "Test",
+                campaigns = mockCampaigns,
+                onCampaignClick = { campaignId ->
+
+                },
+                onAcceptedCampaignsClick={
+                    navController.navigate(Routes.ACCEPTED_CAMPAIGNS)
+                }
+            )
+        }
         composable(Routes.SPLASH){
             SplashScreen(
                 onSplashFinished = {
@@ -125,7 +160,7 @@ fun AppNavigation()
 
                 onVerifyClick = { otp ->
 
-                    // Daha sonra ViewModel üzerinden OTP doğrulanacak.
+                    navController.navigate(Routes.SUBSCRIBER_HOME)
                 },
                 onResendClick = {
                     // Daha sonra API üzerinden OTP tekrar gönderilecek.
