@@ -45,6 +45,6 @@ public class Subscriber {
     @Column(updatable = false)
     private Instant createdAt;
 
-    private String otpCode;
+    private String otpCodeHash;
     private Instant otpExpiresAt;
 }

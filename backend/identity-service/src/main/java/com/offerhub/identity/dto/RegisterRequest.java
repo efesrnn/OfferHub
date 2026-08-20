@@ -10,4 +10,5 @@ public class RegisterRequest {
     private String lastName;
     private String phone;
     private String email;
+    private AuthMode authMode;
 }
