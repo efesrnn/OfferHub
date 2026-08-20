@@ -44,4 +44,7 @@ public class Subscriber {
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;
+
+    private String otpCode;
+    private Instant otpExpiresAt;
 }

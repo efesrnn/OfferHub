@@ -1,8 +1,6 @@
 # Compiled class file
 *.class
 
-*.idea
-
 # Log file
 *.log
 
@@ -24,3 +22,30 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# --- Maven build ciktisi (her servisin target/ klasoru) ---
+target/
+
+# --- IntelliJ IDEA (kisiye/makineye ozel, asla ortak olmamali) ---
+.idea/
+*.iml
+out/
+
+# --- VS Code (ekipte kullanan olursa) ---
+.vscode/
+
+# --- Isletim sistemi ciplak dosyalari ---
+.DS_Store
+Thumbs.db
+
+# --- Gercek gizli degerler (API key, sifre vb.) - asla commit edilmez ---
+.env
+.env.*
+!.env.example
+
+# --- Android/Kotlin (mobile/) ---
+.gradle/
+build/
+.cxx/
+captures/
+local.properties
