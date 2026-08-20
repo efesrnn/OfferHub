@@ -53,7 +53,7 @@ fun AuthChoiceScreen(
             Image(
                 painter= painterResource(R.drawable.logo),
                 contentDescription="OfferHub Logo",
-                modifier=Modifier.size(100.dp)
+                modifier=Modifier.size(150.dp)
             )
             Spacer(modifier= Modifier.height(24.dp))
             Text(

@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,7 +44,7 @@ import com.example.offerhub.data.model.Campaign
 import com.example.offerhub.navigation.Routes
 import com.example.offerhub.navigation.AppNavigation
 
-@OptIn(ExperimentalMaterial3Api::class)
+//@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscriberHomeScreen(
     firstName:String,
@@ -79,107 +81,112 @@ fun SubscriberHomeScreen(
         }
     ) { innerPadding ->
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            contentPadding = PaddingValues(
+                top = 20.dp,
+                bottom = 24.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Spacer(modifier = Modifier.height(18.dp))
-            Text(
-                text = "Hello, $firstName",
-                color=Color.Black,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
 
-            Spacer(
-                modifier = Modifier.height(24.dp)
-            )
-
-            Text(
-                text = "Recommended for you",
-                fontSize = 20.sp,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
-
-            Spacer(
-                modifier = Modifier.height(28.dp)
-            )
-            LazyRow(
-                state = listState,
-                flingBehavior = flingBehavior,
-                contentPadding = PaddingValues(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                items(campaigns) { campaign ->
-                    CampaignCard(
-                        campaign = campaign,
-                        onClick = {
-                            onCampaignClick(campaign.campaignId)
-                        }
-                    )
-                }
-            }
-            Spacer(modifier=Modifier.height(28.dp))
-            Text(
-                text="Your Campaigns",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold ,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
-            Spacer(modifier=Modifier.height(18.dp))
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .height(120.dp)
-                    .clickable {
-                        onAcceptedCampaignsClick()
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF4F6FF)
+            item {
+                Text(
+                    text = "Hello, $firstName",
+                    color = Color.Black,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
+            }
 
-            ) {
+            item {
+                Text(
+                    text = "Recommended for you",
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
 
-                Column(
-                    modifier = Modifier.padding(20.dp)
+            item {
+                LazyRow(
+                    state = listState,
+                    flingBehavior = flingBehavior,
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-
-                    Text(
-                        text = "Accepted campaigns",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "View the offers you have accepted",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                    items(campaigns) { campaign ->
+                        CampaignCard(
+                            campaign = campaign,
+                            onClick = {
+                                onCampaignClick(campaign.campaignId)
+                            }
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(34.dp))
+            item {
+                Text(
+                    text = "Your Campaigns",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
 
-            Text(
-                text = "Recently rated",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .height(120.dp)
+                        .clickable {
+                            onAcceptedCampaignsClick()
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp)
+                    ) {
+                        Text(
+                            text = "Accepted campaigns",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
 
-            Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
 
-            Text(
-                text = "No rated campaigns yet",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
+                        Text(
+                            text = "View the offers you have accepted",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            }
+
+            item {
+                Text(
+                    text = "Recently rated",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+
+            item {
+                Text(
+                    text = "No rated campaigns yet",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
         }
     }
 }

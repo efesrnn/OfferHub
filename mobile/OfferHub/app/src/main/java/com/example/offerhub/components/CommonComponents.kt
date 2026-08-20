@@ -83,11 +83,11 @@ fun OfferHubTopBar(
                verticalAlignment = Alignment.CenterVertically,
            ) {
                Image(
-                   painter = painterResource(R.drawable.logo),
+                   painter = painterResource(R.drawable.logo_white),
                    contentDescription = "OfferHub Logo",
-                   modifier = Modifier.size(34.dp)
+                   modifier = Modifier.size(57.dp)
                )
-               Spacer(modifier=Modifier.width(7.dp))
+               Spacer(modifier=Modifier.width(3.dp))
                Text(
                    text = title,
                    fontSize = 27.sp,

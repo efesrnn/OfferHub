@@ -45,7 +45,7 @@ fun SplashScreen(
             Image(
                 painter = painterResource(R.drawable.logo),
                 contentDescription = "OfferHub Logo",
-                modifier = Modifier.size(120.dp)
+                modifier = Modifier.size(150.dp)
             )
             Spacer(modifier = Modifier.height(18.dp))
             Text(
