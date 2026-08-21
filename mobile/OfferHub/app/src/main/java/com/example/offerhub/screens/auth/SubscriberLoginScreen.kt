@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,11 +37,8 @@ fun SubscriberLoginScreen(
 )
 {
     Surface(
-        color=Color.White,
-        modifier= Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal=32.dp,vertical=60.dp)
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     )
     {
         var gsm by remember {
@@ -50,9 +49,16 @@ fun SubscriberLoginScreen(
             mutableStateOf(false)
         }
         Column(
-            modifier= Modifier.fillMaxSize(),
-            horizontalAlignment= Alignment.CenterHorizontally,
-            verticalArrangement= Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(
+                    horizontal = 32.dp,
+                    vertical = 24.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+
         ){
             Text(
                 text="Welcome back",

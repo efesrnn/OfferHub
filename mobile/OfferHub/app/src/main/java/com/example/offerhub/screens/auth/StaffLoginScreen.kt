@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,11 +55,8 @@ fun StaffLoginScreen(
 )
 {
     Surface(
-        color=Color.White,
-        modifier= Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal = 32.dp,vertical=60.dp)
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     )
     {
         var email by remember{ mutableStateOf("") }
@@ -66,11 +65,18 @@ fun StaffLoginScreen(
         val emailIsInvalid=email.isBlank()||!Patterns.EMAIL_ADDRESS.matcher(email).matches()
         var emailTouched by remember { mutableStateOf(false) }
        val passwordIsInvalid= password.isBlank()||!isPasswordValid(password)
-        Column(
-            modifier=Modifier.fillMaxSize(),
-            horizontalAlignment=Alignment.CenterHorizontally,
-            verticalArrangement= Arrangement.Center
-        ){
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .safeDrawingPadding()
+                    .padding(
+                        horizontal = 32.dp,
+                        vertical = 24.dp
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+
+            ){
             Text(
                 text="Welcome back",
                 fontSize=27.sp,

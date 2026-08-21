@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,50 +48,68 @@ fun OfferCard(
         modifier = Modifier
             .width(300.dp)
             .height(150.dp)
-            .clickable { onClick() },
+            .clickable(onClick = onClick),
+
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor =
+                MaterialTheme.colorScheme.surfaceContainerHigh,
+
+            contentColor =
+                MaterialTheme.colorScheme.onSurface
         )
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-
             Text(
                 text = offer.title,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color =
+                    MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
 
             Text(
                 text = offer.campaignNo,
                 fontSize = 13.sp,
-                color = Color.Gray
+                color =
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = 0.75f
+                    )
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(
+                modifier = Modifier.weight(1f)
+            )
 
             if (offer.highlighted) {
                 Text(
                     text = "Recommended",
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
             if (isAccepted) {
                 Text(
                     text = "Accepted",
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
 
             if (rating != null) {
                 Text(
-                    text = "★".repeat(rating) +
-                            "☆".repeat(5 - rating),
-                    fontSize = 18.sp
+                    text =
+                        "★".repeat(rating) +
+                                "☆".repeat(5 - rating),
+
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

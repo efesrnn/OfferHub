@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.ui.graphics.Color
 
 @Composable
@@ -95,58 +96,87 @@ fun OfferHubBottomBar(
     onOffersClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+    val itemColors =
+        NavigationBarItemDefaults.colors(
+            selectedIconColor =
+                MaterialTheme.colorScheme.onSecondaryContainer,
+
+            selectedTextColor =
+                MaterialTheme.colorScheme.onSurface,
+
+            indicatorColor =
+                MaterialTheme.colorScheme.secondaryContainer,
+
+            unselectedIconColor =
+                MaterialTheme.colorScheme.onSurfaceVariant,
+
+            unselectedTextColor =
+                MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+    NavigationBar(
+        modifier = Modifier.fillMaxWidth(),
+
+        containerColor =
+            MaterialTheme.colorScheme.surface,
+
+        contentColor =
+            MaterialTheme.colorScheme.onSurface
     ) {
+        NavigationBarItem(
+            selected = selectedItem == "home",
+            onClick = onHomeClick,
+            colors = itemColors,
 
-        NavigationBar(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home"
+                )
+            },
 
-            NavigationBarItem(
-                selected = selectedItem == "home",
-                onClick = onHomeClick,
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "Home"
-                    )
-                },
-                label = {
-                    Text("Home")
-                }
-            )
+            label = {
+                Text(text = "Home")
+            }
+        )
 
-            NavigationBarItem(
-                selected = selectedItem == "offers",
-                onClick = onOffersClick,
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.LocalOffer,
-                        contentDescription = "Offers"
-                    )
-                },
-                label = {
-                    Text("Offers")
-                }
-            )
+        NavigationBarItem(
+            selected = selectedItem == "offers",
+            onClick = onOffersClick,
+            colors = itemColors,
 
-            NavigationBarItem(
-                selected = selectedItem == "profile",
-                onClick = onProfileClick,
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile"
-                    )
-                },
-                label = {
-                    Text("Profile")
-                }
-            )
-        }
+            icon = {
+                Icon(
+                    imageVector =
+                        Icons.Default.LocalOffer,
+
+                    contentDescription = "Offers"
+                )
+            },
+
+            label = {
+                Text(text = "Offers")
+            }
+        )
+
+        NavigationBarItem(
+            selected = selectedItem == "profile",
+            onClick = onProfileClick,
+            colors = itemColors,
+
+            icon = {
+                Icon(
+                    imageVector =
+                        Icons.Default.Person,
+
+                    contentDescription = "Profile"
+                )
+            },
+
+            label = {
+                Text(text = "Profile")
+            }
+        )
     }
 }
 

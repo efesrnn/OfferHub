@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -42,11 +44,8 @@ fun OtpVerificationScreen(
 {
 
     Surface(
-        color=Color.White,
-        modifier=Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal=32.dp,vertical=60.dp)
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     )
     {
         var otp by remember { mutableStateOf("") }
@@ -63,10 +62,15 @@ fun OtpVerificationScreen(
         // Firebase mode only validates OTP format locally.
         // Real Firebase/backend verification will be connected later.
         Column(
-            modifier= Modifier
-                .fillMaxSize() ,
-            horizontalAlignment=Alignment.CenterHorizontally,
-            verticalArrangement= Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(
+                    horizontal = 32.dp,
+                    vertical = 24.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ){
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,8 +45,8 @@ fun SubscriberRegisterScreen(
 ){
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.White
-    ) {
+        color = MaterialTheme.colorScheme.background
+    ){
         var firstName by remember{ mutableStateOf("") }
         var lastName by remember {mutableStateOf("")}
         var gsm by remember {mutableStateOf("")}
@@ -63,13 +65,14 @@ fun SubscriberRegisterScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .safeDrawingPadding()
                 .padding(
                     horizontal = 32.dp,
-                    vertical = 48.dp
+                    vertical = 24.dp
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
+
         ){
             Text(
                 text="Create an Account",
