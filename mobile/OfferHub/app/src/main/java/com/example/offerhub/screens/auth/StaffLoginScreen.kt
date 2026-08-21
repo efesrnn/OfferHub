@@ -45,7 +45,10 @@ fun StaffLoginScreen(
     onLoginClick: (
         email: String,
         password: String
-    ) -> Unit
+    ) -> Unit,
+    isLoading: Boolean = false,
+    backendError: String? = null,
+    lockRemainingSeconds: Long = 0
     /*onForgotClick:()->*/
 )
 {
@@ -130,8 +133,18 @@ fun StaffLoginScreen(
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))
+            if (backendError != null) {
+                Text(text = backendError, color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                if (lockRemainingSeconds > 0) {
+                    val minutes = lockRemainingSeconds / 60
+                    val seconds = lockRemainingSeconds % 60
+                    Text(text = "Tekrar deneme: %02d:%02d".format(minutes, seconds))
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
             AuthButton(
-                text="Log In",
+                text=if (isLoading) "Signing in..." else "Log In",
+                enabled = !isLoading && lockRemainingSeconds == 0L,
                 onClick = {
                     emailTouched = true
                     passwordTouched = true

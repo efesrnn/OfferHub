@@ -45,8 +45,7 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun OfferHubTopBar(
-    title: String = "OfferHub",
-    onMenuClick:()->Unit
+    title: String = "OfferHub"
 ) {
     Column(
         modifier = Modifier
@@ -68,24 +67,13 @@ fun OfferHubTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(
-                onClick = onMenuClick
-            )
-            {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu",
-                    tint = Color.White
-                )
-            }
-            Spacer(modifier=Modifier.width(18.dp))
            Row(
                verticalAlignment = Alignment.CenterVertically,
            ) {
                Image(
                    painter = painterResource(R.drawable.logo_white),
                    contentDescription = "OfferHub Logo",
-                   modifier = Modifier.size(57.dp)
+                   modifier = Modifier.size(50.dp)
                )
                Spacer(modifier=Modifier.width(3.dp))
                Text(

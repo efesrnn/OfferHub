@@ -8,6 +8,9 @@ object Routes{
     const val SUBSCRIBER_REGISTER="subscriber_register"
     const val OTP_VERIFICATION="otp_verification"
     const val OTP_VERIFICATION_WITH_PHONE="otp_verification/{phoneNumber}"
-    const val SUBSCRIBER_HOME="sbscriber_home"
+    const val SUBSCRIBER_HOME="subscriber_home"
     const val ACCEPTED_CAMPAIGNS = "accepted_campaigns"
+    const val EXPERT_HOME = "expert_home"
+    const val SUPERVISOR_HOME = "supervisor_home"
+    const val ADMIN_HOME = "admin_home"
 }

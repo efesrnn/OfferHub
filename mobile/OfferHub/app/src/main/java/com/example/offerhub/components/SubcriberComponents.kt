@@ -3,6 +3,7 @@ package com.example.offerhub.components
 import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,18 +34,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
 import com.example.offerhub.data.model.Campaign
+import com.example.offerhub.data.model.Offer
 import com.example.offerhub.ui.theme.Primary
 import com.example.offerhub.ui.theme.Secondary
 
 @Composable
-fun CampaignCard(campaign: Campaign,
-                 onClick:()->Unit)
-{
+fun OfferCard(
+    offer: Offer,
+    onClick: () -> Unit,
+    isAccepted: Boolean = false,
+    rating: Int? = null
+) {
     Card(
         modifier = Modifier
             .width(300.dp)
-            .height(210.dp),
-        onClick = onClick,
+            .height(150.dp)
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
@@ -54,30 +59,42 @@ fun CampaignCard(campaign: Campaign,
         ) {
 
             Text(
-                text = campaign.title,
-                fontSize = 22.sp,
+                text = offer.title,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = campaign.description,
-                fontSize = 15.sp
+                text = offer.campaignNo,
+                fontSize = 13.sp,
+                color = Color.Gray
             )
 
-            Spacer(
-                modifier = Modifier.height(18.dp)
-            )
+            Spacer(modifier = Modifier.weight(1f))
 
-            Text(
-                text = "${campaign.price} TL",
-                fontSize = 19.sp,
-                fontWeight = FontWeight.Bold
-            )
+            if (offer.highlighted) {
+                Text(
+                    text = "Recommended",
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            if (isAccepted) {
+                Text(
+                    text = "Accepted",
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            if (rating != null) {
+                Text(
+                    text = "★".repeat(rating) +
+                            "☆".repeat(5 - rating),
+                    fontSize = 18.sp
+                )
+            }
         }
     }
 }
-

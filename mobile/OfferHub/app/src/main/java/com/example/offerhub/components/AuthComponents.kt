@@ -77,11 +77,15 @@ fun TextFieldComponent(
 }
 
 @Composable
-fun AuthButton(   text:String,
-                  onClick:()->Unit)
+fun AuthButton(
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+)
 {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp),

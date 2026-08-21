@@ -37,7 +37,9 @@ fun SubscriberRegisterScreen(
         gsm: String,
         email: String
     ) -> Unit,
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
+    isLoading: Boolean = false,
+    backendError: String? = null
 ){
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -87,8 +89,8 @@ fun SubscriberRegisterScreen(
                 label="First Name",
                 prefix = "",
                 keyboardType = KeyboardType.Text,
-            isError=firstNameTouched&&firstNameIsInvalid,
-            errorMessage="First name cannot be empty",
+            isError=lastNameTouched&&lastNameIsInvalid,
+            errorMessage="Last name cannot be empty",
             onFocusChanged= { isFocused ->
                 if (!isFocused) {
                     firstNameTouched = true
@@ -107,7 +109,7 @@ fun SubscriberRegisterScreen(
             onFocusChanged={isFocused->
                 if(!isFocused)
                 {
-                    firstNameTouched=true
+                        lastNameTouched=true
                 }
             })
             Spacer(modifier=Modifier.height(3.dp))
@@ -162,8 +164,13 @@ fun SubscriberRegisterScreen(
                 },
             )
             Spacer(modifier=Modifier.height(18.dp))
+            if (backendError != null) {
+                Text(text = backendError, color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.height(12.dp))
+            }
             AuthButton(
-                text="Register",
+                text=if (isLoading) "Registering..." else "Register",
+                enabled = !isLoading,
                 onClick = {
                     firstNameTouched=true
                     lastNameTouched=true

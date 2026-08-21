@@ -35,7 +35,9 @@ import com.example.offerhub.components.TextFieldComponent
 fun OtpVerificationScreen(
     phoneNumber: String,
     onVerifyClick:(otp:String,useFirebase: Boolean)->Unit,
-    onResendClick:()->Unit
+    onResendClick:()->Unit,
+    isLoading: Boolean = false,
+    backendError: String? = null
 )
 {
 
@@ -131,8 +133,13 @@ fun OtpVerificationScreen(
                 }
             )
             Spacer(modifier = Modifier.height(18.dp))
+            if (backendError != null) {
+                Text(text = backendError, color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.height(12.dp))
+            }
             AuthButton(
-                text = "Verify",
+                text = if (isLoading) "Verifying..." else "Verify",
+                enabled = !isLoading,
                 onClick = {
                     otpTouched = true
 

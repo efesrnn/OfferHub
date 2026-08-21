@@ -1,81 +1,70 @@
 package com.example.offerhub.screens.subscriber
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.offerhub.R
-import com.example.offerhub.components.CampaignCard
+import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.OfferHubBottomBar
 import com.example.offerhub.components.OfferHubTopBar
-import com.example.offerhub.data.model.Campaign
-import com.example.offerhub.navigation.Routes
-import com.example.offerhub.navigation.AppNavigation
+import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.RatedOffer
 
-//@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun SubscriberHomeScreen(
-    firstName:String,
-    campaigns:List<Campaign>,
-    onCampaignClick:(String)->Unit,
-    onAcceptedCampaignsClick:()-> Unit
+    firstName: String,
+    recommendedOffers: List<Offer>,
+    acceptedOffers: List<Offer>,
+    ratedOffers: List<RatedOffer>,
+    onOfferClick: (String) -> Unit
 ) {
-    val listState = rememberLazyListState()
-    val flingBehavior = rememberSnapFlingBehavior(
-        lazyListState = listState
+
+    val recommendedState = rememberLazyListState()
+    val acceptedState = rememberLazyListState()
+    val ratedState = rememberLazyListState()
+
+    val recommendedFling = rememberSnapFlingBehavior(
+        lazyListState = recommendedState
     )
+
+    val acceptedFling = rememberSnapFlingBehavior(
+        lazyListState = acceptedState
+    )
+
+    val ratedFling = rememberSnapFlingBehavior(
+        lazyListState = ratedState
+    )
+
     Scaffold(
         topBar = {
-            OfferHubTopBar(
-                onMenuClick = {
-                    // menu sonra
-                }
-            )
+            OfferHubTopBar()
         },
 
         bottomBar = {
             OfferHubBottomBar(
                 selectedItem = "home",
                 onHomeClick = {
-                    // zaten home
+                    // zaten Home ekranındayız
                 },
                 onOffersClick = {
-                    // Offers'a git
+                    // Offers navigation sonra bağlanacak
                 },
                 onProfileClick = {
-                    // Profile'a git
+                    // Profile navigation sonra bağlanacak
                 }
             )
         }
@@ -85,91 +74,89 @@ fun SubscriberHomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
+
             contentPadding = PaddingValues(
                 top = 20.dp,
-                bottom = 24.dp
+                bottom = 20.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
             item {
                 Text(
                     text = "Hello, $firstName",
-                    color = Color.Black,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
             }
 
+
+            // RECOMMENDED OFFERS
             item {
                 Text(
                     text = "Recommended for you",
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-            }
-
-            item {
-                LazyRow(
-                    state = listState,
-                    flingBehavior = flingBehavior,
-                    contentPadding = PaddingValues(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    items(campaigns) { campaign ->
-                        CampaignCard(
-                            campaign = campaign,
-                            onClick = {
-                                onCampaignClick(campaign.campaignId)
-                            }
-                        )
-                    }
-                }
-            }
-
-            item {
-                Text(
-                    text = "Your Campaigns",
-                    fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
             }
 
             item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .height(120.dp)
-                        .clickable {
-                            onAcceptedCampaignsClick()
-                        },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                LazyRow(
+                    state = recommendedState,
+                    flingBehavior = recommendedFling,
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp)
-                    ) {
-                        Text(
-                            text = "Accepted campaigns",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                    items(recommendedOffers) { offer ->
 
-                        Text(
-                            text = "View the offers you have accepted",
-                            fontSize = 14.sp,
-                            color = Color.Gray
+                        OfferCard(
+                            offer = offer,
+                            onClick = {
+                                onOfferClick(offer.offerId)
+                            }
                         )
                     }
                 }
             }
 
+
+            // ACCEPTED OFFERS
+            item {
+                Text(
+                    text = "Accepted campaigns",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+
+            item {
+                LazyRow(
+                    state = acceptedState,
+                    flingBehavior = acceptedFling,
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(18.dp)
+                ) {
+
+                    items(acceptedOffers) { offer ->
+
+                        OfferCard(
+                            offer = offer,
+                            onClick = {
+                                onOfferClick(offer.offerId)
+                            },
+                            isAccepted = true
+                        )
+                    }
+                }
+            }
+
+
+            // RECENTLY RATED
             item {
                 Text(
                     text = "Recently rated",
@@ -180,47 +167,88 @@ fun SubscriberHomeScreen(
             }
 
             item {
-                Text(
-                    text = "No rated campaigns yet",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
+                LazyRow(
+                    state = ratedState,
+                    flingBehavior = ratedFling,
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(18.dp)
+                ) {
+
+                    items(ratedOffers) { ratedOffer ->
+
+                        OfferCard(
+                            offer = ratedOffer.offer,
+                            onClick = {
+                                onOfferClick(
+                                    ratedOffer.offer.offerId
+                                )
+                            },
+                            rating = ratedOffer.rating
+                        )
+                    }
+                }
             }
         }
     }
 }
 
-    @Preview
-    @Composable
-    fun SubscriberHomeScreenPreview()
-    {
-        /*SubscriberHomeScreen()*/
-        val campaigns = listOf(
-            Campaign(
-                campaignId = "1",
-                title = "20 GB Internet",
-                description = "Personalized offer for you.",
-                price = 249.90
-            ),
-            Campaign(
-                campaignId = "2",
-                title = "Social Media Plus",
-                description = "More data for your favorite apps.",
-                price = 199.90
-            ),
-            Campaign(
-                campaignId = "3",
-                title = "Weekend Package",
-                description = "Extra internet for weekends.",
-                price = 129.90
-            )
+
+@Preview
+@Composable
+fun SubscriberHomeScreenPreview() {
+
+    val offers = listOf(
+        Offer(
+            offerId = "f1a2",
+            campaignNo = "CMP-2026-000123",
+            title = "Summer Extra Package",
+            score = 0.83,
+            highlighted = true,
+            status = "PENDING"
+        ),
+
+        Offer(
+            offerId = "f1a3",
+            campaignNo = "CMP-2026-000124",
+            title = "Social Media Plus",
+            score = 0.76,
+            highlighted = false,
+            status = "PENDING"
+        ),
+
+        Offer(
+            offerId = "f1a4",
+            campaignNo = "CMP-2026-000125",
+            title = "Weekend Internet",
+            score = 0.68,
+            highlighted = false,
+            status = "PENDING"
         )
+    )
 
-        SubscriberHomeScreen(
-            firstName = "A",
-            campaigns = campaigns,
-            onCampaignClick = { _ -> },
-            onAcceptedCampaignsClick = {})
-    }
+    val acceptedOffers = listOf(
+        Offer(
+            offerId = "f1a5",
+            campaignNo = "CMP-2026-000126",
+            title = "25 GB Internet",
+            score = 0.91,
+            highlighted = true,
+            status = "ACCEPTED"
+        )
+    )
 
+    val ratedOffers = listOf(
+        RatedOffer(
+            offer = acceptedOffers[0],
+            rating = 4
+        )
+    )
+
+    SubscriberHomeScreen(
+        firstName = "A",
+        recommendedOffers = offers,
+        acceptedOffers = acceptedOffers,
+        ratedOffers = ratedOffers,
+        onOfferClick = {}
+    )
+}
