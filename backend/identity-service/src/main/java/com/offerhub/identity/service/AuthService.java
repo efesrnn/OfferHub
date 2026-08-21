@@ -19,7 +19,7 @@ public class AuthService {
 
     public RegisterResponse register(RegisterRequest request) {
         if (subscriberRepository.findByPhone(request.getPhone()).isPresent()) {
-            throw new DuplicateResourceException("Bu telefon numarasi zaten kayitli");
+            throw new DuplicateResourceException("Bu telefon numarası zaten kayıtlı.");
         }
 
         Subscriber subscriber = new Subscriber();
@@ -49,7 +49,7 @@ public class AuthService {
         String verifiedPhone = strategy.verify(request.getPhone(), request.getCredential());
 
         Subscriber subscriber = subscriberRepository.findByPhone(verifiedPhone)
-                .orElseThrow(() -> new InvalidOtpException("Abone bulunamadi"));
+                .orElseThrow(() -> new InvalidOtpException("Abone bulunamadı"));
 
         return new OtpVerifyResponse(
                 subscriber.getId().toString(),

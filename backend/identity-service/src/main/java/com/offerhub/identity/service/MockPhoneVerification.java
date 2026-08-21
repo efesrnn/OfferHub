@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @RequiredArgsConstructor
-@Component
+@Component("MOCK")
 public class MockPhoneVerification implements PhoneVerificationStrategy {
 
     private final OtpSender otpSender;

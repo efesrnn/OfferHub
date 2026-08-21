@@ -9,9 +9,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  sms:
-    provider:
-      api-key: ${SMS_API_KEY:}
-      api-hash: ${SMS_API_HASH:}
 server:
   port: 8080
+sms:
+  provider:
+    api-key: ${SMS_API_KEY:}
+    api-hash: ${SMS_API_HASH:}
