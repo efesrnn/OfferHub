@@ -27,10 +27,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
-import com.example.offerhub.components.RoleButton
+import com.example.offerhub.components.AuthButton
+import com.example.offerhub.components.ClickableText
 
 @Composable
-fun AuthChoiceScreen()
+fun AuthChoiceScreen(
+    onSubscriberClick:()->Unit,
+    onStaffClick:()->Unit
+)
 {
     Surface(
         color=Color.White,
@@ -49,41 +53,40 @@ fun AuthChoiceScreen()
             Image(
                 painter= painterResource(R.drawable.logo),
                 contentDescription="OfferHub Logo",
-                modifier=Modifier.size(100.dp)
+                modifier=Modifier.size(150.dp)
             )
             Spacer(modifier= Modifier.height(24.dp))
             Text(
                 text = "Welcome to OfferHub",
-                fontSize = 30.sp,
+                fontSize = 27.sp,
                 //fontFamily,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Choose your role",
-                fontSize = 25.sp,
+                text = "How would you like to continue?",
+                fontSize = 18.sp,
                 //fontFamily,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Normal
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            RoleButton(
+            AuthButton(
                 text = "Subscriber",
-                onClick = {
-
-                }
+                onClick = onSubscriberClick
             )
             Spacer(modifier = Modifier.height(16.dp))
-            RoleButton(
+            AuthButton(
                 text = "Staff",
-                onClick = {
-
-                }
+                onClick = onStaffClick
             )
-            Spacer(modifier= Modifier.height(40.dp))     //Kaldırılabilir
-            Text(
-                text="Do you need help?"
+            Spacer(modifier= Modifier.height(18.dp))     //Kaldırılabilir
+            ClickableText(
+                text="Do you need help ↗",
+                onClick = {
+                    //
+                }
             )
         }
     }
@@ -93,5 +96,8 @@ fun AuthChoiceScreen()
 @Composable
 fun AuthChoicePreview()
 {
-    AuthChoiceScreen()
+    AuthChoiceScreen(
+        onSubscriberClick={},
+        onStaffClick={}
+    )
 }
