@@ -22,6 +22,7 @@ import com.example.offerhub.screens.auth.SubscriberLoginScreen
 import com.example.offerhub.screens.auth.SubscriberRegisterScreen
 import com.example.offerhub.screens.subscriber.OffersScreen
 import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
+import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
 import com.example.offerhub.viewModel.AuthViewModel
 
 @Composable
@@ -188,7 +189,7 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                         offer.status == "ACCEPTED"
                     },
 
-                ratedOffers = emptyList(),
+                ratedOffers = subscriberRatedOffers,
 
                 onOfferClick = { offerId ->
                     // Offer detail ekranını sonra bağlayacağız.
@@ -207,7 +208,11 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                 },
 
                 onProfileClick = {
-                    // Profile ekranını sonra bağlayacağız.
+                    navController.navigate(
+                        Routes.PROFILE
+                    ) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -240,12 +245,78 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                 },
 
                 onProfileClick = {
-                    // Profile route sonra bağlanacak.
+                    navController.navigate(
+                        Routes.PROFILE
+                    ) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        composable(Routes.PROFILE) {
+            SubscriberProfileScreen(
+                firstName = "Test",
+                lastName = "Subscriber",
+                phone = "+90 555 111 22 33",
+                email = "test@offerhub.com",
+
+                acceptedOfferCount =
+                    subscriberOffers.count { offer ->
+                        offer.status == "ACCEPTED"
+                    },
+
+                onRetryClick = {
+                    // Profile API bağlandığında
+                    // tekrar yükleme yapılacak.
+                },
+
+                onLogoutClick = {
+                    // Backend logout/token temizleme
+                    // bağlandığında ViewModel çağrılacak.
+
+                    navController.navigate(
+                        Routes.AUTH_CHOICE
+                    ) {
+                        popUpTo(
+                            Routes.SUBSCRIBER_HOME
+                        ) {
+                            inclusive = true
+                        }
+
+                        launchSingleTop = true
+                    }
+                },
+
+                onHomeClick = {
+                    navController.navigate(
+                        Routes.SUBSCRIBER_HOME
+                    ) {
+                        popUpTo(
+                            Routes.SUBSCRIBER_HOME
+                        ) {
+                            inclusive = false
+                        }
+
+                        launchSingleTop = true
+                    }
+                },
+
+                onOffersClick = {
+                    navController.navigate(
+                        Routes.OFFERS
+                    ) {
+                        launchSingleTop = true
+                    }
+                },
+
+                onProfileClick = {
+                    // Zaten Profile ekranındayız.
                 }
             )
         }
     }
 }
+
 
 
 

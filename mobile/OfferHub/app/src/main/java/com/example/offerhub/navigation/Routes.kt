@@ -14,4 +14,5 @@ object Routes{
     const val SUPERVISOR_HOME = "supervisor_home"
     const val ADMIN_HOME = "admin_home"
     const val OFFERS = "offers"
+    const val PROFILE ="subscriber_profile"
 }
