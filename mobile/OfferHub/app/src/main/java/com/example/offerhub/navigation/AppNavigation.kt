@@ -20,6 +20,7 @@ import com.example.offerhub.screens.auth.SplashScreen
 import com.example.offerhub.screens.auth.StaffLoginScreen
 import com.example.offerhub.screens.auth.SubscriberLoginScreen
 import com.example.offerhub.screens.auth.SubscriberRegisterScreen
+import com.example.offerhub.screens.subscriber.OffersScreen
 import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
 import com.example.offerhub.viewModel.AuthViewModel
 
@@ -27,7 +28,51 @@ import com.example.offerhub.viewModel.AuthViewModel
 fun AppNavigation(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val authState by authViewModel.uiState.collectAsState()
+    val subscriberOffers = listOf(
+        Offer(
+            offerId = "f1a2",
+            campaignNo = "CMP-2026-000123",
+            title = "20 GB Internet",
+            score = 0.83,
+            highlighted = true,
+            status = "PENDING"
+        ),
 
+        Offer(
+            offerId = "f1a3",
+            campaignNo = "CMP-2026-000124",
+            title = "Social Media Plus",
+            score = 0.76,
+            highlighted = false,
+            status = "PENDING"
+        ),
+
+        Offer(
+            offerId = "f1a4",
+            campaignNo = "CMP-2026-000125",
+            title = "Weekend Package",
+            score = 0.68,
+            highlighted = false,
+            status = "PENDING"
+        ),
+
+        Offer(
+            offerId = "f1a5",
+            campaignNo = "CMP-2026-000126",
+            title = "25 GB Internet",
+            score = 0.91,
+            highlighted = true,
+            status = "ACCEPTED"
+        )
+    )
+    val subscriberRatedOffers = listOf(
+        RatedOffer(
+            offer = subscriberOffers.first { offer ->
+                offer.offerId == "f1a5"
+            },
+            rating = 4
+        )
+    )
     LaunchedEffect(authState.otpReady, authState.pendingPhone) {
         if (authState.otpReady) {
             authState.pendingPhone?.let { phone ->
@@ -129,31 +174,80 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             )
         }
 
-        composable(Routes.SUBSCRIBER_HOME) { SubscriberHomeRoute() }
+        composable(Routes.SUBSCRIBER_HOME) {
+            SubscriberHomeScreen(
+                firstName = "Test",
+
+                recommendedOffers =
+                    subscriberOffers.filter { offer ->
+                        offer.status == "PENDING"
+                    },
+
+                acceptedOffers =
+                    subscriberOffers.filter { offer ->
+                        offer.status == "ACCEPTED"
+                    },
+
+                ratedOffers = emptyList(),
+
+                onOfferClick = { offerId ->
+                    // Offer detail ekranını sonra bağlayacağız.
+                },
+
+                onHomeClick = {
+                    // Zaten Home ekranındayız.
+                },
+
+                onOffersClick = {
+                    navController.navigate(
+                        Routes.OFFERS
+                    ) {
+                        launchSingleTop = true
+                    }
+                },
+
+                onProfileClick = {
+                    // Profile ekranını sonra bağlayacağız.
+                }
+            )
+        }
         composable(Routes.EXPERT_HOME) { RoleHomePlaceholder("Expert") }
         composable(Routes.SUPERVISOR_HOME) { RoleHomePlaceholder("Supervisor") }
         composable(Routes.ADMIN_HOME) { RoleHomePlaceholder("Admin") }
+        composable(Routes.OFFERS) {
+            OffersScreen(
+                offers = subscriberOffers,
+
+                onRetryClick = {
+                    // ViewModel bağlanınca tekrar yükleyecek
+                },
+
+                onOfferClick = { offerId ->
+                    // Offer Detail route sonra bağlanacak
+                },
+
+                onHomeClick = {
+                    navController.navigate(
+                        Routes.SUBSCRIBER_HOME
+                    ) {
+                        launchSingleTop = true
+                        popUpTo(Routes.SUBSCRIBER_HOME)
+                    }
+                },
+
+                onOffersClick = {
+                    // Zaten Offers ekranındayız.
+                },
+
+                onProfileClick = {
+                    // Profile route sonra bağlanacak.
+                }
+            )
+        }
     }
 }
 
-@Composable
-private fun SubscriberHomeRoute() {
-    val offers = listOf(
-        Offer("f1a2", "CMP-2026-000123", "20 GB Internet", 0.83, true, "PENDING"),
-        Offer("f1a3", "CMP-2026-000124", "Social Media Plus", 0.76, false, "PENDING"),
-        Offer("f1a4", "CMP-2026-000125", "Weekend Package", 0.68, false, "PENDING")
-    )
-    val acceptedOffers = listOf(
-        Offer("f1a5", "CMP-2026-000126", "25 GB Internet", 0.91, true, "ACCEPTED")
-    )
-    SubscriberHomeScreen(
-        firstName = "Test",
-        recommendedOffers = offers,
-        acceptedOffers = acceptedOffers,
-        ratedOffers = listOf(RatedOffer(acceptedOffers.first(), 4)),
-        onOfferClick = {}
-    )
-}
+
 
 @Composable
 private fun RoleHomePlaceholder(role: String) {

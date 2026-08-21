@@ -13,4 +13,5 @@ object Routes{
     const val EXPERT_HOME = "expert_home"
     const val SUPERVISOR_HOME = "supervisor_home"
     const val ADMIN_HOME = "admin_home"
+    const val OFFERS = "offers"
 }

@@ -31,7 +31,10 @@ fun SubscriberHomeScreen(
     recommendedOffers: List<Offer>,
     acceptedOffers: List<Offer>,
     ratedOffers: List<RatedOffer>,
-    onOfferClick: (String) -> Unit
+    onOfferClick: (String) -> Unit,
+    onHomeClick: () -> Unit,
+    onOffersClick: () -> Unit,
+    onProfileClick: () -> Unit
 ) {
 
     val recommendedState = rememberLazyListState()
@@ -63,15 +66,9 @@ fun SubscriberHomeScreen(
         bottomBar = {
             OfferHubBottomBar(
                 selectedItem = "home",
-                onHomeClick = {
-                    // zaten Home ekranındayız
-                },
-                onOffersClick = {
-                    // Offers navigation sonra bağlanacak
-                },
-                onProfileClick = {
-                    // Profile navigation sonra bağlanacak
-                }
+                onHomeClick = onHomeClick,
+                onOffersClick = onOffersClick,
+                onProfileClick = onProfileClick
             )
         }
     ) { innerPadding ->
@@ -255,6 +252,9 @@ fun SubscriberHomeScreenPreview() {
         recommendedOffers = offers,
         acceptedOffers = acceptedOffers,
         ratedOffers = ratedOffers,
-        onOfferClick = {}
+        onOfferClick = {},
+        onHomeClick = {},
+        onOffersClick = {},
+        onProfileClick = {}
     )
 }
