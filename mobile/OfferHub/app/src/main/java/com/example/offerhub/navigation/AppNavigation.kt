@@ -158,12 +158,17 @@ fun AppNavigation()
             OtpVerificationScreen(
                 phoneNumber = phoneNumber,
 
-                onVerifyClick = { otp ->
+                onVerifyClick = { otp, useFirebase ->
 
-                    navController.navigate(Routes.SUBSCRIBER_HOME)
+                    if (useFirebase) {
+                        // TODO: Firebase/backend OTP verification
+                    } else {
+                        // Mock OTP
+                        navController.navigate(Routes.SUBSCRIBER_HOME)
+                    }
                 },
                 onResendClick = {
-                    // Daha sonra API üzerinden OTP tekrar gönderilecek.
+                    // TODO: resend OTP
                 }
             )
         }

@@ -4,11 +4,15 @@ import android.R.attr.phoneNumber
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,7 +34,7 @@ import com.example.offerhub.components.TextFieldComponent
 @Composable
 fun OtpVerificationScreen(
     phoneNumber: String,
-    onVerifyClick:(String)->Unit,
+    onVerifyClick:(otp:String,useFirebase: Boolean)->Unit,
     onResendClick:()->Unit
 )
 {
@@ -45,14 +49,46 @@ fun OtpVerificationScreen(
     {
         var otp by remember { mutableStateOf("") }
         var otpTouched by remember { mutableStateOf(false) }
+        var useFirebase by remember { mutableStateOf(false) }
         val otpIsInvalid =
-            otp.isBlank() || otp.length != 4||otp!="1234"
+            if (useFirebase) {
+                otp.isBlank() || otp.length != 4
+            } else {
+                otp.length != 4 || otp != "1234"
+            }
+        // TODO:
+        // Mock mode uses fixed OTP "1234".
+        // Firebase mode only validates OTP format locally.
+        // Real Firebase/backend verification will be connected later.
         Column(
             modifier= Modifier
                 .fillMaxSize() ,
             horizontalAlignment=Alignment.CenterHorizontally,
             verticalArrangement= Arrangement.Center
         ){
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment=Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (useFirebase) "Firebase OTP" else "Mock OTP",
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(
+                    modifier = Modifier.width(8.dp)
+                )
+                Switch(
+                    checked = useFirebase,
+                    onCheckedChange = {
+                        useFirebase = it
+                        otp = ""
+                        otpTouched = false
+                    }
+                )
+            }
+            Spacer(modifier=Modifier.height(50.dp))
             Text(
                 text = "Verify your phone number",
                 fontSize = 27.sp,
@@ -87,8 +123,8 @@ fun OtpVerificationScreen(
                     otp.length < 4 ->
                         "OTP code must be 4 digits"
 
-                    otp != "1234" ->
-                        "Invalid OTP code"
+                    !useFirebase && otp != "1234" ->
+                        "Invalid mock OTP code"
 
                     else ->
                         null
@@ -101,7 +137,7 @@ fun OtpVerificationScreen(
                     otpTouched = true
 
                     if (!otpIsInvalid) {
-                        onVerifyClick(otp)
+                        onVerifyClick(otp,useFirebase)
                     }
                 }
             )
@@ -119,7 +155,7 @@ fun OtpVerificationPreview()
 {
     OtpVerificationScreen(
         phoneNumber="+90 *** *** ** **",
-        onVerifyClick = {_->},
+        onVerifyClick = {_,_->},
         onResendClick = {}
     )
 }
