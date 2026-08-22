@@ -1,56 +1,57 @@
 package com.example.offerhub.screens.subscriber
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.offerhub.components.NavigationActionCard
 import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.OfferHubBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.data.model.Offer
-import com.example.offerhub.data.model.RatedOffer
-
+import com.example.offerhub.data.model.OfferType
 
 @Composable
 fun SubscriberHomeScreen(
     firstName: String,
     recommendedOffers: List<Offer>,
-    acceptedOffers: List<Offer>,
-    ratedOffers: List<RatedOffer>,
+    latestAcceptedOffer: Offer?,
     onOfferClick: (String) -> Unit,
+    onCategoryClick: (OfferType) -> Unit,
+    onAcceptedOffersClick: () -> Unit,
+    onRatedOffersClick: () -> Unit,
     onHomeClick: () -> Unit,
     onOffersClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
 
     val recommendedState = rememberLazyListState()
-    val acceptedState = rememberLazyListState()
-    val ratedState = rememberLazyListState()
-
     val recommendedFling = rememberSnapFlingBehavior(
         lazyListState = recommendedState
-    )
-
-    val acceptedFling = rememberSnapFlingBehavior(
-        lazyListState = acceptedState
-    )
-
-    val ratedFling = rememberSnapFlingBehavior(
-        lazyListState = ratedState
     )
 
     Scaffold(
@@ -127,10 +128,10 @@ fun SubscriberHomeScreen(
             }
 
 
-            // ACCEPTED OFFERS
+            // RECENTLY ACCEPTED OFFERS
             item {
                 Text(
-                    text = "Accepted campaigns",
+                    text = "Recently accepted",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(horizontal = 24.dp)
@@ -138,68 +139,159 @@ fun SubscriberHomeScreen(
             }
 
             item {
-                LazyRow(
-                    state = acceptedState,
-                    flingBehavior = acceptedFling,
-                    contentPadding = PaddingValues(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(18.dp)
-                ) {
-
-                    items(acceptedOffers) { offer ->
-
-                        OfferCard(
-                            offer = offer,
-                            onClick = {
-                                onOfferClick(offer.offerId)
-                            },
-                            isAccepted = true
-                        )
-                    }
+                if (latestAcceptedOffer != null) {
+                    OfferCard(
+                        offer = latestAcceptedOffer,
+                        isAccepted = true,
+                        onClick = {
+                            onOfferClick(latestAcceptedOffer.offerId)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                    )
+                } else {
+                    Text(
+                        text = "You have not accepted an offer yet.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
                 }
             }
 
-
-            // RECENTLY RATED
             item {
                 Text(
-                    text = "Recently rated",
+                    text = "Quick actions",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
             }
 
             item {
                 LazyRow(
-                    state = ratedState,
-                    flingBehavior = ratedFling,
-                    contentPadding = PaddingValues(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(18.dp)
+                    contentPadding =
+                        PaddingValues(horizontal = 24.dp),
+
+                    horizontalArrangement =
+                        Arrangement.spacedBy(12.dp)
                 ) {
-
-                    items(ratedOffers) { ratedOffer ->
-
-                        OfferCard(
-                            offer = ratedOffer.offer,
+                    item {
+                        QuickActionCard(
+                            title = "Add-on Packages",
                             onClick = {
-                                onOfferClick(
-                                    ratedOffer.offer.offerId
+                                onCategoryClick(OfferType.ADD_ON)
+                            }
+                        )
+                    }
+
+                    item {
+                        QuickActionCard(
+                            title = "Tariff Upgrade",
+                            onClick = {
+                                onCategoryClick(
+                                    OfferType.TARIFF_UPGRADE
                                 )
-                            },
-                            rating = ratedOffer.rating
+                            }
+                        )
+                    }
+
+                    item {
+                        QuickActionCard(
+                            title = "Device Offers",
+                            onClick = {
+                                onCategoryClick(
+                                    OfferType.DEVICE_OFFER
+                                )
+                            }
+                        )
+                    }
+
+                    item {
+                        QuickActionCard(
+                            title = "Loyalty Offers",
+                            onClick = {
+                                onCategoryClick(OfferType.LOYALTY)
+                            }
                         )
                     }
                 }
             }
+
+            item {
+                Text(
+                    text = "Looking for something else?",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+
+            item {
+                Column(
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    NavigationActionCard(
+                        title = "My Accepted Offers",
+                        onClick = onAcceptedOffersClick
+                    )
+
+                    NavigationActionCard(
+                        title = "My Rated Offers",
+                        onClick = onRatedOffersClick
+                    )
+                }
+            }
+
+
         }
     }
 }
 
+@Composable
+private fun QuickActionCard(
+    title: String,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(160.dp)
+            .height(96.dp)
+            .clickable(onClick = onClick),
 
-@Preview
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceContainerHigh,
+
+            contentColor =
+                MaterialTheme.colorScheme.onSurface
+        ),
+
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
 @Composable
 fun SubscriberHomeScreenPreview() {
-
     val offers = listOf(
         Offer(
             offerId = "f1a2",
@@ -207,52 +299,50 @@ fun SubscriberHomeScreenPreview() {
             title = "Summer Extra Package",
             score = 0.83,
             highlighted = true,
-            status = "PENDING"
+            status = "PENDING",
+            type = OfferType.ADD_ON
         ),
 
         Offer(
             offerId = "f1a3",
             campaignNo = "CMP-2026-000124",
-            title = "Social Media Plus",
+            title = "Advantage Tariff",
             score = 0.76,
-            highlighted = false,
-            status = "PENDING"
+            highlighted = true,
+            status = "PENDING",
+            type = OfferType.TARIFF_UPGRADE
         ),
 
         Offer(
             offerId = "f1a4",
             campaignNo = "CMP-2026-000125",
-            title = "Weekend Internet",
+            title = "Device Discount",
             score = 0.68,
             highlighted = false,
-            status = "PENDING"
+            status = "PENDING",
+            type = OfferType.DEVICE_OFFER
         )
     )
 
-    val acceptedOffers = listOf(
+    val latestAcceptedOffer =
         Offer(
             offerId = "f1a5",
             campaignNo = "CMP-2026-000126",
             title = "25 GB Internet",
             score = 0.91,
             highlighted = true,
-            status = "ACCEPTED"
+            status = "ACCEPTED",
+            type = OfferType.ADD_ON
         )
-    )
-
-    val ratedOffers = listOf(
-        RatedOffer(
-            offer = acceptedOffers[0],
-            rating = 4
-        )
-    )
 
     SubscriberHomeScreen(
-        firstName = "A",
+        firstName = "Test",
         recommendedOffers = offers,
-        acceptedOffers = acceptedOffers,
-        ratedOffers = ratedOffers,
+        latestAcceptedOffer = latestAcceptedOffer,
         onOfferClick = {},
+        onCategoryClick = {},
+        onAcceptedOffersClick = {},
+        onRatedOffersClick = {},
         onHomeClick = {},
         onOffersClick = {},
         onProfileClick = {}

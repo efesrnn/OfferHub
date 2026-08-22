@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.OfferType
 import com.example.offerhub.data.model.RatedOffer
 import com.example.offerhub.screens.auth.AuthChoiceScreen
 import com.example.offerhub.screens.auth.OtpVerificationScreen
@@ -36,25 +37,28 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             title = "20 GB Internet",
             score = 0.83,
             highlighted = true,
-            status = "PENDING"
+            status = "PENDING",
+            type = OfferType.ADD_ON
         ),
 
         Offer(
             offerId = "f1a3",
             campaignNo = "CMP-2026-000124",
-            title = "Social Media Plus",
+            title = "Advantage Tariff",
             score = 0.76,
-            highlighted = false,
-            status = "PENDING"
+            highlighted = true,
+            status = "PENDING",
+            type = OfferType.TARIFF_UPGRADE
         ),
 
         Offer(
             offerId = "f1a4",
             campaignNo = "CMP-2026-000125",
-            title = "Weekend Package",
+            title = "Device Discount",
             score = 0.68,
             highlighted = false,
-            status = "PENDING"
+            status = "PENDING",
+            type = OfferType.DEVICE_OFFER
         ),
 
         Offer(
@@ -63,7 +67,18 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             title = "25 GB Internet",
             score = 0.91,
             highlighted = true,
-            status = "ACCEPTED"
+            status = "ACCEPTED",
+            type = OfferType.ADD_ON
+        ),
+
+        Offer(
+            offerId = "f1a6",
+            campaignNo = "CMP-2026-000127",
+            title = "Loyalty Gift",
+            score = 0.72,
+            highlighted = false,
+            status = "PENDING",
+            type = OfferType.LOYALTY
         )
     )
     val subscriberRatedOffers = listOf(
@@ -74,6 +89,13 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             rating = 4
         )
     )
+    val acceptedOffers =
+        subscriberOffers.filter { offer ->
+            offer.status == "ACCEPTED"
+        }
+
+    val latestAcceptedOffer =
+        acceptedOffers.lastOrNull()
     LaunchedEffect(authState.otpReady, authState.pendingPhone) {
         if (authState.otpReady) {
             authState.pendingPhone?.let { phone ->
@@ -184,33 +206,46 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                         offer.status == "PENDING"
                     },
 
-                acceptedOffers =
-                    subscriberOffers.filter { offer ->
-                        offer.status == "ACCEPTED"
-                    },
-
-                ratedOffers = subscriberRatedOffers,
+                latestAcceptedOffer = latestAcceptedOffer,
 
                 onOfferClick = { offerId ->
-                    // Offer detail ekranını sonra bağlayacağız.
+                    // ModalBottomSheet sonraki adımda bağlanacak.
                 },
 
-                onHomeClick = {
-                    // Zaten Home ekranındayız.
+                onCategoryClick = { offerType ->
+                    navController.navigate(Routes.OFFERS) {
+                        launchSingleTop = true
+                    }
                 },
 
-                onOffersClick = {
+                onAcceptedOffersClick = {
                     navController.navigate(
-                        Routes.OFFERS
+                        Routes.ACCEPTED_OFFERS
                     ) {
                         launchSingleTop = true
                     }
                 },
 
-                onProfileClick = {
+                onRatedOffersClick = {
                     navController.navigate(
-                        Routes.PROFILE
+                        Routes.RATED_OFFERS
                     ) {
+                        launchSingleTop = true
+                    }
+                },
+
+                onHomeClick = {
+                    // Zaten Home.
+                },
+
+                onOffersClick = {
+                    navController.navigate(Routes.OFFERS) {
+                        launchSingleTop = true
+                    }
+                },
+
+                onProfileClick = {
+                    navController.navigate(Routes.PROFILE) {
                         launchSingleTop = true
                     }
                 }
@@ -243,7 +278,21 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                 onOffersClick = {
                     // Zaten Offers ekranındayız.
                 },
+                onAcceptedOffersClick = {
+                    navController.navigate(
+                        Routes.ACCEPTED_OFFERS
+                    ) {
+                        launchSingleTop = true
+                    }
+                },
 
+                onRatedOffersClick = {
+                    navController.navigate(
+                        Routes.RATED_OFFERS
+                    ) {
+                        launchSingleTop = true
+                    }
+                },
                 onProfileClick = {
                     navController.navigate(
                         Routes.PROFILE
@@ -251,6 +300,18 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                         launchSingleTop = true
                     }
                 }
+
+            )
+        }
+        composable(Routes.ACCEPTED_OFFERS) {
+            Text(
+                text = "My Accepted Offers"
+            )
+        }
+         //temp
+        composable(Routes.RATED_OFFERS) {
+            Text(
+                text = "My Rated Offers"
             )
         }
         composable(Routes.PROFILE) {

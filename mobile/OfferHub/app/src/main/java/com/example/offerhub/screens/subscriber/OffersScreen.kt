@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,10 +22,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.offerhub.components.NavigationActionCard
 import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.OfferHubBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.OfferType
 
 @Composable
 fun OffersScreen(
@@ -35,7 +38,9 @@ fun OffersScreen(
     onOfferClick: (String) -> Unit,
     onHomeClick: () -> Unit,
     onOffersClick: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onAcceptedOffersClick: () -> Unit,
+    onRatedOffersClick: () -> Unit,
 ) {
     Scaffold(
         containerColor =
@@ -89,6 +94,8 @@ fun OffersScreen(
                 OffersContent(
                     offers = offers,
                     onOfferClick = onOfferClick,
+                    onAcceptedOffersClick = onAcceptedOffersClick,
+                    onRatedOffersClick = onRatedOffersClick,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
@@ -102,56 +109,127 @@ fun OffersScreen(
 private fun OffersContent(
     offers: List<Offer>,
     onOfferClick: (String) -> Unit,
+    onAcceptedOffersClick: () -> Unit,
+    onRatedOffersClick: () -> Unit,
     modifier: Modifier = Modifier
-) {
+){
+    val addOnOffers = offers.filter { offer ->
+        offer.type == OfferType.ADD_ON &&
+                offer.status == "PENDING"
+    }
+
+    val tariffOffers = offers.filter { offer ->
+        offer.type == OfferType.TARIFF_UPGRADE &&
+                offer.status == "PENDING"
+    }
+
+    val deviceOffers = offers.filter { offer ->
+        offer.type == OfferType.DEVICE_OFFER &&
+                offer.status == "PENDING"
+    }
+
+    val loyaltyOffers = offers.filter { offer ->
+        offer.type == OfferType.LOYALTY &&
+                offer.status == "PENDING"
+    }
     LazyColumn(
         modifier = modifier,
 
         contentPadding = PaddingValues(
-            horizontal = 24.dp,
             vertical = 20.dp
         ),
 
         verticalArrangement =
-            Arrangement.spacedBy(16.dp)
+            Arrangement.spacedBy(22.dp)
     ) {
         item {
-            Text(
-                text = "Your Offers",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color =
-                    MaterialTheme.colorScheme.onBackground
+            Column(
+                modifier =
+                    Modifier.padding(horizontal = 24.dp),
+
+                verticalArrangement =
+                    Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "Offers",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color =
+                        MaterialTheme.colorScheme.onBackground
+                )
+
+                Text(
+                    text = "Offers selected for you",
+                    fontSize = 15.sp,
+                    color =
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        item {
+            OfferCategorySection(
+                title = "Add-on Packages",
+                offers = addOnOffers,
+                onOfferClick = onOfferClick
+            )
+        }
+
+        item {
+            OfferCategorySection(
+                title = "Tariff Upgrades",
+                offers = tariffOffers,
+                onOfferClick = onOfferClick
+            )
+        }
+
+        item {
+            OfferCategorySection(
+                title = "Device Offers",
+                offers = deviceOffers,
+                onOfferClick = onOfferClick
+            )
+        }
+
+        item {
+            OfferCategorySection(
+                title = "Loyalty Offers",
+                offers = loyaltyOffers,
+                onOfferClick = onOfferClick
             )
         }
 
         item {
             Text(
-                text = "Offers selected for you",
-                fontSize = 15.sp,
+                text = "My Offers",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
                 color =
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    MaterialTheme.colorScheme.onBackground,
+
+                modifier =
+                    Modifier.padding(horizontal = 24.dp)
             )
         }
 
-        items(
-            items = offers,
-            key = { offer ->
-                offer.offerId
-            }
-        ) { offer ->
-            OfferCard(
-                offer = offer,
-
+        item {
+            Column(
                 modifier =
-                    Modifier.fillMaxWidth(),
+                    Modifier.padding(horizontal = 24.dp),
 
-                showStatus = true,
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
+            ) {
+                NavigationActionCard(
+                    title = "My Accepted Offers",
+                    onClick = onAcceptedOffersClick
+                )
 
-                onClick = {
-                    onOfferClick(offer.offerId)
-                }
-            )
+                NavigationActionCard(
+                    title = "My Rated Offers",
+                    onClick = onRatedOffersClick
+                )
+            }
         }
     }
 }
@@ -228,6 +306,58 @@ private fun OffersEmptyState(
     }
 }
 
+@Composable
+private fun OfferCategorySection(
+    title: String,
+    offers: List<Offer>,
+    onOfferClick: (String) -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = title,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(horizontal = 24.dp)
+        )
+
+        if (offers.isEmpty()) {
+            Text(
+                text = "No offers available in this category.",
+                color =
+                    MaterialTheme.colorScheme.onSurfaceVariant,
+
+                modifier =
+                    Modifier.padding(horizontal = 24.dp)
+            )
+        } else {
+            LazyRow(
+                contentPadding =
+                    PaddingValues(horizontal = 24.dp),
+
+                horizontalArrangement =
+                    Arrangement.spacedBy(16.dp)
+            ) {
+                items(
+                    items = offers,
+                    key = { offer ->
+                        offer.offerId
+                    }
+                ) { offer ->
+                    OfferCard(
+                        offer = offer,
+                        onClick = {
+                            onOfferClick(offer.offerId)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun OffersScreenPreview() {
@@ -239,7 +369,8 @@ private fun OffersScreenPreview() {
                 title = "20 GB Internet",
                 score = 0.83,
                 highlighted = true,
-                status = "PENDING"
+                status = "PENDING",
+                type = OfferType.ADD_ON
             ),
 
             Offer(
@@ -248,7 +379,8 @@ private fun OffersScreenPreview() {
                 title = "Social Media Plus",
                 score = 0.76,
                 highlighted = false,
-                status = "ACCEPTED"
+                status = "ACCEPTED",
+                type = OfferType.ADD_ON
             )
         ),
 
@@ -256,6 +388,8 @@ private fun OffersScreenPreview() {
         onOfferClick = {},
         onHomeClick = {},
         onOffersClick = {},
-        onProfileClick = {}
+        onProfileClick = {},
+        onRatedOffersClick = {},
+        onAcceptedOffersClick = {}
     )
 }
