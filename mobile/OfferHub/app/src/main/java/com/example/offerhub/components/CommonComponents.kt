@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -135,12 +136,12 @@ fun OfferHubBottomBar(
             icon = {
                 Icon(
                     imageVector = Icons.Default.Home,
-                    contentDescription = "Home"
+                    contentDescription = stringResource(R.string.nav_home)
                 )
             },
 
             label = {
-                Text(text = "Home")
+                Text(text = stringResource(R.string.nav_home))
             }
         )
 
@@ -154,12 +155,12 @@ fun OfferHubBottomBar(
                     imageVector =
                         Icons.Default.LocalOffer,
 
-                    contentDescription = "Offers"
+                    contentDescription = stringResource(R.string.nav_offers)
                 )
             },
 
             label = {
-                Text(text = "Offers")
+                Text(text = stringResource(R.string.nav_offers))
             }
         )
 
@@ -173,12 +174,12 @@ fun OfferHubBottomBar(
                     imageVector =
                         Icons.Default.Person,
 
-                    contentDescription = "Profile"
+                    contentDescription = stringResource(R.string.nav_profile)
                 )
             },
 
             label = {
-                Text(text = "Profile")
+                Text(text = stringResource(R.string.nav_profile))
             }
         )
     }
@@ -256,7 +257,7 @@ fun SeeAllButton(
                     Icons.Default.ArrowForward,
 
                 contentDescription =
-                    "View all offers",
+                    stringResource(R.string.view_all_offers),
 
                 tint = Color.White,
 
@@ -297,7 +298,7 @@ fun OfferHubLogo(
     if (style == OfferHubLogoStyle.GRADIENT) {
         Image(
             painter = painter,
-            contentDescription = "OfferHub Logo",
+            contentDescription = stringResource(R.string.offerhub_logo_description),
             contentScale = ContentScale.Fit,
 
             modifier = modifier
@@ -327,7 +328,7 @@ fun OfferHubLogo(
     } else {
         Image(
             painter = painter,
-            contentDescription = "OfferHub Logo",
+            contentDescription = stringResource(R.string.offerhub_logo_description),
             modifier = modifier,
             contentScale = ContentScale.Fit,
 

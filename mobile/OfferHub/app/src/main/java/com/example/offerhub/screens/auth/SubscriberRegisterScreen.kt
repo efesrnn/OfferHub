@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
+import com.example.offerhub.R
 
 
 @Composable
@@ -75,13 +77,13 @@ fun SubscriberRegisterScreen(
 
         ){
             Text(
-                text="Create an Account",
+                text = stringResource(R.string.auth_create_account),
                 fontSize=27.sp,
                 fontWeight= FontWeight.Bold
             )
             Spacer(modifier=Modifier.height(18.dp))
             Text(
-                text="Enter your details to continue",
+                text = stringResource(R.string.auth_register_subtitle),
                 fontSize=18.sp,
                 fontWeight = FontWeight.Normal
             )
@@ -89,11 +91,11 @@ fun SubscriberRegisterScreen(
             TextFieldComponent(
                 value=firstName,
                 onValueChange={firstName=it},
-                label="First Name",
+                label = stringResource(R.string.auth_first_name),
                 prefix = "",
                 keyboardType = KeyboardType.Text,
             isError=lastNameTouched&&lastNameIsInvalid,
-            errorMessage="First name cannot be empty",
+            errorMessage = stringResource(R.string.error_first_name_empty),
             onFocusChanged= { isFocused ->
                 if (!isFocused) {
                     firstNameTouched = true
@@ -104,11 +106,11 @@ fun SubscriberRegisterScreen(
             TextFieldComponent(
                 value=lastName,
                 onValueChange={lastName=it},
-                label="Last Name",
+                label = stringResource(R.string.auth_last_name),
                 prefix = "",
                 keyboardType = KeyboardType.Text,
             isError=firstNameTouched&&firstNameIsInvalid,
-            errorMessage="Last name cannot be empty",
+            errorMessage = stringResource(R.string.error_last_name_empty),
             onFocusChanged={isFocused->
                 if(!isFocused)
                 {
@@ -124,19 +126,19 @@ fun SubscriberRegisterScreen(
                         gsm=digitsOnly
                     }
                 },
-                label="GSM",
-                prefix="+90 ",
+                label = stringResource(R.string.auth_gsm),
+                prefix = stringResource(R.string.auth_phone_prefix),
                 keyboardType = KeyboardType.Phone,
                 isError = gsmTouched&&gsmIsInvalid,
                 errorMessage = when {
                     gsm.isBlank() ->
-                        "GSM cannot be empty"
+                        stringResource(R.string.error_gsm_empty)
 
                     gsm.length < 10 ->
-                        "Phone number is too short"
+                        stringResource(R.string.error_phone_too_short)
 
                     else ->
-                        "Please enter a valid GSM number"
+                        stringResource(R.string.error_invalid_gsm)
                 },
                 onFocusChanged={isFocused->
                     if(!isFocused)
@@ -151,11 +153,11 @@ fun SubscriberRegisterScreen(
                 onValueChange = {
                     email=it
                 },
-                label="Email",
+                label = stringResource(R.string.auth_email),
                 prefix="",
                 keyboardType = KeyboardType.Text,
                 isError = emailTouched && emailIsInvalid,
-                errorMessage =  "Please enter a valid email address",
+                errorMessage = stringResource(R.string.error_invalid_email),
                 onFocusChanged = {
                         isFocused->
                     if(!isFocused){
@@ -169,7 +171,11 @@ fun SubscriberRegisterScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
             AuthButton(
-                text=if (isLoading) "Registering..." else "Register",
+                text = if (isLoading) {
+                    stringResource(R.string.auth_registering)
+                } else {
+                    stringResource(R.string.auth_register)
+                },
                 enabled = !isLoading,
                 onClick = {
                     firstNameTouched=true
@@ -188,7 +194,7 @@ fun SubscriberRegisterScreen(
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))
-            ClickableText(text="Already have an account? Log in",
+            ClickableText(text = stringResource(R.string.auth_login_link),
                 onClick=onLoginClick
             )
         }

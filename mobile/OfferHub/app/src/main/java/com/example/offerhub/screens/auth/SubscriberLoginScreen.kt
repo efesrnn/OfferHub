@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
-import java.util.concurrent.Flow
+import com.example.offerhub.R
 
 @Composable
 fun SubscriberLoginScreen(
@@ -61,14 +62,14 @@ fun SubscriberLoginScreen(
 
         ){
             Text(
-                text="Welcome back",
+                text = stringResource(R.string.auth_welcome_back),
                 fontSize=27.sp,
                 fontWeight=FontWeight.Bold
             )
 
             Spacer(modifier=Modifier.height(18.dp))
             Text(
-                text="Log in with your phone number",
+                text = stringResource(R.string.auth_phone_login_subtitle),
                 fontSize=18.sp,
                 //fontfamily,
                 fontWeight= FontWeight.Normal
@@ -82,19 +83,19 @@ fun SubscriberLoginScreen(
                         gsm=digitsOnly
                     }
                 },
-                label="GSM",
-                prefix="+90 ",
+                label = stringResource(R.string.auth_gsm),
+                prefix = stringResource(R.string.auth_phone_prefix),
                 keyboardType = KeyboardType.Phone,
                 isError = gsmTouched&&gsmIsInvalid,
                 errorMessage = when {
                     gsm.isBlank() ->
-                        "GSM cannot be empty"
+                        stringResource(R.string.error_gsm_empty)
 
                     gsm.length < 10 ->
-                        "Phone number is too short"
+                        stringResource(R.string.error_phone_too_short)
 
                     else ->
-                        "Please enter a valid GSM number"
+                        stringResource(R.string.error_invalid_gsm)
                 },
                 onFocusChanged={isFocused->
                     if(!isFocused)
@@ -105,7 +106,7 @@ fun SubscriberLoginScreen(
             )
             Spacer(modifier=Modifier.height(18.dp))
             AuthButton(
-                text="Send Code",
+                text = stringResource(R.string.auth_send_code),
                 onClick={
                     gsmTouched=true
                     if(!gsmIsInvalid)
@@ -116,7 +117,7 @@ fun SubscriberLoginScreen(
             )
             Spacer(modifier=Modifier.height(18.dp))
             ClickableText(
-                text="Don't have an account? Register",
+                text = stringResource(R.string.auth_register_link),
                 onClick=onRegisterClick
             )
         }

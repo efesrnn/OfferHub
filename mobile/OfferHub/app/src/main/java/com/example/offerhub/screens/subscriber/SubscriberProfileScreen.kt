@@ -18,11 +18,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.OfferHubBottomBar
 import com.example.offerhub.components.OfferHubTopBar
+import com.example.offerhub.R
 
 @Composable
 fun SubscriberProfileScreen(
@@ -67,7 +69,7 @@ fun SubscriberProfileScreen(
             horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = "Profile",
+                text = stringResource(R.string.profile_title),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -89,7 +91,7 @@ fun SubscriberProfileScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Button(onClick = onRetryClick) {
-                        Text(text = "Retry")
+                        Text(text = stringResource(R.string.profile_retry))
                     }
                 }
 
@@ -107,7 +109,7 @@ fun SubscriberProfileScreen(
                         onClick = onLogoutClick,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(text = "Log out")
+                        Text(text = stringResource(R.string.profile_log_out))
                     }
                 }
             }
@@ -130,18 +132,19 @@ private fun ProfileInfoCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             ProfileInfoRow(
-                label = "Name",
+                label = stringResource(R.string.profile_name),
                 value = "$firstName $lastName"
             )
 
             ProfileInfoRow(
-                label = "Phone",
+                label = stringResource(R.string.profile_phone),
                 value = phone
             )
 
             ProfileInfoRow(
-                label = "Email",
-                value = email?.takeIf { it.isNotBlank() } ?: "Not provided"
+                label = stringResource(R.string.profile_email),
+                value = email?.takeIf { it.isNotBlank() }
+                    ?: stringResource(R.string.profile_not_provided)
             )
 
         }

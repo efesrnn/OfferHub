@@ -19,7 +19,8 @@ import java.time.Instant
 data class AuthUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val authenticatedUser: AuthUser? = null,
+    val currentUser: AuthUser? = null,
+    val pendingNavigationRole: String? = null,
     val pendingPhone: String? = null,
     val otpReady: Boolean = false,
     val lockRemainingSeconds: Long = 0
@@ -46,16 +47,39 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     fun verifyOtp(phone: String, otpCode: String) = execute(
         operation = { repository.verifyOtp(phone, otpCode) },
-        onSuccess = { data -> _uiState.update { it.copy(authenticatedUser = data.user) } }
+        onSuccess = { data ->
+            _uiState.update {
+                it.copy(
+                    currentUser = data.user,
+                    pendingNavigationRole = data.user.role
+                )
+            }
+        }
     )
 
     fun staffLogin(email: String, password: String) = execute(
         operation = { repository.staffLogin(email, password) },
-        onSuccess = { data -> _uiState.update { it.copy(authenticatedUser = data.user) } }
+        onSuccess = { data ->
+            _uiState.update {
+                it.copy(
+                    currentUser = data.user,
+                    pendingNavigationRole = data.user.role
+                )
+            }
+        }
     )
 
     fun consumeOtpReady() = _uiState.update { it.copy(otpReady = false) }
-    fun consumeAuthentication() = _uiState.update { it.copy(authenticatedUser = null) }
+    fun consumeAuthenticationNavigation() =
+        _uiState.update { it.copy(pendingNavigationRole = null) }
+
+    fun logout() {
+        viewModelScope.launch {
+            repository.clearLocalSession()
+            lockJob?.cancel()
+            _uiState.value = AuthUiState()
+        }
+    }
     fun clearError() = _uiState.update { it.copy(errorMessage = null) }
 
     private fun <T> execute(operation: suspend () -> AuthResult<T>, onSuccess: (T) -> Unit) {
@@ -110,4 +134,3 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         override fun <T : ViewModel> create(modelClass: Class<T>): T = AuthViewModel(repository) as T
     }
 }
-

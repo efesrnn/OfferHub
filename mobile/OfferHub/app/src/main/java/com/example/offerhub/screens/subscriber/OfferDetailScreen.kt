@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -23,17 +23,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.model.OfferType
+import com.example.offerhub.R
+import com.example.offerhub.ui.format.formatOfferTimestamp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferDetailBottomSheet(
     offer: Offer,
+    isSubmitting: Boolean = false,
+    actionError: String? = null,
     onDismiss: () -> Unit,
     onAcceptClick: (String) -> Unit,
     onDeclineClick: (String) -> Unit,
@@ -83,37 +88,46 @@ fun OfferDetailBottomSheet(
             Spacer(modifier = Modifier.height(20.dp))
 
             DetailRow(
-                label = "Offer type",
+                label = stringResource(R.string.offer_type_label),
                 value = offer.type.displayName()
             )
 
             offer.discountRate?.let { discountRate ->
                 DetailRow(
-                    label = "Discount",
+                    label = stringResource(R.string.offer_discount_label),
                     value = "${discountRate.toDisplayNumber()}%"
                 )
             }
 
             offer.validUntil?.let { validUntil ->
                 DetailRow(
-                    label = "Valid until",
-                    value = validUntil
+                    label = stringResource(R.string.offer_valid_until_label),
+                    value = formatOfferTimestamp(validUntil)
                 )
             }
 
             DetailRow(
-                label = "Status",
+                label = stringResource(R.string.offer_status_label),
                 value = offer.status.displayName()
             )
 
             offer.acceptedAt?.let { acceptedAt ->
                 DetailRow(
-                    label = "Accepted on",
-                    value = acceptedAt
+                    label = stringResource(R.string.offer_accepted_on_label),
+                    value = formatOfferTimestamp(acceptedAt)
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            actionError?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             when (offer.status) {
                 OfferStatus.PENDING -> {
@@ -126,25 +140,34 @@ fun OfferDetailBottomSheet(
                             onClick = {
                                 onDeclineClick(offer.offerId)
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = !isSubmitting
                         ) {
-                            Text(text = "Not interested")
+                            Text(text = stringResource(R.string.offer_not_interested))
                         }
 
                         Button(
                             onClick = {
                                 onAcceptClick(offer.offerId)
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = !isSubmitting
                         ) {
-                            Text(text = "Accept")
+                            if (isSubmitting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.height(20.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(text = stringResource(R.string.offer_accept))
+                            }
                         }
                     }
                 }
 
                 OfferStatus.ACCEPTED -> {
                     Text(
-                        text = "Rate your experience",
+                        text = stringResource(R.string.offer_rate_experience),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -189,7 +212,7 @@ fun OfferDetailBottomSheet(
                             onClick = onDismiss,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text(text = "Rate later")
+                            Text(text = stringResource(R.string.offer_rate_later))
                         }
 
                         Button(
@@ -199,15 +222,15 @@ fun OfferDetailBottomSheet(
                                     selectedRating
                                 )
                             },
-                            enabled = selectedRating in 1..5,
+                            enabled = selectedRating in 1..5 && !isSubmitting,
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(
                                 text =
                                     if (offer.rating == null) {
-                                        "Submit"
+                                        stringResource(R.string.offer_submit_rating)
                                     } else {
-                                        "Update"
+                                        stringResource(R.string.offer_update_rating)
                                     }
                             )
                         }
@@ -217,7 +240,7 @@ fun OfferDetailBottomSheet(
                 OfferStatus.DECLINED -> {
                     Text(
                         text =
-                            "You marked this offer as not interested.",
+                            stringResource(R.string.offer_declined_message),
                         style = MaterialTheme.typography.bodyMedium,
                         color =
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -258,22 +281,24 @@ private fun DetailRow(
     }
 }
 
-private fun OfferStatus.displayName(): String {
-    return when (this) {
-        OfferStatus.PENDING -> "Available"
-        OfferStatus.ACCEPTED -> "Accepted"
-        OfferStatus.DECLINED -> "Not interested"
+@Composable
+private fun OfferStatus.displayName(): String = stringResource(
+    when (this) {
+        OfferStatus.PENDING -> R.string.offer_available
+        OfferStatus.ACCEPTED -> R.string.offer_accepted
+        OfferStatus.DECLINED -> R.string.offer_not_interested
     }
-}
+)
 
-private fun OfferType.displayName(): String {
-    return when (this) {
-        OfferType.ADD_ON -> "Add-on Package"
-        OfferType.TARIFF_UPGRADE -> "Tariff Upgrade"
-        OfferType.DEVICE_OFFER -> "Device Offer"
-        OfferType.LOYALTY -> "Loyalty Offer"
+@Composable
+private fun OfferType.displayName(): String = stringResource(
+    when (this) {
+        OfferType.ADD_ON -> R.string.offer_type_add_on
+        OfferType.TARIFF_UPGRADE -> R.string.offer_type_tariff
+        OfferType.DEVICE_OFFER -> R.string.offer_type_device
+        OfferType.LOYALTY -> R.string.offer_type_loyalty
     }
-}
+)
 
 private fun Double.toDisplayNumber(): String {
     return if (this % 1.0 == 0.0) {

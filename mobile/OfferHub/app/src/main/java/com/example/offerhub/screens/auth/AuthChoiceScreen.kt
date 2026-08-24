@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +67,7 @@ fun AuthChoiceScreen(
             )
             Spacer(modifier= Modifier.height(24.dp))
             Text(
-                text = "Welcome to OfferHub",
+                text = stringResource(R.string.auth_welcome_offerhub),
                 fontSize = 27.sp,
                 //fontFamily,
                 fontWeight = FontWeight.Bold
@@ -74,7 +75,7 @@ fun AuthChoiceScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "How would you like to continue?",
+                text = stringResource(R.string.auth_continue_question),
                 fontSize = 18.sp,
                 //fontFamily,
                 fontWeight = FontWeight.Normal
@@ -82,17 +83,17 @@ fun AuthChoiceScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             AuthButton(
-                text = "Subscriber",
+                text = stringResource(R.string.auth_subscriber),
                 onClick = onSubscriberClick
             )
             Spacer(modifier = Modifier.height(16.dp))
             AuthButton(
-                text = "Staff",
+                text = stringResource(R.string.auth_staff),
                 onClick = onStaffClick
             )
             Spacer(modifier= Modifier.height(18.dp))     //Kaldırılabilir
             ClickableText(
-                text="Do you need help ↗",
+                text = stringResource(R.string.auth_help),
                 onClick = {
                     //
                 }

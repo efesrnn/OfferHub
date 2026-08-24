@@ -16,12 +16,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.R
 
 @Composable
 fun OfferCategoryScreen(
@@ -31,9 +33,10 @@ fun OfferCategoryScreen(
     onOfferClick: (String) -> Unit,
     showAcceptedTag: Boolean = false,
     ratings: Map<String, Int> = emptyMap(),
-    emptyMessage: String =
-        "No offers available in this category."
+    emptyMessage: String? = null
 ) {
+    val resolvedEmptyMessage =
+        emptyMessage ?: stringResource(R.string.offers_category_empty)
     Scaffold(
         containerColor =
             MaterialTheme.colorScheme.background,
@@ -56,7 +59,7 @@ fun OfferCategoryScreen(
                 modifier =
                     Modifier.padding(horizontal = 12.dp)
             ) {
-                Text(text = "< Back")
+                Text(text = stringResource(R.string.back))
             }
 
             Text(
@@ -76,7 +79,7 @@ fun OfferCategoryScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = emptyMessage,
+                    text = resolvedEmptyMessage,
 
                         color =
                             MaterialTheme.colorScheme
@@ -110,8 +113,8 @@ fun OfferCategoryScreen(
                             isAccepted =
                                 showAcceptedTag,
 
-                            rating =
-                                ratings[offer.offerId],
+                            showRating =
+                                ratings.containsKey(offer.offerId),
 
                             onClick = {
                                 onOfferClick(

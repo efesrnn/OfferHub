@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,6 +37,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import com.example.offerhub.components.SeeAllButton
 import com.example.offerhub.data.model.OfferStatus
+import com.example.offerhub.R
 
 @Composable
 fun OffersScreen(
@@ -164,7 +166,7 @@ private fun OffersContent(
                     Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = "Offers",
+                    text = stringResource(R.string.nav_offers),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color =
@@ -172,7 +174,7 @@ private fun OffersContent(
                 )
 
                 Text(
-                    text = "Offers selected for you",
+                    text = stringResource(R.string.offers_subtitle),
                     fontSize = 15.sp,
                     color =
                         MaterialTheme.colorScheme.onSurfaceVariant
@@ -182,7 +184,7 @@ private fun OffersContent(
 
         item {
             OfferCategorySection(
-                title = "Add-on Packages",
+                title = stringResource(R.string.offers_add_on_packages),
                 offers = addOnOffers,
                 onOfferClick = onOfferClick,
                 onSeeAllClick = {
@@ -193,7 +195,7 @@ private fun OffersContent(
 
         item {
             OfferCategorySection(
-                title = "Tariff Upgrades",
+                title = stringResource(R.string.offers_tariff_upgrades),
                 offers = tariffOffers,
                 onOfferClick = onOfferClick,
                 onSeeAllClick = {
@@ -204,7 +206,7 @@ private fun OffersContent(
 
         item {
             OfferCategorySection(
-                title = "Device Offers",
+                title = stringResource(R.string.offers_device),
                 offers = deviceOffers,
                 onOfferClick = onOfferClick,
                 onSeeAllClick = {
@@ -215,7 +217,7 @@ private fun OffersContent(
 
         item {
             OfferCategorySection(
-                title = "Loyalty Offers",
+                title = stringResource(R.string.offers_loyalty),
                 offers = loyaltyOffers,
                 onOfferClick = onOfferClick,
                 onSeeAllClick = {
@@ -226,7 +228,7 @@ private fun OffersContent(
 
         item {
             Text(
-                text = "My Offers",
+                text = stringResource(R.string.offers_my_offers),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
                 color =
@@ -246,12 +248,12 @@ private fun OffersContent(
                     Arrangement.spacedBy(12.dp)
             ) {
                 NavigationActionCard(
-                    title = "My Accepted Offers",
+                    title = stringResource(R.string.offers_my_accepted),
                     onClick = onAcceptedOffersClick
                 )
 
                 NavigationActionCard(
-                    title = "My Rated Offers",
+                    title = stringResource(R.string.offers_my_rated),
                     onClick = onRatedOffersClick
                 )
             }
@@ -297,7 +299,7 @@ private fun OffersErrorState(
             onClick = onRetryClick,
             modifier = Modifier.padding(top = 16.dp)
         ) {
-            Text(text = "Try Again")
+            Text(text = stringResource(R.string.offers_try_again))
         }
     }
 }
@@ -316,14 +318,14 @@ private fun OffersEmptyState(
             Arrangement.Center
     ) {
         Text(
-            text = "No offers available",
+            text = stringResource(R.string.offers_empty_title),
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
         )
 
         Text(
-            text = "New personalized offers will appear here.",
+            text = stringResource(R.string.offers_empty_message),
             modifier = Modifier.padding(top = 8.dp),
             color =
                 MaterialTheme.colorScheme.onSurfaceVariant
@@ -351,7 +353,7 @@ private fun OfferCategorySection(
 
         if (offers.isEmpty()) {
             Text(
-                text = "No offers available in this category.",
+                text = stringResource(R.string.offers_category_empty),
                 color =
                     MaterialTheme.colorScheme.onSurfaceVariant,
 

@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,7 @@ import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.model.OfferType
+import com.example.offerhub.R
 
 @Composable
 fun SubscriberHomeScreen(
@@ -88,7 +90,7 @@ fun SubscriberHomeScreen(
 
             item {
                 Text(
-                    text = "Hello, $firstName",
+                    text = stringResource(R.string.subscriber_hello, firstName),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 24.dp)
@@ -99,7 +101,7 @@ fun SubscriberHomeScreen(
             // RECOMMENDED OFFERS
             item {
                 Text(
-                    text = "Recommended for you",
+                    text = stringResource(R.string.subscriber_recommended),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(horizontal = 24.dp)
@@ -130,7 +132,7 @@ fun SubscriberHomeScreen(
             // RECENTLY ACCEPTED OFFERS
             item {
                 Text(
-                    text = "Recently accepted",
+                    text = stringResource(R.string.subscriber_recently_accepted),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(horizontal = 24.dp)
@@ -151,7 +153,7 @@ fun SubscriberHomeScreen(
                     )
                 } else {
                     Text(
-                        text = "You have not accepted an offer yet.",
+                        text = stringResource(R.string.subscriber_no_accepted_offer),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 24.dp)
                     )
@@ -160,7 +162,7 @@ fun SubscriberHomeScreen(
 
             item {
                 Text(
-                    text = "Quick actions",
+                    text = stringResource(R.string.subscriber_quick_actions),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -178,7 +180,7 @@ fun SubscriberHomeScreen(
                 ) {
                     item {
                         QuickActionCard(
-                            title = "Add-on Packages",
+                            title = stringResource(R.string.offers_add_on_packages),
                             onClick = {
                                 onCategoryClick(OfferType.ADD_ON)
                             }
@@ -187,7 +189,7 @@ fun SubscriberHomeScreen(
 
                     item {
                         QuickActionCard(
-                            title = "Tariff Upgrade",
+                            title = stringResource(R.string.offers_tariff_upgrade),
                             onClick = {
                                 onCategoryClick(
                                     OfferType.TARIFF_UPGRADE
@@ -198,7 +200,7 @@ fun SubscriberHomeScreen(
 
                     item {
                         QuickActionCard(
-                            title = "Device Offers",
+                            title = stringResource(R.string.offers_device),
                             onClick = {
                                 onCategoryClick(
                                     OfferType.DEVICE_OFFER
@@ -209,7 +211,7 @@ fun SubscriberHomeScreen(
 
                     item {
                         QuickActionCard(
-                            title = "Loyalty Offers",
+                            title = stringResource(R.string.offers_loyalty),
                             onClick = {
                                 onCategoryClick(OfferType.LOYALTY)
                             }

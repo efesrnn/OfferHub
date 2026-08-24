@@ -14,6 +14,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import retrofit2.Response
 import java.io.IOException
+import java.time.Instant
 
 sealed interface AuthResult<out T> {
     data class Success<T>(val value: T) : AuthResult<T>
@@ -36,9 +37,20 @@ class AuthRepository(
 
     private suspend fun AuthResult<AuthData>.saveTokensOnSuccess(): AuthResult<AuthData> {
         if (this is AuthResult.Success) {
-            tokenStorage.save(StoredTokens(value.accessToken, value.refreshToken, value.expiresIn))
+            tokenStorage.save(
+                StoredTokens(
+                    accessToken = value.accessToken,
+                    refreshToken = value.refreshToken,
+                    expiresAtEpochSeconds =
+                        Instant.now().epochSecond + value.expiresIn
+                )
+            )
         }
         return this
+    }
+
+    suspend fun clearLocalSession() {
+        tokenStorage.clear()
     }
 
     private suspend fun <T> call(block: suspend () -> Response<ApiResponse<T>>): AuthResult<T> = try {

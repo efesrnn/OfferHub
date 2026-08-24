@@ -19,15 +19,18 @@ class KeystoreTokenStorage(context: Context) : TokenStorage {
         preferences.edit()
             .putString(ACCESS_TOKEN, encrypt(tokens.accessToken))
             .putString(REFRESH_TOKEN, encrypt(tokens.refreshToken))
-            .putLong(EXPIRES_IN, tokens.expiresIn)
+            .putLong(EXPIRES_AT, tokens.expiresAtEpochSeconds)
+            .remove(LEGACY_EXPIRES_IN)
             .apply()
     }
 
     override suspend fun read(): StoredTokens? = withContext(Dispatchers.IO) {
         val access = preferences.getString(ACCESS_TOKEN, null) ?: return@withContext null
         val refresh = preferences.getString(REFRESH_TOKEN, null) ?: return@withContext null
+        val expiresAt = preferences.getLong(EXPIRES_AT, 0L)
+        if (expiresAt <= 0L) return@withContext null
         runCatching {
-            StoredTokens(decrypt(access), decrypt(refresh), preferences.getLong(EXPIRES_IN, 0L))
+            StoredTokens(decrypt(access), decrypt(refresh), expiresAt)
         }.getOrNull()
     }
 
@@ -74,7 +77,8 @@ class KeystoreTokenStorage(context: Context) : TokenStorage {
         const val PREFS_NAME = "secure_auth_tokens"
         const val ACCESS_TOKEN = "access_token"
         const val REFRESH_TOKEN = "refresh_token"
-        const val EXPIRES_IN = "expires_in"
+        const val EXPIRES_AT = "expires_at_epoch_seconds"
+        const val LEGACY_EXPIRES_IN = "expires_in"
         const val KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "offerhub_auth_tokens"
         const val TRANSFORMATION = "AES/GCM/NoPadding"

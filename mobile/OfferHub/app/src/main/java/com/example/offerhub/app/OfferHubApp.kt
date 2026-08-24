@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.offerhub.OfferHubApplication
 import com.example.offerhub.navigation.AppNavigation
 import com.example.offerhub.viewModel.AuthViewModel
+import com.example.offerhub.viewModel.SubscriberViewModel
 
 @Composable
 fun OfferHubApp() {
@@ -13,5 +14,11 @@ fun OfferHubApp() {
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModel.Factory(application.authRepository)
     )
-    AppNavigation(authViewModel)
+    val subscriberViewModel: SubscriberViewModel = viewModel(
+        factory = SubscriberViewModel.Factory(application.subscriberRepository)
+    )
+    AppNavigation(
+        authViewModel = authViewModel,
+        subscriberViewModel = subscriberViewModel
+    )
 }
