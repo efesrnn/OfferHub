@@ -3,7 +3,9 @@ package com.example.offerhub.data.local
 data class StoredTokens(
     val accessToken: String,
     val refreshToken: String,
-    val expiresAtEpochSeconds: Long
+    val expiresAtEpochSeconds: Long,
+    val userId: String,
+    val userRole: String
 ) {
     fun isAccessTokenExpired(nowEpochSeconds: Long): Boolean =
         nowEpochSeconds >= expiresAtEpochSeconds

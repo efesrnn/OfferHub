@@ -120,6 +120,7 @@ fun SubscriberHomeScreen(
 
                         OfferCard(
                             offer = offer,
+                            modifier = Modifier.width(300.dp),
                             onClick = {
                                 onOfferClick(offer.offerId)
                             }

@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.repository.SubscriberRepository
 import com.example.offerhub.repository.SubscriberResult
+import com.example.offerhub.R
+import com.example.offerhub.ui.text.UiText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +18,8 @@ data class SubscriberUiState(
     val isLoading: Boolean = false,
     val offers: List<Offer> = emptyList(),
     val selectedOffer: Offer? = null,
-    val errorMessage: String? = null,
+    val loadErrorMessage: UiText? = null,
+    val actionErrorMessage: UiText? = null,
     val isSubmittingAction: Boolean = false
 )
 class SubscriberViewModel(
@@ -36,7 +39,7 @@ class SubscriberViewModel(
     fun loadOffers() {
         if (_uiState.value.isLoading) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, loadErrorMessage = null) }
             when (val result = repository.getOffers()) {
                 is SubscriberResult.Success -> _uiState.update {
                     it.copy(
@@ -47,7 +50,7 @@ class SubscriberViewModel(
                 is SubscriberResult.Failure -> _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = errorMessage(result.error.code)
+                        loadErrorMessage = errorMessage(result.error.code)
                     )
                 }
             }
@@ -67,7 +70,7 @@ class SubscriberViewModel(
 
     fun dismissOfferDetail() {
         _uiState.update {
-            it.copy(selectedOffer = null)
+            it.copy(selectedOffer = null, actionErrorMessage = null)
         }
     }
 
@@ -91,7 +94,7 @@ class SubscriberViewModel(
         if (_uiState.value.isSubmittingAction) return
         viewModelScope.launch {
             _uiState.update {
-                it.copy(isSubmittingAction = true, errorMessage = null)
+                it.copy(isSubmittingAction = true, actionErrorMessage = null)
             }
             when (val result = operation()) {
                 is SubscriberResult.Success -> _uiState.update { state ->
@@ -106,20 +109,20 @@ class SubscriberViewModel(
                 is SubscriberResult.Failure -> _uiState.update {
                     it.copy(
                         isSubmittingAction = false,
-                        errorMessage = errorMessage(result.error.code)
+                        actionErrorMessage = errorMessage(result.error.code)
                     )
                 }
             }
         }
     }
 
-    private fun errorMessage(code: String): String = when (code) {
-        "NETWORK_ERROR" -> "Ağ bağlantısı kurulamadı. Lütfen tekrar deneyin."
-        "OFFER_NOT_FOUND" -> "Teklif bulunamadı."
-        "OFFER_NOT_ACCEPTED" -> "Yalnızca kabul edilmiş teklifler puanlanabilir."
-        "INVALID_RATING" -> "Puan 1 ile 5 arasında olmalıdır."
-        else -> "İşlem tamamlanamadı. Lütfen tekrar deneyin."
-    }
+    private fun errorMessage(code: String): UiText = UiText.Resource(when (code) {
+        "NETWORK_ERROR" -> R.string.error_network
+        "OFFER_NOT_FOUND" -> R.string.error_offer_not_found
+        "OFFER_NOT_ACCEPTED" -> R.string.error_offer_not_accepted
+        "INVALID_RATING" -> R.string.error_invalid_rating
+        else -> R.string.error_unknown
+    })
 
     class Factory(
         private val repository: SubscriberRepository

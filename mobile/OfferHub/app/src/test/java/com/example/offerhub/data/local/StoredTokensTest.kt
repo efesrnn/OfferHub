@@ -8,7 +8,9 @@ class StoredTokensTest {
     private val tokens = StoredTokens(
         accessToken = "access",
         refreshToken = "refresh",
-        expiresAtEpochSeconds = 1_000L
+        expiresAtEpochSeconds = 1_000L,
+        userId = "user-1",
+        userRole = "SUBSCRIBER"
     )
 
     @Test

@@ -33,8 +33,7 @@ import com.example.offerhub.R
 fun OfferCard(
     offer: Offer,
     onClick: () -> Unit,
-    modifier: Modifier =
-        Modifier.width(300.dp),
+    modifier: Modifier = Modifier,
     isAccepted: Boolean = false,
     showStatus: Boolean = false,
     showRating: Boolean = false

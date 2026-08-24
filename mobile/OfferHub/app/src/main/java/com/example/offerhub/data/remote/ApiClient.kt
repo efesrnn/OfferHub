@@ -1,6 +1,7 @@
 package com.example.offerhub.data.remote
 
 import com.example.offerhub.BuildConfig
+import com.example.offerhub.data.local.AccessTokenProvider
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -18,25 +19,27 @@ object ApiClient {
                 }
         }
 
-    private val okHttpClient =
-        OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .build()
-
-    private val retrofit =
+    private fun createRetrofit(client: OkHttpClient) =
         Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
-            .client(okHttpClient)
+            .client(client)
             .addConverterFactory(
                 GsonConverterFactory.create()
             )
             .build()
 
-    val authApi: AuthApi by lazy {
-        retrofit.create(AuthApi::class.java)
+    fun createAuthApi(): AuthApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(AuthApi::class.java)
     }
 
-    val subscriberApi: SubscriberApi by lazy {
-        retrofit.create(SubscriberApi::class.java)
+    fun createSubscriberApi(tokenProvider: AccessTokenProvider): SubscriberApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(SubscriberApi::class.java)
     }
 }

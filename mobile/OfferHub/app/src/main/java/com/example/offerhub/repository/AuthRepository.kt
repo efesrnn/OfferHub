@@ -3,6 +3,7 @@ package com.example.offerhub.repository
 import com.example.offerhub.data.local.StoredTokens
 import com.example.offerhub.data.local.TokenStorage
 import com.example.offerhub.data.model.auth.AuthData
+import com.example.offerhub.data.model.auth.AuthUser
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
@@ -42,7 +43,9 @@ class AuthRepository(
                     accessToken = value.accessToken,
                     refreshToken = value.refreshToken,
                     expiresAtEpochSeconds =
-                        Instant.now().epochSecond + value.expiresIn
+                        Instant.now().epochSecond + value.expiresIn,
+                    userId = value.user.id,
+                    userRole = value.user.role
                 )
             )
         }
@@ -51,6 +54,18 @@ class AuthRepository(
 
     suspend fun clearLocalSession() {
         tokenStorage.clear()
+    }
+
+    suspend fun restoreLocalSession(): AuthUser? {
+        val tokens = tokenStorage.read() ?: return null
+        if (tokens.isAccessTokenExpired(Instant.now().epochSecond)) {
+            tokenStorage.clear()
+            return null
+        }
+        return AuthUser(
+            id = tokens.userId,
+            role = tokens.userRole
+        )
     }
 
     private suspend fun <T> call(block: suspend () -> Response<ApiResponse<T>>): AuthResult<T> = try {

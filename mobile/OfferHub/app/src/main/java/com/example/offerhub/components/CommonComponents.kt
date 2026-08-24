@@ -38,7 +38,7 @@ import com.example.offerhub.R
 import com.example.offerhub.ui.theme.Primary
 import com.example.offerhub.ui.theme.Secondary
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Person
@@ -254,7 +254,7 @@ fun SeeAllButton(
         ) {
             Icon(
                 imageVector =
-                    Icons.Default.ArrowForward,
+                    Icons.AutoMirrored.Filled.ArrowForward,
 
                 contentDescription =
                     stringResource(R.string.view_all_offers),

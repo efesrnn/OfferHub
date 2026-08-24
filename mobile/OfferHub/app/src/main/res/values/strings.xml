@@ -106,4 +106,17 @@
     <string name="role_expert">Expert</string>
     <string name="role_supervisor">Supervisor</string>
     <string name="role_admin">Admin</string>
+    <string name="error_invalid_credentials">E-posta veya şifre hatalı.</string>
+    <string name="error_account_locked">Çok fazla başarısız deneme nedeniyle hesap geçici olarak kilitlendi.</string>
+    <string name="error_invalid_otp_backend">Doğrulama kodu geçersiz veya süresi dolmuş.</string>
+    <string name="error_phone_exists">Bu telefon numarası zaten kayıtlı.</string>
+    <string name="error_email_exists">Bu e-posta adresi zaten kullanılıyor.</string>
+    <string name="error_user_not_found">Bu bilgilerle eşleşen bir hesap bulunamadı.</string>
+    <string name="error_too_many_requests">Çok fazla istek gönderildi. Lütfen biraz bekleyin.</string>
+    <string name="error_network">Ağ bağlantısı kurulamadı. Lütfen bağlantınızı kontrol edin.</string>
+    <string name="error_unknown">İşlem tamamlanamadı. Lütfen tekrar deneyin.</string>
+    <string name="error_unsupported_role">Bu kullanıcı rolü mobil uygulama tarafından desteklenmiyor.</string>
+    <string name="error_offer_not_found">Teklif bulunamadı.</string>
+    <string name="error_offer_not_accepted">Yalnızca kabul edilmiş teklifler puanlanabilir.</string>
+    <string name="error_invalid_rating">Puan 1 ile 5 arasında olmalıdır.</string>
 </resources>

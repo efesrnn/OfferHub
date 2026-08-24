@@ -61,7 +61,7 @@ fun SplashScreen(
 
 @Preview
 @Composable
-fun preview()
+fun SplashScreenPreview()
 {
     SplashScreen(onSplashFinished={})
 }
