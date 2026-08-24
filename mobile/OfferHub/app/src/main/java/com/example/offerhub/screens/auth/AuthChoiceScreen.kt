@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
+import com.example.offerhub.components.OfferHubLogo
+import com.example.offerhub.components.OfferHubLogoStyle
 
 @Composable
 fun AuthChoiceScreen(
@@ -54,10 +56,13 @@ fun AuthChoiceScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            Image(
-                painter= painterResource(R.drawable.logo),
-                contentDescription="OfferHub Logo",
-                modifier=Modifier.size(150.dp)
+            OfferHubLogo(
+                style =
+                    OfferHubLogoStyle.GRADIENT,
+
+                modifier = Modifier
+                    .width(240.dp)
+                    .height(80.dp)
             )
             Spacer(modifier= Modifier.height(24.dp))
             Text(

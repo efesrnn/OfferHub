@@ -3,6 +3,7 @@ package com.example.offerhub.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,12 +49,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
-fun OfferHubTopBar(
-    title: String = "OfferHub"
-) {
+fun OfferHubTopBar() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -74,22 +80,14 @@ fun OfferHubTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-           Row(
-               verticalAlignment = Alignment.CenterVertically,
-           ) {
-               Image(
-                   painter = painterResource(R.drawable.logo_white),
-                   contentDescription = "OfferHub Logo",
-                   modifier = Modifier.size(50.dp)
-               )
-               Spacer(modifier=Modifier.width(3.dp))
-               Text(
-                   text = title,
-                   fontSize = 27.sp,
-                   fontWeight = FontWeight.Bold,
-                   color = Color.White
-               )
-           }
+            OfferHubLogo(
+                style =
+                    OfferHubLogoStyle.THEME_AWARE,
+
+                modifier = Modifier
+                    .width(168.dp)
+                    .height(56.dp)
+            )
         }
 
     }
@@ -268,3 +266,76 @@ fun SeeAllButton(
         }
     }
 }
+
+enum class OfferHubLogoStyle {
+    THEME_AWARE,
+    WHITE,
+    GRADIENT
+}
+@Composable
+fun OfferHubLogo(
+    style: OfferHubLogoStyle,
+    modifier: Modifier = Modifier
+) {
+    val painter =
+        painterResource(
+            id = R.drawable.offerhub_logo_vector
+        )
+
+    val tintColor =
+        when (style) {
+            OfferHubLogoStyle.THEME_AWARE ->
+                MaterialTheme.colorScheme.onPrimary
+
+            OfferHubLogoStyle.WHITE ->
+                Color.White
+
+            OfferHubLogoStyle.GRADIENT ->
+                null
+        }
+
+    if (style == OfferHubLogoStyle.GRADIENT) {
+        Image(
+            painter = painter,
+            contentDescription = "OfferHub Logo",
+            contentScale = ContentScale.Fit,
+
+            modifier = modifier
+                .graphicsLayer {
+                    compositingStrategy =
+                        CompositingStrategy.Offscreen
+                }
+                .drawWithCache {
+                    val logoGradient =
+                        Brush.horizontalGradient(
+                            listOf(
+                                Secondary,
+                                Primary
+                            )
+                        )
+
+                    onDrawWithContent {
+                        drawContent()
+
+                        drawRect(
+                            brush = logoGradient,
+                            blendMode = BlendMode.SrcIn
+                        )
+                    }
+                }
+        )
+    } else {
+        Image(
+            painter = painter,
+            contentDescription = "OfferHub Logo",
+            modifier = modifier,
+            contentScale = ContentScale.Fit,
+
+            colorFilter =
+                ColorFilter.tint(
+                    tintColor ?: Color.White
+                )
+        )
+    }
+}
+
