@@ -180,24 +180,37 @@ fun OfferDetailBottomSheet(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
-                        onClick = {
-                            onSubmitRating(
-                                offer.offerId,
-                                selectedRating
-                            )
-                        },
-                        enabled = selectedRating in 1..5,
-                        modifier = Modifier.fillMaxWidth()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text =
-                                if (offer.rating == null) {
-                                    "Submit Rating"
-                                } else {
-                                    "Update Rating"
-                                }
-                        )
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = "Rate later")
+                        }
+
+                        Button(
+                            onClick = {
+                                onSubmitRating(
+                                    offer.offerId,
+                                    selectedRating
+                                )
+                            },
+                            enabled = selectedRating in 1..5,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text =
+                                    if (offer.rating == null) {
+                                        "Submit"
+                                    } else {
+                                        "Update"
+                                    }
+                            )
+                        }
                     }
                 }
 

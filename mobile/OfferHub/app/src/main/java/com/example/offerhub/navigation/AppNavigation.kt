@@ -29,6 +29,10 @@ import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.screens.subscriber.OfferCategoryScreen
 import com.example.offerhub.screens.subscriber.OfferDetailBottomSheet
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun AppNavigation(authViewModel: AuthViewModel) {
@@ -115,7 +119,10 @@ fun AppNavigation(authViewModel: AuthViewModel) {
     }
 
     val latestAcceptedOffer =
-        acceptedOffers.lastOrNull()
+        acceptedOffers.maxByOrNull { offer ->
+            offer.acceptedAt.orEmpty()
+        }
+
     LaunchedEffect(authState.otpReady, authState.pendingPhone) {
         if (authState.otpReady) {
             authState.pendingPhone?.let { phone ->
@@ -529,7 +536,8 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                             currentOffer.offerId == offerId
                         }
                         ?.copy(
-                            status = OfferStatus.ACCEPTED
+                            status = OfferStatus.ACCEPTED,
+                            acceptedAt = currentIsoTimestamp()
                         )
 
                 if (updatedOffer != null) {
@@ -585,4 +593,13 @@ fun AppNavigation(authViewModel: AuthViewModel) {
 @Composable
 private fun RoleHomePlaceholder(role: String) {
     Text(text = "$role home")
+}
+
+private fun currentIsoTimestamp(): String {
+    return SimpleDateFormat(
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        Locale.US
+    ).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }.format(Date())
 }
