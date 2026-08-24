@@ -42,8 +42,6 @@ fun SubscriberHomeScreen(
     latestAcceptedOffer: Offer?,
     onOfferClick: (String) -> Unit,
     onCategoryClick: (OfferType) -> Unit,
-    onAcceptedOffersClick: () -> Unit,
-    onRatedOffersClick: () -> Unit,
     onHomeClick: () -> Unit,
     onOffersClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -218,35 +216,6 @@ fun SubscriberHomeScreen(
                     }
                 }
             }
-
-            item {
-                Text(
-                    text = "Looking for something else?",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-            }
-
-            item {
-                Column(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    NavigationActionCard(
-                        title = "My Accepted Offers",
-                        onClick = onAcceptedOffersClick
-                    )
-
-                    NavigationActionCard(
-                        title = "My Rated Offers",
-                        onClick = onRatedOffersClick
-                    )
-                }
-            }
-
-
         }
     }
 }
@@ -341,8 +310,6 @@ fun SubscriberHomeScreenPreview() {
         latestAcceptedOffer = latestAcceptedOffer,
         onOfferClick = {},
         onCategoryClick = {},
-        onAcceptedOffersClick = {},
-        onRatedOffersClick = {},
         onHomeClick = {},
         onOffersClick = {},
         onProfileClick = {}

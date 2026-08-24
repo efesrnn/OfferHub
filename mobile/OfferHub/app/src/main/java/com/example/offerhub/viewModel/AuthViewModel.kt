@@ -30,6 +30,14 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
     private var lockJob: Job? = null
 
+    fun setPendingPhone(phone: String) {
+        _uiState.update {
+            it.copy(
+                pendingPhone = phone,
+                errorMessage = null
+            )
+        }
+    }
     fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String) =
         execute(
             operation = { repository.registerSubscriber(firstName, lastName, phone, email.ifBlank { null }) },

@@ -14,6 +14,14 @@ object Routes{
     const val ADMIN_HOME = "admin_home"
     const val OFFERS = "offers"
     const val PROFILE ="subscriber_profile"
+    const val OFFER_CATEGORY = "offer_category"
+    const val OFFER_CATEGORY_WITH_TYPE =
+        "offer_category/{offerType}"
+
+    fun offerCategory(offerType: String): String {
+        return "$OFFER_CATEGORY/$offerType"
+    }
     const val ACCEPTED_OFFERS = "accepted_offers"
     const val RATED_OFFERS = "rated_offers"
+
 }

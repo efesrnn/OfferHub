@@ -30,7 +30,6 @@ fun SubscriberProfileScreen(
     lastName: String,
     phone: String,
     email: String?,
-    acceptedOfferCount: Int,
     isLoading: Boolean = false,
     errorMessage: String? = null,
     onRetryClick: () -> Unit,
@@ -99,8 +98,7 @@ fun SubscriberProfileScreen(
                         firstName = firstName,
                         lastName = lastName,
                         phone = phone,
-                        email = email,
-                        acceptedOfferCount = acceptedOfferCount
+                        email = email
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -122,8 +120,7 @@ private fun ProfileInfoCard(
     firstName: String,
     lastName: String,
     phone: String,
-    email: String?,
-    acceptedOfferCount: Int
+    email: String?
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -147,10 +144,6 @@ private fun ProfileInfoCard(
                 value = email?.takeIf { it.isNotBlank() } ?: "Not provided"
             )
 
-            ProfileInfoRow(
-                label = "Accepted offers",
-                value = acceptedOfferCount.toString()
-            )
         }
     }
 }

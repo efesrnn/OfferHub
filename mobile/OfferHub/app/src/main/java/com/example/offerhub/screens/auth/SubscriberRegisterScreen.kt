@@ -93,7 +93,7 @@ fun SubscriberRegisterScreen(
                 prefix = "",
                 keyboardType = KeyboardType.Text,
             isError=lastNameTouched&&lastNameIsInvalid,
-            errorMessage="Last name cannot be empty",
+            errorMessage="First name cannot be empty",
             onFocusChanged= { isFocused ->
                 if (!isFocused) {
                     firstNameTouched = true
@@ -108,7 +108,7 @@ fun SubscriberRegisterScreen(
                 prefix = "",
                 keyboardType = KeyboardType.Text,
             isError=firstNameTouched&&firstNameIsInvalid,
-            errorMessage="First name cannot be empty",
+            errorMessage="Last name cannot be empty",
             onFocusChanged={isFocused->
                 if(!isFocused)
                 {
@@ -155,10 +155,7 @@ fun SubscriberRegisterScreen(
                 prefix="",
                 keyboardType = KeyboardType.Text,
                 isError = emailTouched && emailIsInvalid,
-                errorMessage = when {
-                    email.isBlank() -> "Email cannot be empty"
-                    else -> "Please enter a valid email address"
-                },
+                errorMessage =  "Please enter a valid email address",
                 onFocusChanged = {
                         isFocused->
                     if(!isFocused){

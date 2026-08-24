@@ -28,6 +28,13 @@ import com.example.offerhub.components.OfferHubBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferType
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import com.example.offerhub.components.SeeAllButton
 
 @Composable
 fun OffersScreen(
@@ -41,6 +48,7 @@ fun OffersScreen(
     onProfileClick: () -> Unit,
     onAcceptedOffersClick: () -> Unit,
     onRatedOffersClick: () -> Unit,
+    onSeeAllClick: (OfferType) -> Unit,
 ) {
     Scaffold(
         containerColor =
@@ -94,8 +102,11 @@ fun OffersScreen(
                 OffersContent(
                     offers = offers,
                     onOfferClick = onOfferClick,
-                    onAcceptedOffersClick = onAcceptedOffersClick,
-                    onRatedOffersClick = onRatedOffersClick,
+                    onSeeAllClick = onSeeAllClick,
+                    onAcceptedOffersClick =
+                        onAcceptedOffersClick,
+                    onRatedOffersClick =
+                        onRatedOffersClick,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
@@ -109,6 +120,7 @@ fun OffersScreen(
 private fun OffersContent(
     offers: List<Offer>,
     onOfferClick: (String) -> Unit,
+    onSeeAllClick: (OfferType) -> Unit,
     onAcceptedOffersClick: () -> Unit,
     onRatedOffersClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -171,7 +183,10 @@ private fun OffersContent(
             OfferCategorySection(
                 title = "Add-on Packages",
                 offers = addOnOffers,
-                onOfferClick = onOfferClick
+                onOfferClick = onOfferClick,
+                onSeeAllClick = {
+                    onSeeAllClick(OfferType.ADD_ON)
+                }
             )
         }
 
@@ -179,7 +194,10 @@ private fun OffersContent(
             OfferCategorySection(
                 title = "Tariff Upgrades",
                 offers = tariffOffers,
-                onOfferClick = onOfferClick
+                onOfferClick = onOfferClick,
+                onSeeAllClick = {
+                    onSeeAllClick(OfferType.TARIFF_UPGRADE)
+                }
             )
         }
 
@@ -187,7 +205,10 @@ private fun OffersContent(
             OfferCategorySection(
                 title = "Device Offers",
                 offers = deviceOffers,
-                onOfferClick = onOfferClick
+                onOfferClick = onOfferClick,
+                onSeeAllClick = {
+                    onSeeAllClick(OfferType.DEVICE_OFFER)
+                }
             )
         }
 
@@ -195,7 +216,10 @@ private fun OffersContent(
             OfferCategorySection(
                 title = "Loyalty Offers",
                 offers = loyaltyOffers,
-                onOfferClick = onOfferClick
+                onOfferClick = onOfferClick,
+                onSeeAllClick = {
+                    onSeeAllClick(OfferType.LOYALTY)
+                }
             )
         }
 
@@ -310,7 +334,8 @@ private fun OffersEmptyState(
 private fun OfferCategorySection(
     title: String,
     offers: List<Offer>,
-    onOfferClick: (String) -> Unit
+    onOfferClick: (String) -> Unit,
+    onSeeAllClick: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -335,10 +360,16 @@ private fun OfferCategorySection(
         } else {
             LazyRow(
                 contentPadding =
-                    PaddingValues(horizontal = 24.dp),
+                    PaddingValues(
+                        start = 16.dp,
+                        end = 24.dp
+                    ),
 
                 horizontalArrangement =
-                    Arrangement.spacedBy(16.dp)
+                    Arrangement.spacedBy(16.dp),
+
+                verticalAlignment =
+                    Alignment.CenterVertically
             ) {
                 items(
                     items = offers,
@@ -348,9 +379,19 @@ private fun OfferCategorySection(
                 ) { offer ->
                     OfferCard(
                         offer = offer,
+
+                        modifier =
+                            Modifier.width(300.dp),
+
                         onClick = {
                             onOfferClick(offer.offerId)
                         }
+                    )
+                }
+
+                item {
+                    SeeAllButton(
+                        onClick = onSeeAllClick
                     )
                 }
             }
@@ -390,6 +431,7 @@ private fun OffersScreenPreview() {
         onOffersClick = {},
         onProfileClick = {},
         onRatedOffersClick = {},
-        onAcceptedOffersClick = {}
+        onAcceptedOffersClick = {},
+        onSeeAllClick = {},
     )
 }

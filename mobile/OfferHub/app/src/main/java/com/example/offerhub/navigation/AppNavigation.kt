@@ -25,6 +25,7 @@ import com.example.offerhub.screens.subscriber.OffersScreen
 import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
 import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
 import com.example.offerhub.viewModel.AuthViewModel
+import com.example.offerhub.screens.subscriber.OfferCategoryScreen
 
 @Composable
 fun AppNavigation(authViewModel: AuthViewModel) {
@@ -126,6 +127,20 @@ fun AppNavigation(authViewModel: AuthViewModel) {
         }
     }
 
+    val currentPhone = authState.pendingPhone
+
+    val profilePhone =
+        when {
+            currentPhone.isNullOrBlank() ->
+                "Not available"
+
+            currentPhone.startsWith("+") ->
+                currentPhone
+
+            else ->
+                "+90 $currentPhone"
+        }
+
     NavHost(navController = navController, startDestination = Routes.SPLASH) {
         composable(Routes.SPLASH) {
             SplashScreen(
@@ -156,17 +171,30 @@ fun AppNavigation(authViewModel: AuthViewModel) {
         composable(Routes.SUBSCRIBER_LOGIN) {
             SubscriberLoginScreen(
                 onSendCodeClick = { phone ->
-                    // The API contract has no OTP-request endpoint for existing subscribers yet.
-                    navController.navigate("${Routes.OTP_VERIFICATION}/${Uri.encode(phone)}")
+                    authViewModel.setPendingPhone(phone)
+                    authViewModel.clearError()
+
+                    navController.navigate(
+                        "${Routes.OTP_VERIFICATION}/${Uri.encode(phone)}"
+                    )
                 },
-                onRegisterClick = { navController.navigate(Routes.SUBSCRIBER_REGISTER) }
+                onRegisterClick = {
+                    authViewModel.clearError()
+
+                    navController.navigate(
+                        Routes.SUBSCRIBER_REGISTER
+                    )
+                }
             )
         }
 
         composable(Routes.SUBSCRIBER_REGISTER) {
             SubscriberRegisterScreen(
                 onRegisterClick = authViewModel::registerSubscriber,
-                onLoginClick = { navController.popBackStack() },
+                onLoginClick = {
+                    authViewModel.clearError()
+                    navController.popBackStack()
+                },
                 isLoading = authState.isLoading,
                 backendError = authState.errorMessage
             )
@@ -174,23 +202,41 @@ fun AppNavigation(authViewModel: AuthViewModel) {
 
         composable(
             route = Routes.OTP_VERIFICATION_WITH_PHONE,
-            arguments = listOf(navArgument("phoneNumber") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("phoneNumber") {
+                    type = NavType.StringType
+                }
+            )
         ) { backStackEntry ->
-            val phone = backStackEntry.arguments?.getString("phoneNumber").orEmpty()
+
+            val phone =
+                backStackEntry.arguments
+                    ?.getString("phoneNumber")
+                    .orEmpty()
+
+            LaunchedEffect(phone) {
+                authViewModel.clearError()
+            }
+
             OtpVerificationScreen(
                 phoneNumber = phone,
                 onVerifyClick = { otp, useFirebase ->
                     if (useFirebase) {
                         authViewModel.verifyOtp(phone, otp)
                     } else {
-                        // Preserve the development-only fixed OTP path and its switch behavior.
-                        navController.navigate(Routes.SUBSCRIBER_HOME) {
-                            popUpTo(Routes.AUTH_CHOICE) { inclusive = true }
+                        navController.navigate(
+                            Routes.SUBSCRIBER_HOME
+                        ) {
+                            popUpTo(
+                                Routes.AUTH_CHOICE
+                            ) {
+                                inclusive = true
+                            }
                         }
                     }
                 },
                 onResendClick = {
-                    // Contract gap: wire this when /auth/otp-request is agreed with backend.
+                    // Backend OTP resend bağlanacak.
                 },
                 isLoading = authState.isLoading,
                 backendError = authState.errorMessage
@@ -213,22 +259,8 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                 },
 
                 onCategoryClick = { offerType ->
-                    navController.navigate(Routes.OFFERS) {
-                        launchSingleTop = true
-                    }
-                },
-
-                onAcceptedOffersClick = {
                     navController.navigate(
-                        Routes.ACCEPTED_OFFERS
-                    ) {
-                        launchSingleTop = true
-                    }
-                },
-
-                onRatedOffersClick = {
-                    navController.navigate(
-                        Routes.RATED_OFFERS
+                        Routes.offerCategory(offerType.name)
                     ) {
                         launchSingleTop = true
                     }
@@ -293,6 +325,13 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                         launchSingleTop = true
                     }
                 },
+                onSeeAllClick = { offerType ->
+                    navController.navigate(
+                        Routes.offerCategory(offerType.name)
+                    ) {
+                        launchSingleTop = true
+                    }
+                },
                 onProfileClick = {
                     navController.navigate(
                         Routes.PROFILE
@@ -318,13 +357,8 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             SubscriberProfileScreen(
                 firstName = "Test",
                 lastName = "Subscriber",
-                phone = "+90 555 111 22 33",
+                phone = profilePhone,
                 email = "test@offerhub.com",
-
-                acceptedOfferCount =
-                    subscriberOffers.count { offer ->
-                        offer.status == "ACCEPTED"
-                    },
 
                 onRetryClick = {
                     // Profile API bağlandığında
@@ -372,6 +406,68 @@ fun AppNavigation(authViewModel: AuthViewModel) {
 
                 onProfileClick = {
                     // Zaten Profile ekranındayız.
+                }
+            )
+        }
+
+        composable(
+            route = Routes.OFFER_CATEGORY_WITH_TYPE,
+
+            arguments = listOf(
+                navArgument("offerType") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+
+            val typeName =
+                backStackEntry.arguments
+                    ?.getString("offerType")
+                    .orEmpty()
+
+            val selectedType =
+                runCatching {
+                    OfferType.valueOf(typeName)
+                }.getOrNull()
+
+            val categoryTitle =
+                when (selectedType) {
+                    OfferType.ADD_ON ->
+                        "Add-on Packages"
+
+                    OfferType.TARIFF_UPGRADE ->
+                        "Tariff Upgrades"
+
+                    OfferType.DEVICE_OFFER ->
+                        "Device Offers"
+
+                    OfferType.LOYALTY ->
+                        "Loyalty Offers"
+
+                    null ->
+                        "Offers"
+                }
+
+            val categoryOffers =
+                if (selectedType == null) {
+                    emptyList()
+                } else {
+                    subscriberOffers.filter { offer ->
+                        offer.type == selectedType &&
+                                offer.status == "PENDING"
+                    }
+                }
+
+            OfferCategoryScreen(
+                title = categoryTitle,
+                offers = categoryOffers,
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onOfferClick = { offerId ->
+                    // Detay ModalBottomSheet daha sonra.
                 }
             )
         }
