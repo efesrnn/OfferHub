@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import com.example.offerhub.components.SeeAllButton
+import com.example.offerhub.data.model.OfferStatus
 
 @Composable
 fun OffersScreen(
@@ -127,22 +128,22 @@ private fun OffersContent(
 ){
     val addOnOffers = offers.filter { offer ->
         offer.type == OfferType.ADD_ON &&
-                offer.status == "PENDING"
+                offer.status == OfferStatus.PENDING
     }
 
     val tariffOffers = offers.filter { offer ->
         offer.type == OfferType.TARIFF_UPGRADE &&
-                offer.status == "PENDING"
+                offer.status == OfferStatus.PENDING
     }
 
     val deviceOffers = offers.filter { offer ->
         offer.type == OfferType.DEVICE_OFFER &&
-                offer.status == "PENDING"
+                offer.status == OfferStatus.PENDING
     }
 
     val loyaltyOffers = offers.filter { offer ->
         offer.type == OfferType.LOYALTY &&
-                offer.status == "PENDING"
+                offer.status == OfferStatus.PENDING
     }
     LazyColumn(
         modifier = modifier,
@@ -410,7 +411,7 @@ private fun OffersScreenPreview() {
                 title = "20 GB Internet",
                 score = 0.83,
                 highlighted = true,
-                status = "PENDING",
+                status = OfferStatus.PENDING,
                 type = OfferType.ADD_ON
             ),
 
@@ -420,7 +421,7 @@ private fun OffersScreenPreview() {
                 title = "Social Media Plus",
                 score = 0.76,
                 highlighted = false,
-                status = "ACCEPTED",
+                status = OfferStatus.ACCEPTED,
                 type = OfferType.ADD_ON
             )
         ),

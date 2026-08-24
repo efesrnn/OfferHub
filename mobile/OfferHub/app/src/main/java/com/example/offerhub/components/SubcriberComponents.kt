@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
 import com.example.offerhub.data.model.Campaign
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.ui.theme.Primary
 import com.example.offerhub.ui.theme.Secondary
 @Composable
@@ -151,38 +152,33 @@ fun OfferCard(
                     }
 
                     if (showStatus) {
-                        when (offer.status.uppercase()) {
-                            "ACCEPTED" -> {
+                        when (offer.status) {
+
+                            OfferStatus.ACCEPTED -> {
                                 OfferTag(
                                     text = "Accepted",
-
                                     containerColor =
                                         MaterialTheme.colorScheme.tertiaryContainer,
-
                                     contentColor =
                                         MaterialTheme.colorScheme.onTertiaryContainer
                                 )
                             }
 
-                            "DECLINED" -> {
+                            OfferStatus.DECLINED -> {
                                 OfferTag(
                                     text = "Not interested",
-
                                     containerColor =
                                         MaterialTheme.colorScheme.surfaceVariant,
-
                                     contentColor =
                                         MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
-                            "PENDING" -> {
+                            OfferStatus.PENDING -> {
                                 OfferTag(
                                     text = "Pending",
-
                                     containerColor =
                                         MaterialTheme.colorScheme.secondaryContainer,
-
                                     contentColor =
                                         MaterialTheme.colorScheme.onSecondaryContainer
                                 )

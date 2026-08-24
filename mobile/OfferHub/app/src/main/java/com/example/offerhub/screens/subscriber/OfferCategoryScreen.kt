@@ -28,7 +28,11 @@ fun OfferCategoryScreen(
     title: String,
     offers: List<Offer>,
     onBackClick: () -> Unit,
-    onOfferClick: (String) -> Unit
+    onOfferClick: (String) -> Unit,
+    showAcceptedTag: Boolean = false,
+    ratings: Map<String, Int> = emptyMap(),
+    emptyMessage: String =
+        "No offers available in this category."
 ) {
     Scaffold(
         containerColor =
@@ -72,8 +76,7 @@ fun OfferCategoryScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text =
-                            "No offers available in this category.",
+                        text = emptyMessage,
 
                         color =
                             MaterialTheme.colorScheme
@@ -103,6 +106,12 @@ fun OfferCategoryScreen(
 
                             modifier =
                                 Modifier.fillMaxWidth(),
+
+                            isAccepted =
+                                showAcceptedTag,
+
+                            rating =
+                                ratings[offer.offerId],
 
                             onClick = {
                                 onOfferClick(

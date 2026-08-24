@@ -6,15 +6,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.navigation.NavHostController
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.model.OfferType
-import com.example.offerhub.data.model.RatedOffer
 import com.example.offerhub.screens.auth.AuthChoiceScreen
 import com.example.offerhub.screens.auth.OtpVerificationScreen
 import com.example.offerhub.screens.auth.SplashScreen
@@ -26,19 +28,22 @@ import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
 import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.screens.subscriber.OfferCategoryScreen
+import com.example.offerhub.screens.subscriber.OfferDetailBottomSheet
 
 @Composable
 fun AppNavigation(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val authState by authViewModel.uiState.collectAsState()
-    val subscriberOffers = listOf(
+    var subscriberOffers by remember {
+        mutableStateOf(
+            listOf(
         Offer(
             offerId = "f1a2",
             campaignNo = "CMP-2026-000123",
             title = "20 GB Internet",
             score = 0.83,
             highlighted = true,
-            status = "PENDING",
+            status = OfferStatus.PENDING,
             type = OfferType.ADD_ON
         ),
 
@@ -48,7 +53,7 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             title = "Advantage Tariff",
             score = 0.76,
             highlighted = true,
-            status = "PENDING",
+            status = OfferStatus.PENDING,
             type = OfferType.TARIFF_UPGRADE
         ),
 
@@ -58,7 +63,7 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             title = "Device Discount",
             score = 0.68,
             highlighted = false,
-            status = "PENDING",
+            status = OfferStatus.PENDING,
             type = OfferType.DEVICE_OFFER
         ),
 
@@ -66,10 +71,16 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             offerId = "f1a5",
             campaignNo = "CMP-2026-000126",
             title = "25 GB Internet",
+            description =
+                "30 gün boyunca geçerli 25 GB internet paketi.",
+            discountRate = 20.0,
+            validUntil = "2026-09-30T23:59:59Z",
             score = 0.91,
             highlighted = true,
-            status = "ACCEPTED",
-            type = OfferType.ADD_ON
+            status = OfferStatus.ACCEPTED,
+            type = OfferType.ADD_ON,
+            acceptedAt = "2026-08-24T10:30:00Z",
+            rating = 4
         ),
 
         Offer(
@@ -78,22 +89,30 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             title = "Loyalty Gift",
             score = 0.72,
             highlighted = false,
-            status = "PENDING",
+            status = OfferStatus.PENDING,
             type = OfferType.LOYALTY
         )
-    )
-    val subscriberRatedOffers = listOf(
-        RatedOffer(
-            offer = subscriberOffers.first { offer ->
-                offer.offerId == "f1a5"
-            },
-            rating = 4
+            )
         )
-    )
+    }
+    val ratedOffers =
+        subscriberOffers.filter { offer ->
+            offer.rating != null
+        }
     val acceptedOffers =
         subscriberOffers.filter { offer ->
-            offer.status == "ACCEPTED"
+            offer.status == OfferStatus.ACCEPTED
         }
+    var selectedOffer by remember {
+        mutableStateOf<Offer?>(null)
+    }
+
+    val openOfferDetail: (String) -> Unit = { offerId ->
+        selectedOffer =
+            subscriberOffers.firstOrNull { offer ->
+                offer.offerId == offerId
+            }
+    }
 
     val latestAcceptedOffer =
         acceptedOffers.lastOrNull()
@@ -249,14 +268,12 @@ fun AppNavigation(authViewModel: AuthViewModel) {
 
                 recommendedOffers =
                     subscriberOffers.filter { offer ->
-                        offer.status == "PENDING"
+                        offer.status == OfferStatus.PENDING
                     },
 
                 latestAcceptedOffer = latestAcceptedOffer,
 
-                onOfferClick = { offerId ->
-                    // ModalBottomSheet sonraki adımda bağlanacak.
-                },
+                onOfferClick = openOfferDetail,
 
                 onCategoryClick = { offerType ->
                     navController.navigate(
@@ -294,9 +311,7 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                     // ViewModel bağlanınca tekrar yükleyecek
                 },
 
-                onOfferClick = { offerId ->
-                    // Offer Detail route sonra bağlanacak
-                },
+                onOfferClick = openOfferDetail,
 
                 onHomeClick = {
                     navController.navigate(
@@ -343,14 +358,43 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             )
         }
         composable(Routes.ACCEPTED_OFFERS) {
-            Text(
-                text = "My Accepted Offers"
+            OfferCategoryScreen(
+                title = "My Accepted Offers",
+
+                offers = acceptedOffers,
+
+                showAcceptedTag = true,
+
+                emptyMessage =
+                    "You have not accepted an offer yet.",
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onOfferClick = openOfferDetail,
             )
         }
-         //temp
+        //temp
         composable(Routes.RATED_OFFERS) {
-            Text(
-                text = "My Rated Offers"
+
+            val ratingsByOfferId =
+                ratedOffers.associate { offer ->
+                    offer.offerId to requireNotNull(offer.rating)
+                }
+
+            OfferCategoryScreen(
+                title = "My Rated Offers",
+                offers = ratedOffers,
+                ratings = ratingsByOfferId,
+                emptyMessage =
+                    "You have not rated an offer yet.",
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onOfferClick = openOfferDetail
             )
         }
         composable(Routes.PROFILE) {
@@ -454,7 +498,7 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                 } else {
                     subscriberOffers.filter { offer ->
                         offer.type == selectedType &&
-                                offer.status == "PENDING"
+                                offer.status == OfferStatus.PENDING
                     }
                 }
 
@@ -466,11 +510,72 @@ fun AppNavigation(authViewModel: AuthViewModel) {
                     navController.popBackStack()
                 },
 
-                onOfferClick = { offerId ->
-                    // Detay ModalBottomSheet daha sonra.
-                }
+                onOfferClick = openOfferDetail
             )
         }
+    }
+    selectedOffer?.let { offer ->
+        OfferDetailBottomSheet(
+            offer = offer,
+
+            onDismiss = {
+                selectedOffer = null
+            },
+
+            onAcceptClick = { offerId ->
+                val updatedOffer =
+                    subscriberOffers
+                        .firstOrNull { currentOffer ->
+                            currentOffer.offerId == offerId
+                        }
+                        ?.copy(
+                            status = OfferStatus.ACCEPTED
+                        )
+
+                if (updatedOffer != null) {
+                    subscriberOffers =
+                        subscriberOffers.map { currentOffer ->
+                            if (currentOffer.offerId == offerId) {
+                                updatedOffer
+                            } else {
+                                currentOffer
+                            }
+                        }
+
+                    selectedOffer = updatedOffer
+                }
+            },
+
+            onDeclineClick = { offerId ->
+                subscriberOffers =
+                    subscriberOffers.map { currentOffer ->
+                        if (currentOffer.offerId == offerId) {
+                            currentOffer.copy(
+                                status = OfferStatus.DECLINED
+                            )
+                        } else {
+                            currentOffer
+                        }
+                    }
+
+                selectedOffer = null
+            },
+
+            onSubmitRating = { offerId, rating ->
+                subscriberOffers =
+                    subscriberOffers.map { currentOffer ->
+                        if (currentOffer.offerId == offerId) {
+                            currentOffer.copy(
+                                rating = rating
+                            )
+                        } else {
+                            currentOffer
+                        }
+                    }
+
+                selectedOffer = null
+            }
+        )
     }
 }
 

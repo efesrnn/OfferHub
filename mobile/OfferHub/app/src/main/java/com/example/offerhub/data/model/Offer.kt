@@ -6,11 +6,17 @@ data class Offer(
     val offerId: String,
     val campaignNo: String,
     val title: String,
+    val description: String = "",
+    val discountRate: Double? = null,
+    val validUntil: String? = null,
     val score: Double,
-    val highlighted: Boolean,
-    val status: String,
-    val type: OfferType
+    val highlighted: Boolean = false,
+    val status: OfferStatus,
+    val type: OfferType,
+    val acceptedAt: String? = null,
+    val rating: Int? = null
 )
+
 enum class OfferStatus{
     PENDING,
     ACCEPTED,

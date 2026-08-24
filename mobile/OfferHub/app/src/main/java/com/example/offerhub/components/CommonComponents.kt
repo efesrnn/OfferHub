@@ -204,7 +204,7 @@ fun NavigationActionCard(
         )
     ) {
         Text(
-            text = "$title  >",
+            text = "$title ",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,

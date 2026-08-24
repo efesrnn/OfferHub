@@ -33,6 +33,7 @@ import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.OfferHubBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.model.OfferType
 
 @Composable
@@ -268,7 +269,7 @@ fun SubscriberHomeScreenPreview() {
             title = "Summer Extra Package",
             score = 0.83,
             highlighted = true,
-            status = "PENDING",
+            status = OfferStatus.PENDING,
             type = OfferType.ADD_ON
         ),
 
@@ -278,7 +279,7 @@ fun SubscriberHomeScreenPreview() {
             title = "Advantage Tariff",
             score = 0.76,
             highlighted = true,
-            status = "PENDING",
+            status = OfferStatus.PENDING,
             type = OfferType.TARIFF_UPGRADE
         ),
 
@@ -288,7 +289,7 @@ fun SubscriberHomeScreenPreview() {
             title = "Device Discount",
             score = 0.68,
             highlighted = false,
-            status = "PENDING",
+            status = OfferStatus.PENDING,
             type = OfferType.DEVICE_OFFER
         )
     )
@@ -300,7 +301,7 @@ fun SubscriberHomeScreenPreview() {
             title = "25 GB Internet",
             score = 0.91,
             highlighted = true,
-            status = "ACCEPTED",
+            status = OfferStatus.ACCEPTED,
             type = OfferType.ADD_ON
         )
 
