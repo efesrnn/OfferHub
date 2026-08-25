@@ -3,6 +3,7 @@ package com.example.offerhub.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.offerhub.data.model.auth.AuthMode
 import com.example.offerhub.data.model.auth.AuthUser
 import com.example.offerhub.data.network.ApiError
 import com.example.offerhub.repository.AuthRepository
@@ -32,12 +33,15 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String) =
         execute(
-            operation = { repository.registerSubscriber(firstName, lastName, phone, email.ifBlank { null }) },
+            operation = { repository.registerSubscriber(firstName, lastName, phone, email.ifBlank { null }, AuthMode.MOCK) },
             onSuccess = { _uiState.update { it.copy(pendingPhone = phone, otpReady = true) } }
         )
 
-    fun verifyOtp(phone: String, otpCode: String) = execute(
-        operation = { repository.verifyOtp(phone, otpCode) },
+    fun verifyOtp(phone: String, otp: String, useFirebase: Boolean) = execute(
+        operation = {
+            val mode = if (useFirebase) AuthMode.FIREBASE else AuthMode.MOCK
+            repository.verifyOtp(mode, phone, otp)
+        },
         onSuccess = { data -> _uiState.update { it.copy(authenticatedUser = data.user) } }
     )
 

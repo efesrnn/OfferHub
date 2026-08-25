@@ -89,13 +89,13 @@ fun SubscriberRegisterScreen(
                 label="First Name",
                 prefix = "",
                 keyboardType = KeyboardType.Text,
-            isError=lastNameTouched&&lastNameIsInvalid,
-            errorMessage="Last name cannot be empty",
-            onFocusChanged= { isFocused ->
-                if (!isFocused) {
-                    firstNameTouched = true
+                isError=firstNameTouched&&firstNameIsInvalid,
+                errorMessage="First name cannot be empty",
+                onFocusChanged= { isFocused ->
+                    if (!isFocused) {
+                        firstNameTouched = true
+                    }
                 }
-            }
             )
             Spacer(modifier=Modifier.height(3.dp))
             TextFieldComponent(
@@ -104,14 +104,14 @@ fun SubscriberRegisterScreen(
                 label="Last Name",
                 prefix = "",
                 keyboardType = KeyboardType.Text,
-            isError=firstNameTouched&&firstNameIsInvalid,
-            errorMessage="First name cannot be empty",
-            onFocusChanged={isFocused->
-                if(!isFocused)
-                {
+                isError=lastNameTouched&&lastNameIsInvalid,
+                errorMessage="Last name cannot be empty",
+                onFocusChanged={isFocused->
+                    if(!isFocused)
+                    {
                         lastNameTouched=true
-                }
-            })
+                    }
+                })
             Spacer(modifier=Modifier.height(3.dp))
             TextFieldComponent(
                 value=gsm,
@@ -176,6 +176,7 @@ fun SubscriberRegisterScreen(
                     lastNameTouched=true
                     gsmTouched=true
                     emailTouched=true
+                    android.util.Log.d("OfferHubDebug", "firstName='$firstName' lastName='$lastName' gsm='$gsm' (len=${gsm.length}) email='$email' formIsValid=$formIsValid")
                     if(formIsValid)
                     {
                         onRegisterClick(

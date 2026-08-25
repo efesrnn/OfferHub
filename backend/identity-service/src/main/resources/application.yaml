@@ -15,3 +15,7 @@ sms:
   provider:
     api-key: ${SMS_API_KEY:}
     api-hash: ${SMS_API_HASH:}
+jwt:
+  secret: ${JWT_SECRET:}
+  access-token-expiry-seconds: 900
+  refresh-token-expiry-seconds: 604800

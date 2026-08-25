@@ -1,11 +1,20 @@
 package com.offerhub.identity.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class ApiError {
-    private String code;
-    private String message;
+    private final String code;
+    private final String message;
+    private final String lockedUntil;
+
+    public ApiError(String code, String message) {
+        this(code, message, null);
+    }
+
+    public ApiError(String code, String message, String lockedUntil) {
+        this.code = code;
+        this.message = message;
+        this.lockedUntil = lockedUntil;
+    }
 }

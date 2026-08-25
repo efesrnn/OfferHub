@@ -52,12 +52,8 @@ fun OtpVerificationScreen(
         var otp by remember { mutableStateOf("") }
         var otpTouched by remember { mutableStateOf(false) }
         var useFirebase by remember { mutableStateOf(false) }
-        val otpIsInvalid =
-            if (useFirebase) {
-                otp.isBlank() || otp.length != 4
-            } else {
-                otp.length != 4 || otp != "1234"
-            }
+        val otpIsInvalid = otp.isBlank() || otp.length != 4
+
         // TODO:
         // Mock mode uses fixed OTP "1234".
         // Firebase mode only validates OTP format locally.
@@ -119,19 +115,14 @@ fun OtpVerificationScreen(
                 isError = otpTouched && otpIsInvalid,
 
                 errorMessage = when {
-                    otp.isBlank() ->
-                        "OTP code cannot be empty"
+                    otp.isBlank() -> "OTP code cannot be empty"
 
-                    otp.length < 4 ->
-                        "OTP code must be 4 digits"
+                    otp.length < 4 -> "OTP code must be 4 digits"
 
-                    !useFirebase && otp != "1234" ->
-                        "Invalid mock OTP code"
-
-                    else ->
-                        null
+                    else -> null
                 }
             )
+
             Spacer(modifier = Modifier.height(18.dp))
             if (backendError != null) {
                 Text(text = backendError, color = androidx.compose.material3.MaterialTheme.colorScheme.error)

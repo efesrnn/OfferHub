@@ -21,4 +21,9 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> error(String code, String message) {
         return new ApiResponse<>(false, null, new ApiError(code, message));
     }
+
+    public static <T> ApiResponse<T> error(String code, String message, java.time.Instant lockedUntil) {
+        String lockedUntilStr = lockedUntil != null ? lockedUntil.toString() : null;
+        return new ApiResponse<>(false, null, new ApiError(code, message, lockedUntilStr));
+    }
 }

@@ -3,6 +3,7 @@ package com.example.offerhub.repository
 import com.example.offerhub.data.local.StoredTokens
 import com.example.offerhub.data.local.TokenStorage
 import com.example.offerhub.data.model.auth.AuthData
+import com.example.offerhub.data.model.auth.AuthMode
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
@@ -25,12 +26,11 @@ class AuthRepository(
     private val tokenStorage: TokenStorage,
     private val gson: Gson = Gson()
 ) {
-    suspend fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String?) =
-        call { api.registerSubscriber(SubscriberRegisterRequest(firstName, lastName, phone, email)) }
+    suspend fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String?, authMode: AuthMode) =
+        call { api.registerSubscriber(SubscriberRegisterRequest(firstName, lastName, phone, email, authMode)) }
 
-    suspend fun verifyOtp(phone: String, otpCode: String): AuthResult<AuthData> =
-        call { api.verifyOtp(OtpVerifyRequest(phone, otpCode)) }.saveTokensOnSuccess()
-
+    suspend fun verifyOtp(authMode: AuthMode, phone: String, credential: String): AuthResult<AuthData> =
+        call { api.verifyOtp(OtpVerifyRequest(authMode, phone, credential)) }.saveTokensOnSuccess()
     suspend fun staffLogin(email: String, password: String): AuthResult<AuthData> =
         call { api.staffLogin(StaffLoginRequest(email, password)) }.saveTokensOnSuccess()
 

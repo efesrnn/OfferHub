@@ -112,14 +112,7 @@ fun AppNavigation(authViewModel: AuthViewModel) {
             OtpVerificationScreen(
                 phoneNumber = phone,
                 onVerifyClick = { otp, useFirebase ->
-                    if (useFirebase) {
-                        authViewModel.verifyOtp(phone, otp)
-                    } else {
-                        // Preserve the development-only fixed OTP path and its switch behavior.
-                        navController.navigate(Routes.SUBSCRIBER_HOME) {
-                            popUpTo(Routes.AUTH_CHOICE) { inclusive = true }
-                        }
-                    }
+                    authViewModel.verifyOtp(phone, otp, useFirebase)
                 },
                 onResendClick = {
                     // Contract gap: wire this when /auth/otp-request is agreed with backend.
