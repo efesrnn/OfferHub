@@ -13,6 +13,7 @@ import com.example.offerhub.screens.auth.SplashScreen
 import com.example.offerhub.screens.auth.StaffLoginScreen
 import com.example.offerhub.screens.auth.SubscriberLoginScreen
 import com.example.offerhub.screens.auth.SubscriberRegisterScreen
+import com.example.offerhub.BuildConfig
 import com.example.offerhub.viewModel.AuthUiState
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.ui.text.asString
@@ -50,7 +51,12 @@ fun NavGraphBuilder.authGraph(
             onLoginClick = authViewModel::staffLogin,
             isLoading = authState.isLoading,
             backendError = authState.errorMessage?.asString(),
-            lockRemainingSeconds = authState.lockRemainingSeconds
+            lockRemainingSeconds = authState.lockRemainingSeconds,
+            onMockAdminClick = if (BuildConfig.DEBUG) {
+                authViewModel::debugLoginAsAdmin
+            } else {
+                null
+            }
         )
     }
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,7 +53,8 @@ fun StaffLoginScreen(
     ) -> Unit,
     isLoading: Boolean = false,
     backendError: String? = null,
-    lockRemainingSeconds: Long = 0
+    lockRemainingSeconds: Long = 0,
+    onMockAdminClick: (() -> Unit)? = null
     /*onForgotClick:()->*/
 )
 {
@@ -176,6 +178,15 @@ fun StaffLoginScreen(
                 onClick={
                     /*onForgotClick*/
             } )
+            if (onMockAdminClick != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onMockAdminClick,
+                    enabled = !isLoading
+                ) {
+                    Text(text = stringResource(R.string.auth_mock_admin_login))
+                }
+            }
 
         }
     }

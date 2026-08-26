@@ -9,6 +9,7 @@ import com.example.offerhub.data.network.ApiError
 import com.example.offerhub.repository.AuthRepository
 import com.example.offerhub.repository.AuthResult
 import com.example.offerhub.R
+import com.example.offerhub.BuildConfig
 import com.example.offerhub.ui.text.UiText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -94,6 +95,22 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     )
 
+    fun debugLoginAsAdmin() {
+        if (!BuildConfig.DEBUG) return
+
+        val debugAdmin = AuthUser(
+            id = "debug-admin",
+            role = "ADMIN"
+        )
+        _uiState.update {
+            it.copy(
+                currentUser = debugAdmin,
+                pendingNavigationRole = debugAdmin.role,
+                errorMessage = null
+            )
+        }
+    }
+
     fun consumeOtpReady() = _uiState.update { it.copy(otpReady = false) }
     fun consumeAuthenticationNavigation() =
         _uiState.update { it.copy(pendingNavigationRole = null) }
@@ -155,7 +172,8 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         "INVALID_CREDENTIALS" -> R.string.error_invalid_credentials
         "ACCOUNT_LOCKED" -> R.string.error_account_locked
         "INVALID_OTP" -> R.string.error_invalid_otp_backend
-        "PHONE_ALREADY_EXISTS", "SUBSCRIBER_ALREADY_EXISTS" -> R.string.error_phone_exists
+        "DUPLICATE_RESOURCE", "PHONE_ALREADY_EXISTS", "SUBSCRIBER_ALREADY_EXISTS" ->
+            R.string.error_phone_exists
         "EMAIL_ALREADY_EXISTS" -> R.string.error_email_exists
         "USER_NOT_FOUND", "SUBSCRIBER_NOT_FOUND" -> R.string.error_user_not_found
         "RATE_LIMITED", "TOO_MANY_REQUESTS" -> R.string.error_too_many_requests

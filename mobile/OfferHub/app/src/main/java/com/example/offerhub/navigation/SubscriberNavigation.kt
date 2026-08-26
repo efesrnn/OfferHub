@@ -136,11 +136,11 @@ fun NavGraphBuilder.subscriberGraph(
             email = "test@offerhub.com",
             onRetryClick = {},
             onLogoutClick = {
-                authViewModel.logout()
                 navController.navigate(Routes.AUTH_CHOICE) {
                     popUpTo(Routes.SUBSCRIBER_HOME) { inclusive = true }
                     launchSingleTop = true
                 }
+                authViewModel.logout()
             },
             onHomeClick = {
                 navController.navigate(Routes.SUBSCRIBER_HOME) {
