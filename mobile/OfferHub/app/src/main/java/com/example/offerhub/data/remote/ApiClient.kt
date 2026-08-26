@@ -1,23 +1,45 @@
 package com.example.offerhub.data.remote
 
 import com.example.offerhub.BuildConfig
+import com.example.offerhub.data.local.AccessTokenProvider
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
-    fun createAuthApi(): AuthApi {
-        val logging = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-            else HttpLoggingInterceptor.Level.NONE
+
+    private val loggingInterceptor =
+        HttpLoggingInterceptor().apply {
+            level =
+                if (BuildConfig.DEBUG) {
+                    HttpLoggingInterceptor.Level.BASIC
+                } else {
+                    HttpLoggingInterceptor.Level.NONE
+                }
         }
-        val client = OkHttpClient.Builder().addInterceptor(logging).build()
-        return Retrofit.Builder()
+
+    private fun createRetrofit(client: OkHttpClient) =
+        Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(
+                GsonConverterFactory.create()
+            )
             .build()
-            .create(AuthApi::class.java)
+
+    fun createAuthApi(): AuthApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(AuthApi::class.java)
+    }
+
+    fun createSubscriberApi(tokenProvider: AccessTokenProvider): SubscriberApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(SubscriberApi::class.java)
     }
 }

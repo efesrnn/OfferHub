@@ -4,6 +4,7 @@ import com.example.offerhub.data.local.StoredTokens
 import com.example.offerhub.data.local.TokenStorage
 import com.example.offerhub.data.model.auth.AuthData
 import com.example.offerhub.data.model.auth.AuthMode
+import com.example.offerhub.data.model.auth.AuthUser
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
@@ -15,6 +16,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import retrofit2.Response
 import java.io.IOException
+import java.time.Instant
 
 sealed interface AuthResult<out T> {
     data class Success<T>(val value: T) : AuthResult<T>
@@ -36,9 +38,34 @@ class AuthRepository(
 
     private suspend fun AuthResult<AuthData>.saveTokensOnSuccess(): AuthResult<AuthData> {
         if (this is AuthResult.Success) {
-            tokenStorage.save(StoredTokens(value.accessToken, value.refreshToken, value.expiresIn))
+            tokenStorage.save(
+                StoredTokens(
+                    accessToken = value.accessToken,
+                    refreshToken = value.refreshToken,
+                    expiresAtEpochSeconds =
+                        Instant.now().epochSecond + value.expiresIn,
+                    userId = value.user.id,
+                    userRole = value.user.role
+                )
+            )
         }
         return this
+    }
+
+    suspend fun clearLocalSession() {
+        tokenStorage.clear()
+    }
+
+    suspend fun restoreLocalSession(): AuthUser? {
+        val tokens = tokenStorage.read() ?: return null
+        if (tokens.isAccessTokenExpired(Instant.now().epochSecond)) {
+            tokenStorage.clear()
+            return null
+        }
+        return AuthUser(
+            id = tokens.userId,
+            role = tokens.userRole
+        )
     }
 
     private suspend fun <T> call(block: suspend () -> Response<ApiResponse<T>>): AuthResult<T> = try {

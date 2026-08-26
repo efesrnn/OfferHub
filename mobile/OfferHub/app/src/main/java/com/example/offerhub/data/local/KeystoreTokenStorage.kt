@@ -4,6 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.KeyStore
@@ -12,27 +13,41 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-class KeystoreTokenStorage(context: Context) : TokenStorage {
+class KeystoreTokenStorage(
+    context: Context,
+    private val sessionTokenProvider: SessionTokenProvider
+) : TokenStorage {
     private val preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     override suspend fun save(tokens: StoredTokens) = withContext(Dispatchers.IO) {
-        preferences.edit()
-            .putString(ACCESS_TOKEN, encrypt(tokens.accessToken))
-            .putString(REFRESH_TOKEN, encrypt(tokens.refreshToken))
-            .putLong(EXPIRES_IN, tokens.expiresIn)
-            .apply()
+        preferences.edit {
+            putString(ACCESS_TOKEN, encrypt(tokens.accessToken))
+            putString(REFRESH_TOKEN, encrypt(tokens.refreshToken))
+            putLong(EXPIRES_AT, tokens.expiresAtEpochSeconds)
+            putString(USER_ID, tokens.userId)
+            putString(USER_ROLE, tokens.userRole)
+            remove(LEGACY_EXPIRES_IN)
+        }
+        sessionTokenProvider.update(tokens.accessToken)
     }
 
     override suspend fun read(): StoredTokens? = withContext(Dispatchers.IO) {
         val access = preferences.getString(ACCESS_TOKEN, null) ?: return@withContext null
         val refresh = preferences.getString(REFRESH_TOKEN, null) ?: return@withContext null
+        val expiresAt = preferences.getLong(EXPIRES_AT, 0L)
+        val userId = preferences.getString(USER_ID, null) ?: return@withContext null
+        val userRole = preferences.getString(USER_ROLE, null) ?: return@withContext null
+        if (expiresAt <= 0L) return@withContext null
         runCatching {
-            StoredTokens(decrypt(access), decrypt(refresh), preferences.getLong(EXPIRES_IN, 0L))
-        }.getOrNull()
+            StoredTokens(decrypt(access), decrypt(refresh), expiresAt, userId, userRole)
+        }.getOrNull()?.also { tokens ->
+            sessionTokenProvider.update(tokens.accessToken)
+        }
     }
 
     override suspend fun clear() = withContext(Dispatchers.IO) {
-        preferences.edit().clear().apply()
+        preferences.edit { clear() }
+        sessionTokenProvider.clear()
     }
 
     private fun encrypt(value: String): String {
@@ -74,7 +89,10 @@ class KeystoreTokenStorage(context: Context) : TokenStorage {
         const val PREFS_NAME = "secure_auth_tokens"
         const val ACCESS_TOKEN = "access_token"
         const val REFRESH_TOKEN = "refresh_token"
-        const val EXPIRES_IN = "expires_in"
+        const val EXPIRES_AT = "expires_at_epoch_seconds"
+        const val LEGACY_EXPIRES_IN = "expires_in"
+        const val USER_ID = "user_id"
+        const val USER_ROLE = "user_role"
         const val KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "offerhub_auth_tokens"
         const val TRANSFORMATION = "AES/GCM/NoPadding"

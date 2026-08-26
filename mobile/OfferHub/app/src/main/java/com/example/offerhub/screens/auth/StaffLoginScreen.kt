@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +23,7 @@ import androidx.compose.runtime.simulateHotReload
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -33,6 +36,7 @@ import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
 import com.example.offerhub.components.PasswordRequirements
+import com.example.offerhub.R
 
 fun isPasswordValid(password: String): Boolean {
     return password.length >= 8 &&
@@ -53,11 +57,8 @@ fun StaffLoginScreen(
 )
 {
     Surface(
-        color=Color.White,
-        modifier= Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal = 32.dp,vertical=60.dp)
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     )
     {
         var email by remember{ mutableStateOf("") }
@@ -66,20 +67,27 @@ fun StaffLoginScreen(
         val emailIsInvalid=email.isBlank()||!Patterns.EMAIL_ADDRESS.matcher(email).matches()
         var emailTouched by remember { mutableStateOf(false) }
        val passwordIsInvalid= password.isBlank()||!isPasswordValid(password)
-        Column(
-            modifier=Modifier.fillMaxSize(),
-            horizontalAlignment=Alignment.CenterHorizontally,
-            verticalArrangement= Arrangement.Center
-        ){
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .safeDrawingPadding()
+                    .padding(
+                        horizontal = 32.dp,
+                        vertical = 24.dp
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+
+            ){
             Text(
-                text="Welcome back",
+                text = stringResource(R.string.auth_welcome_back),
                 fontSize=27.sp,
                 fontWeight=FontWeight.Bold
             )
 
             Spacer(modifier=Modifier.height(18.dp))
             Text(
-                text="Sign in to continue",
+                text = stringResource(R.string.auth_sign_in_subtitle),
                 fontSize=18.sp,
                 //fontfamily,
                 fontWeight= FontWeight.Normal
@@ -90,13 +98,13 @@ fun StaffLoginScreen(
                 onValueChange = {
                     email=it
                 },
-                label="Email",
+                label = stringResource(R.string.auth_email),
                 prefix="",
                 keyboardType = KeyboardType.Text,
                 isError = emailTouched && emailIsInvalid,
                 errorMessage = when {
-                    email.isBlank() -> "Email cannot be empty"
-                    else -> "Please enter a valid email address"
+                    email.isBlank() -> stringResource(R.string.error_email_empty)
+                    else -> stringResource(R.string.error_invalid_email)
                 },
                 onFocusChanged = {
                         isFocused->
@@ -111,16 +119,16 @@ fun StaffLoginScreen(
                 onValueChange={
                     password=it
                 },
-                label="Password",
+                label = stringResource(R.string.auth_password),
                 keyboardType= KeyboardType.Password,
                 visualTransformation = PasswordVisualTransformation(),
                 isError = passwordTouched&&passwordIsInvalid,
                 errorMessage = when {
                     password.isBlank() ->
-                        "Password cannot be empty"
+                        stringResource(R.string.error_password_empty)
 
                     !isPasswordValid(password) ->
-                        "ⓘ Password must be at least 8 characters and include an uppercase letter, a number, and a special character."
+                        stringResource(R.string.error_password_requirements)
 
                     else ->
                         null
@@ -138,12 +146,22 @@ fun StaffLoginScreen(
                 if (lockRemainingSeconds > 0) {
                     val minutes = lockRemainingSeconds / 60
                     val seconds = lockRemainingSeconds % 60
-                    Text(text = "Tekrar deneme: %02d:%02d".format(minutes, seconds))
+                    Text(
+                        text = stringResource(
+                            R.string.auth_retry_countdown,
+                            minutes,
+                            seconds
+                        )
+                    )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
             AuthButton(
-                text=if (isLoading) "Signing in..." else "Log In",
+                text = if (isLoading) {
+                    stringResource(R.string.auth_signing_in)
+                } else {
+                    stringResource(R.string.auth_log_in)
+                },
                 enabled = !isLoading && lockRemainingSeconds == 0L,
                 onClick = {
                     emailTouched = true
@@ -154,7 +172,7 @@ fun StaffLoginScreen(
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))
-            ClickableText  (text="Forgot your password?",
+            ClickableText(text = stringResource(R.string.auth_forgot_password),
                 onClick={
                     /*onForgotClick*/
             } )

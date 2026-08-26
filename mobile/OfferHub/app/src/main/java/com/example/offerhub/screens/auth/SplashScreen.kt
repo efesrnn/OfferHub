@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
+import com.example.offerhub.components.OfferHubLogo
+import com.example.offerhub.components.OfferHubLogoStyle
 import kotlinx.coroutines.delay
 
 @Composable
@@ -33,7 +37,7 @@ fun SplashScreen(
     }
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.White
+        color =MaterialTheme.colorScheme.background
     ) {
 
         Column(
@@ -42,16 +46,13 @@ fun SplashScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            Image(
-                painter = painterResource(R.drawable.logo),
-                contentDescription = "OfferHub Logo",
-                modifier = Modifier.size(150.dp)
-            )
-            Spacer(modifier = Modifier.height(18.dp))
-            Text(
-                text = "OfferHub",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold
+            OfferHubLogo(
+                style =
+                    OfferHubLogoStyle.GRADIENT,
+
+                modifier = Modifier
+                    .width(270.dp)
+                    .height(90.dp)
             )
         }
     }
@@ -60,7 +61,7 @@ fun SplashScreen(
 
 @Preview
 @Composable
-fun preview()
+fun SplashScreenPreview()
 {
     SplashScreen(onSplashFinished={})
 }

@@ -1,6 +1,5 @@
 package com.example.offerhub.screens.auth
 
-import android.R.attr.phoneNumber
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
+import com.example.offerhub.R
 
 @Composable
 fun OtpVerificationScreen(
@@ -42,11 +45,8 @@ fun OtpVerificationScreen(
 {
 
     Surface(
-        color=Color.White,
-        modifier=Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal=32.dp,vertical=60.dp)
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     )
     {
         var otp by remember { mutableStateOf("") }
@@ -59,10 +59,15 @@ fun OtpVerificationScreen(
         // Firebase mode only validates OTP format locally.
         // Real Firebase/backend verification will be connected later.
         Column(
-            modifier= Modifier
-                .fillMaxSize() ,
-            horizontalAlignment=Alignment.CenterHorizontally,
-            verticalArrangement= Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(
+                    horizontal = 32.dp,
+                    vertical = 24.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ){
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -70,7 +75,11 @@ fun OtpVerificationScreen(
                 verticalAlignment=Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (useFirebase) "Firebase OTP" else "Mock OTP",
+                    text = if (useFirebase) {
+                        stringResource(R.string.auth_firebase_otp)
+                    } else {
+                        stringResource(R.string.auth_mock_otp)
+                    },
                     fontSize = 25.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -88,13 +97,13 @@ fun OtpVerificationScreen(
             }
             Spacer(modifier=Modifier.height(50.dp))
             Text(
-                text = "Verify your phone number",
+                text = stringResource(R.string.auth_verify_phone),
                 fontSize = 27.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(18.dp))
             Text(
-                text = "Enter the code sent to $phoneNumber",
+                text = stringResource(R.string.auth_otp_sent_to, phoneNumber),
                 fontSize = 18.sp ,
                 fontWeight= FontWeight.Normal
             )
@@ -108,7 +117,7 @@ fun OtpVerificationScreen(
                         otp = digitsOnly
                     }
                 },
-                label = "OTP Code",
+                label = stringResource(R.string.auth_otp_code),
                 prefix = "",
                 keyboardType = KeyboardType.Number,
 
@@ -129,7 +138,11 @@ fun OtpVerificationScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
             AuthButton(
-                text = if (isLoading) "Verifying..." else "Verify",
+                text = if (isLoading) {
+                    stringResource(R.string.auth_verifying)
+                } else {
+                    stringResource(R.string.auth_verify)
+                },
                 enabled = !isLoading,
                 onClick = {
                     otpTouched = true
@@ -140,7 +153,7 @@ fun OtpVerificationScreen(
                 }
             )
             Spacer(modifier = Modifier.height(18.dp))
-            ClickableText(text="Resend Code",
+            ClickableText(text = stringResource(R.string.auth_resend_code),
                 onClick = onResendClick
             )
         }

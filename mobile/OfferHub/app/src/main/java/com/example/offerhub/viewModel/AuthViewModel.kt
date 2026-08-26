@@ -8,6 +8,8 @@ import com.example.offerhub.data.model.auth.AuthUser
 import com.example.offerhub.data.network.ApiError
 import com.example.offerhub.repository.AuthRepository
 import com.example.offerhub.repository.AuthResult
+import com.example.offerhub.R
+import com.example.offerhub.ui.text.UiText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,9 +20,11 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 
 data class AuthUiState(
+    val isSessionChecking: Boolean = true,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val authenticatedUser: AuthUser? = null,
+    val errorMessage: UiText? = null,
+    val currentUser: AuthUser? = null,
+    val pendingNavigationRole: String? = null,
     val pendingPhone: String? = null,
     val otpReady: Boolean = false,
     val lockRemainingSeconds: Long = 0
@@ -31,6 +35,31 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
     private var lockJob: Job? = null
 
+    init {
+        restoreSession()
+    }
+
+    private fun restoreSession() {
+        viewModelScope.launch {
+            val user = repository.restoreLocalSession()
+            _uiState.update {
+                it.copy(
+                    isSessionChecking = false,
+                    currentUser = user,
+                    pendingNavigationRole = user?.role
+                )
+            }
+        }
+    }
+
+    fun setPendingPhone(phone: String) {
+        _uiState.update {
+            it.copy(
+                pendingPhone = phone,
+                errorMessage = null
+            )
+        }
+    }
     fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String) =
         execute(
             operation = { repository.registerSubscriber(firstName, lastName, phone, email.ifBlank { null }, AuthMode.MOCK) },
@@ -47,11 +76,36 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     fun staffLogin(email: String, password: String) = execute(
         operation = { repository.staffLogin(email, password) },
-        onSuccess = { data -> _uiState.update { it.copy(authenticatedUser = data.user) } }
+        onSuccess = { data ->
+            _uiState.update {
+                it.copy(
+                    currentUser = data.user,
+                    pendingNavigationRole = data.user.role
+                )
+            }
+        }
     )
 
     fun consumeOtpReady() = _uiState.update { it.copy(otpReady = false) }
-    fun consumeAuthentication() = _uiState.update { it.copy(authenticatedUser = null) }
+    fun consumeAuthenticationNavigation() =
+        _uiState.update { it.copy(pendingNavigationRole = null) }
+
+    fun handleUnsupportedRole() {
+        _uiState.update {
+            it.copy(
+                pendingNavigationRole = null,
+                errorMessage = UiText.Resource(R.string.error_unsupported_role)
+            )
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            repository.clearLocalSession()
+            lockJob?.cancel()
+            _uiState.value = AuthUiState()
+        }
+    }
     fun clearError() = _uiState.update { it.copy(errorMessage = null) }
 
     private fun <T> execute(operation: suspend () -> AuthResult<T>, onSuccess: (T) -> Unit) {
@@ -89,21 +143,20 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    private fun errorCodeMessage(code: String): String = when (code) {
-        "INVALID_CREDENTIALS" -> "E-posta veya şifre hatalı."
-        "ACCOUNT_LOCKED" -> "Çok fazla başarısız deneme nedeniyle hesap geçici olarak kilitlendi."
-        "INVALID_OTP" -> "Doğrulama kodu geçersiz veya süresi dolmuş."
-        "PHONE_ALREADY_EXISTS", "SUBSCRIBER_ALREADY_EXISTS" -> "Bu telefon numarası zaten kayıtlı."
-        "EMAIL_ALREADY_EXISTS" -> "Bu e-posta adresi zaten kullanılıyor."
-        "USER_NOT_FOUND", "SUBSCRIBER_NOT_FOUND" -> "Bu bilgilerle eşleşen bir hesap bulunamadı."
-        "RATE_LIMITED", "TOO_MANY_REQUESTS" -> "Çok fazla istek gönderildi. Lütfen biraz bekleyin."
-        "NETWORK_ERROR" -> "Ağ bağlantısı kurulamadı. Lütfen bağlantınızı kontrol edin."
-        else -> "İşlem tamamlanamadı. Lütfen tekrar deneyin."
-    }
+    private fun errorCodeMessage(code: String): UiText = UiText.Resource(when (code) {
+        "INVALID_CREDENTIALS" -> R.string.error_invalid_credentials
+        "ACCOUNT_LOCKED" -> R.string.error_account_locked
+        "INVALID_OTP" -> R.string.error_invalid_otp_backend
+        "PHONE_ALREADY_EXISTS", "SUBSCRIBER_ALREADY_EXISTS" -> R.string.error_phone_exists
+        "EMAIL_ALREADY_EXISTS" -> R.string.error_email_exists
+        "USER_NOT_FOUND", "SUBSCRIBER_NOT_FOUND" -> R.string.error_user_not_found
+        "RATE_LIMITED", "TOO_MANY_REQUESTS" -> R.string.error_too_many_requests
+        "NETWORK_ERROR" -> R.string.error_network
+        else -> R.string.error_unknown
+    })
 
     class Factory(private val repository: AuthRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T = AuthViewModel(repository) as T
     }
 }
-

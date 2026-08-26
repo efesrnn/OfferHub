@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -71,6 +72,51 @@ fun TextFieldComponent(
              Text(text=errorMessage)
          }
      },
+     colors = OutlinedTextFieldDefaults.colors(
+         focusedTextColor =
+             MaterialTheme.colorScheme.onSurface,
+
+         unfocusedTextColor =
+             MaterialTheme.colorScheme.onSurface,
+
+         disabledTextColor =
+             MaterialTheme.colorScheme.onSurface.copy(
+                 alpha = 0.38f
+             ),
+
+         focusedLabelColor =
+             MaterialTheme.colorScheme.primary,
+
+         unfocusedLabelColor =
+             MaterialTheme.colorScheme.onSurfaceVariant,
+
+         focusedPrefixColor =
+             MaterialTheme.colorScheme.onSurfaceVariant,
+
+         unfocusedPrefixColor =
+             MaterialTheme.colorScheme.onSurfaceVariant,
+
+         cursorColor =
+             MaterialTheme.colorScheme.primary,
+
+         focusedBorderColor =
+             MaterialTheme.colorScheme.primary,
+
+         unfocusedBorderColor =
+             MaterialTheme.colorScheme.outline,
+
+         errorTextColor =
+             MaterialTheme.colorScheme.error,
+
+         errorLabelColor =
+             MaterialTheme.colorScheme.error,
+
+         errorBorderColor =
+             MaterialTheme.colorScheme.error,
+
+         errorCursorColor =
+             MaterialTheme.colorScheme.error
+     ),
      singleLine=true,  //?
      modifier=Modifier.fillMaxWidth()
  )
@@ -89,7 +135,13 @@ fun AuthButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp),
-        colors= ButtonDefaults.buttonColors(Color.Transparent)
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = Color.White,
+            disabledContainerColor = Color.Transparent,
+            disabledContentColor =
+                Color.White.copy(alpha = 0.6f)
+        )
     ){
         Box(modifier=Modifier
             .fillMaxWidth()
@@ -119,9 +171,9 @@ fun ClickableText(text:String,
         fontSize = 14.sp,
         textDecoration = TextDecoration.Underline,
         color = if (clicked) {
-            Color.DarkGray
+            MaterialTheme.colorScheme.onSurface
         } else {
-            Color.Gray
+            MaterialTheme.colorScheme.onSurfaceVariant
         },
         modifier = Modifier.clickable {
             clicked = true
@@ -148,9 +200,9 @@ fun PasswordRequirements(
         },
         fontSize = 12.sp,
         color = if (isValid) {
-            Color(0xFF2E7D32)
+            MaterialTheme.colorScheme.primary
         } else {
-            Color.Gray
+            MaterialTheme.colorScheme.onSurfaceVariant
         }
     )
 }
