@@ -98,13 +98,7 @@ fun NavGraphBuilder.authGraph(
         OtpVerificationScreen(
             phoneNumber = phone,
             onVerifyClick = { otp, useFirebase ->
-                if (useFirebase) {
-                    authViewModel.verifyOtp(phone, otp)
-                } else {
-                    navController.navigate(Routes.SUBSCRIBER_HOME) {
-                        popUpTo(Routes.AUTH_CHOICE) { inclusive = true }
-                    }
-                }
+                authViewModel.verifyOtp(phone, otp, useFirebase)
             },
             onResendClick = {
                 // Backend OTP resend endpoint'i sözleşme kesinleşince bağlanacak.

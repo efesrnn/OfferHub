@@ -5,8 +5,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.offerhub.screens.auth.AuthChoiceScreen
+import com.example.offerhub.screens.auth.OtpVerificationScreen
+import com.example.offerhub.screens.auth.StaffLoginScreen
+import com.example.offerhub.screens.auth.SubscriberLoginScreen
+import com.example.offerhub.screens.auth.SubscriberRegisterScreen
 import com.example.offerhub.screens.subscriber.OfferDetailBottomSheet
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
@@ -55,64 +63,6 @@ fun AppNavigation(
         )
         staffRoleGraphs()
     }
-
-        composable(Routes.AUTH_CHOICE) {
-            AuthChoiceScreen(
-                onSubscriberClick = { navController.navigate(Routes.SUBSCRIBER_LOGIN) },
-                onStaffClick = { navController.navigate(Routes.STAFF_LOGIN) }
-            )
-        }
-
-        composable(Routes.STAFF_LOGIN) {
-            StaffLoginScreen(
-                onLoginClick = authViewModel::staffLogin,
-                isLoading = authState.isLoading,
-                backendError = authState.errorMessage,
-                lockRemainingSeconds = authState.lockRemainingSeconds
-            )
-        }
-
-        composable(Routes.SUBSCRIBER_LOGIN) {
-            SubscriberLoginScreen(
-                onSendCodeClick = { phone ->
-                    // The API contract has no OTP-request endpoint for existing subscribers yet.
-                    navController.navigate("${Routes.OTP_VERIFICATION}/${Uri.encode(phone)}")
-                },
-                onRegisterClick = { navController.navigate(Routes.SUBSCRIBER_REGISTER) }
-            )
-        }
-
-        composable(Routes.SUBSCRIBER_REGISTER) {
-            SubscriberRegisterScreen(
-                onRegisterClick = authViewModel::registerSubscriber,
-                onLoginClick = { navController.popBackStack() },
-                isLoading = authState.isLoading,
-                backendError = authState.errorMessage
-            )
-        }
-
-        composable(
-            route = Routes.OTP_VERIFICATION_WITH_PHONE,
-            arguments = listOf(navArgument("phoneNumber") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val phone = backStackEntry.arguments?.getString("phoneNumber").orEmpty()
-            OtpVerificationScreen(
-                phoneNumber = phone,
-                onVerifyClick = { otp, useFirebase ->
-                    authViewModel.verifyOtp(phone, otp, useFirebase)
-                },
-                onResendClick = {
-                    // Contract gap: wire this when /auth/otp-request is agreed with backend.
-                },
-                isLoading = authState.isLoading,
-                backendError = authState.errorMessage
-            )
-        }
-
-        composable(Routes.SUBSCRIBER_HOME) { SubscriberHomeRoute() }
-        composable(Routes.EXPERT_HOME) { RoleHomePlaceholder("Expert") }
-        composable(Routes.SUPERVISOR_HOME) { RoleHomePlaceholder("Supervisor") }
-        composable(Routes.ADMIN_HOME) { RoleHomePlaceholder("Admin") }
     subscriberState.selectedOffer?.let { offer ->
         OfferDetailBottomSheet(
             offer = offer,
@@ -124,6 +74,11 @@ fun AppNavigation(
             onSubmitRating = subscriberViewModel::rateOffer
         )
     }
+}
+
+@Composable
+fun SubscriberHomeRoute() {
+    TODO("Not yet implemented")
 }
 
 private fun String.toHomeRoute(): String? = when (uppercase()) {

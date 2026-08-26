@@ -71,7 +71,14 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             val mode = if (useFirebase) AuthMode.FIREBASE else AuthMode.MOCK
             repository.verifyOtp(mode, phone, otp)
         },
-        onSuccess = { data -> _uiState.update { it.copy(authenticatedUser = data.user) } }
+        onSuccess = { data ->
+            _uiState.update {
+                it.copy(
+                    currentUser = data.user,
+                    pendingNavigationRole = data.user.role
+                )
+            }
+        }
     )
 
     fun staffLogin(email: String, password: String) = execute(
