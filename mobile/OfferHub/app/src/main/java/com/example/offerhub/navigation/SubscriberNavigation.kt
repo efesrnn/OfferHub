@@ -1,5 +1,7 @@
 package com.example.offerhub.navigation
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -13,7 +15,6 @@ import com.example.offerhub.screens.subscriber.OfferCategoryScreen
 import com.example.offerhub.screens.subscriber.OffersScreen
 import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
 import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
-import com.example.offerhub.viewModel.AuthUiState
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberUiState
 import com.example.offerhub.viewModel.SubscriberViewModel
@@ -21,7 +22,6 @@ import com.example.offerhub.ui.text.asString
 
 fun NavGraphBuilder.subscriberGraph(
     navController: NavHostController,
-    authState: AuthUiState,
     subscriberState: SubscriberUiState,
     authViewModel: AuthViewModel,
     subscriberViewModel: SubscriberViewModel
@@ -123,7 +123,8 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.PROFILE) {
-        val profilePhone = authState.pendingPhone
+        val authState by authViewModel.uiState.collectAsState()
+        val profilePhone = (authState.currentUser?.phone ?: authState.pendingPhone)
             ?.takeIf { it.isNotBlank() }
             ?.let { if (it.startsWith("+")) it else "+90 $it" }
             ?: stringResource(R.string.profile_not_available)

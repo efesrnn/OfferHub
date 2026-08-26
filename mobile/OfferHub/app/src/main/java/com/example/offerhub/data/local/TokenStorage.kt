@@ -5,7 +5,8 @@ data class StoredTokens(
     val refreshToken: String,
     val expiresAtEpochSeconds: Long,
     val userId: String,
-    val userRole: String
+    val userRole: String,
+    val phone: String? = null
 ) {
     fun isAccessTokenExpired(nowEpochSeconds: Long): Boolean =
         nowEpochSeconds >= expiresAtEpochSeconds

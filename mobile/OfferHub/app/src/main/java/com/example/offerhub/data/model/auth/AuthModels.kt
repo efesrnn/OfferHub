@@ -23,5 +23,6 @@ data class AuthUser(
     val id: String,
     val role: String,
     val specialties: List<String> = emptyList(),
-    val regions: List<String> = emptyList()
+    val regions: List<String> = emptyList(),
+    val phone: String? = null
 )

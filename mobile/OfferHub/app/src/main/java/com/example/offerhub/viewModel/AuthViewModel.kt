@@ -75,7 +75,8 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             _uiState.update {
                 it.copy(
                     currentUser = data.user,
-                    pendingNavigationRole = data.user.role
+                    pendingNavigationRole = data.user.role,
+                    pendingPhone = data.user.phone ?: phone
                 )
             }
         }

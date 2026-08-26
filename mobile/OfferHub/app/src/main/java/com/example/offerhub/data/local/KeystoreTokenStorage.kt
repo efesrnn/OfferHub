@@ -26,6 +26,11 @@ class KeystoreTokenStorage(
             putLong(EXPIRES_AT, tokens.expiresAtEpochSeconds)
             putString(USER_ID, tokens.userId)
             putString(USER_ROLE, tokens.userRole)
+            if (tokens.phone != null) {
+                putString(USER_PHONE, encrypt(tokens.phone))
+            } else {
+                remove(USER_PHONE)
+            }
             remove(LEGACY_EXPIRES_IN)
         }
         sessionTokenProvider.update(tokens.accessToken)
@@ -39,7 +44,8 @@ class KeystoreTokenStorage(
         val userRole = preferences.getString(USER_ROLE, null) ?: return@withContext null
         if (expiresAt <= 0L) return@withContext null
         runCatching {
-            StoredTokens(decrypt(access), decrypt(refresh), expiresAt, userId, userRole)
+            val phone = preferences.getString(USER_PHONE, null)?.let(::decrypt)
+            StoredTokens(decrypt(access), decrypt(refresh), expiresAt, userId, userRole, phone)
         }.getOrNull()?.also { tokens ->
             sessionTokenProvider.update(tokens.accessToken)
         }
@@ -93,6 +99,7 @@ class KeystoreTokenStorage(
         const val LEGACY_EXPIRES_IN = "expires_in"
         const val USER_ID = "user_id"
         const val USER_ROLE = "user_role"
+        const val USER_PHONE = "user_phone"
         const val KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "offerhub_auth_tokens"
         const val TRANSFORMATION = "AES/GCM/NoPadding"

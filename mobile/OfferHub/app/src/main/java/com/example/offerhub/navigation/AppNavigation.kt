@@ -56,7 +56,6 @@ fun AppNavigation(
         authGraph(navController, authState, authViewModel)
         subscriberGraph(
             navController,
-            authState,
             subscriberState,
             authViewModel,
             subscriberViewModel

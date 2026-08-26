@@ -32,7 +32,9 @@ class AuthRepository(
         call { api.registerSubscriber(SubscriberRegisterRequest(firstName, lastName, phone, email, authMode)) }
 
     suspend fun verifyOtp(authMode: AuthMode, phone: String, credential: String): AuthResult<AuthData> =
-        call { api.verifyOtp(OtpVerifyRequest(authMode, phone, credential)) }.saveTokensOnSuccess()
+        call { api.verifyOtp(OtpVerifyRequest(authMode, phone, credential)) }
+            .withSubscriberPhone(phone)
+            .saveTokensOnSuccess()
     suspend fun staffLogin(email: String, password: String): AuthResult<AuthData> =
         call { api.staffLogin(StaffLoginRequest(email, password)) }.saveTokensOnSuccess()
 
@@ -45,12 +47,21 @@ class AuthRepository(
                     expiresAtEpochSeconds =
                         Instant.now().epochSecond + value.expiresIn,
                     userId = value.user.id,
-                    userRole = value.user.role
+                    userRole = value.user.role,
+                    phone = value.user.phone
                 )
             )
         }
         return this
     }
+
+    private fun AuthResult<AuthData>.withSubscriberPhone(phone: String): AuthResult<AuthData> =
+        when (this) {
+            is AuthResult.Success -> AuthResult.Success(
+                value.copy(user = value.user.copy(phone = phone))
+            )
+            is AuthResult.Failure -> this
+        }
 
     suspend fun clearLocalSession() {
         tokenStorage.clear()
@@ -64,7 +75,8 @@ class AuthRepository(
         }
         return AuthUser(
             id = tokens.userId,
-            role = tokens.userRole
+            role = tokens.userRole,
+            phone = tokens.phone
         )
     }
 

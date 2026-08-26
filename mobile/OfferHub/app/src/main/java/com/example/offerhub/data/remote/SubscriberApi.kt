@@ -30,7 +30,7 @@ interface SubscriberApi {
         @Path("offerId") offerId: String
     ): Response<ApiResponse<OfferActionResponse>>
 
-    @PUT("api/v1/subscribers/me/offers/{offerId}/rating")
+    @POST("api/v1/subscribers/me/offers/{offerId}/rating")
     suspend fun rateOffer(
         @Path("offerId") offerId: String,
         @Body request: RateOfferRequest
