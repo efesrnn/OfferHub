@@ -1,0 +1,78 @@
+package com.offerhub.campaign.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.Instant;
+import java.util.UUID;
+
+/**
+ * A campaign that needs expert work. Born when AI predicts low conversion - or, while AI
+ * Service is not wired in yet, on the fallback path the contract defines for it.
+ */
+@Entity
+@Table(name = "optimization_cases",
+        uniqueConstraints = @UniqueConstraint(name = "uk_optimization_cases_campaign", columnNames = "campaign_id"),
+        indexes = {
+                @Index(name = "idx_optimization_cases_status", columnList = "status"),
+                @Index(name = "idx_optimization_cases_expert", columnList = "assigned_expert_id")
+        })
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class OptimizationCase {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    /**
+     * A real foreign key, unlike assignedExpertId: campaigns live in this service's own
+     * database. Unique - one case per campaign, enforced by the database, not by code.
+     */
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "campaign_id", nullable = false)
+    private Campaign campaign;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private CaseStatus status;
+
+    /** Staff user from Identity - soft reference, no FK across service databases. */
+    @Column
+    private UUID assignedExpertId;
+
+    /** What the expert changed. Required to reach TAMAMLANDI. */
+    @Column(length = 1000)
+    private String optimizationNote;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    private Instant updatedAt;
+
+    /** Stamped once, on the move to TAMAMLANDI. Also stops the SLA clock later on. */
+    private Instant completedAt;
+}
