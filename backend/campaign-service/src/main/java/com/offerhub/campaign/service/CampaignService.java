@@ -21,6 +21,7 @@ public class CampaignService {
 
     private final CampaignRepository campaignRepository;
     private final CampaignNumberGenerator numberGenerator;
+    private final OptimizationCaseService caseService;
 
     /**
      * AI Service is not wired in yet, so every campaign takes the fallback path the
@@ -43,7 +44,12 @@ public class CampaignService {
 
         // saveAndFlush, not save: @CreationTimestamp is filled during the insert, and
         // save() defers that to commit - the response would carry createdAt = null.
-        return CampaignResponse.from(campaignRepository.saveAndFlush(campaign));
+        Campaign saved = campaignRepository.saveAndFlush(campaign);
+
+        // Same transaction: a campaign that should be optimized never exists without its case.
+        caseService.openIfLowConversion(saved);
+
+        return CampaignResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
