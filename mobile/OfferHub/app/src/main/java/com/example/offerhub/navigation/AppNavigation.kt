@@ -19,13 +19,15 @@ import com.example.offerhub.screens.subscriber.OfferDetailBottomSheet
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
 import com.example.offerhub.viewModel.AdminViewModel
+import com.example.offerhub.viewModel.ExpertViewModel
 import com.example.offerhub.ui.text.asString
 
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel,
     subscriberViewModel: SubscriberViewModel,
-    adminViewModel: AdminViewModel
+    adminViewModel: AdminViewModel,
+    expertViewModel: ExpertViewModel
 ) {
     val navController = rememberNavController()
     val authState by authViewModel.uiState.collectAsState()
@@ -65,7 +67,8 @@ fun AppNavigation(
         staffRoleGraphs(
             navController = navController,
             authViewModel = authViewModel,
-            adminViewModel = adminViewModel
+            adminViewModel = adminViewModel,
+            expertViewModel = expertViewModel
         )
     }
     subscriberState.selectedOffer?.let { offer ->

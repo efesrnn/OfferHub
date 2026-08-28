@@ -111,6 +111,24 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    fun debugLoginAsExpert() {
+        if (!BuildConfig.DEBUG) return
+
+        val debugExpert = AuthUser(
+            id = "debug-expert",
+            role = "EXPERT",
+            specialties = listOf("CHURN_ONLEME"),
+            regions = listOf("ISTANBUL")
+        )
+        _uiState.update {
+            it.copy(
+                currentUser = debugExpert,
+                pendingNavigationRole = debugExpert.role,
+                errorMessage = null
+            )
+        }
+    }
+
     fun consumeOtpReady() = _uiState.update { it.copy(otpReady = false) }
     fun consumeAuthenticationNavigation() =
         _uiState.update { it.copy(pendingNavigationRole = null) }

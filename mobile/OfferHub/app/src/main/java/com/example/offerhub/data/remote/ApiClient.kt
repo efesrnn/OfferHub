@@ -42,4 +42,12 @@ object ApiClient {
             .build()
         return createRetrofit(client).create(SubscriberApi::class.java)
     }
+
+    fun createExpertApi(tokenProvider: AccessTokenProvider): ExpertApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(ExpertApi::class.java)
+    }
 }

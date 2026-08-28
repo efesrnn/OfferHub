@@ -54,7 +54,8 @@ fun StaffLoginScreen(
     isLoading: Boolean = false,
     backendError: String? = null,
     lockRemainingSeconds: Long = 0,
-    onMockAdminClick: (() -> Unit)? = null
+    onMockAdminClick: (() -> Unit)? = null,
+    onMockExpertClick: (() -> Unit)? = null
     /*onForgotClick:()->*/
 )
 {
@@ -185,6 +186,15 @@ fun StaffLoginScreen(
                     enabled = !isLoading
                 ) {
                     Text(text = stringResource(R.string.auth_mock_admin_login))
+                }
+            }
+            if (onMockExpertClick != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onMockExpertClick,
+                    enabled = !isLoading
+                ) {
+                    Text(text = stringResource(R.string.auth_mock_expert_login))
                 }
             }
 

@@ -8,6 +8,7 @@ import com.example.offerhub.navigation.AppNavigation
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
 import com.example.offerhub.viewModel.AdminViewModel
+import com.example.offerhub.viewModel.ExpertViewModel
 
 @Composable
 fun OfferHubApp() {
@@ -21,9 +22,13 @@ fun OfferHubApp() {
     val adminViewModel: AdminViewModel = viewModel(
         factory = AdminViewModel.Factory(application.adminRepository)
     )
+    val expertViewModel: ExpertViewModel = viewModel(
+        factory = ExpertViewModel.Factory(application.expertRepository)
+    )
     AppNavigation(
         authViewModel = authViewModel,
         subscriberViewModel = subscriberViewModel,
-        adminViewModel = adminViewModel
+        adminViewModel = adminViewModel,
+        expertViewModel = expertViewModel
     )
 }
