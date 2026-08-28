@@ -56,6 +56,21 @@ class CaseStateMachineTest {
     }
 
     @Test
+    void openCoversEveryStatusWhereWorkIsStillPossible() {
+        assertThat(CaseStateMachine.isOpen(YENI)).isTrue();
+        assertThat(CaseStateMachine.isOpen(ATANDI)).isTrue();
+        assertThat(CaseStateMachine.isOpen(OPTIMIZE_EDILIYOR)).isTrue();
+        assertThat(CaseStateMachine.isOpen(TEST_EDILIYOR)).isTrue();
+    }
+
+    @Test
+    void finishedCasesAreNotOpen() {
+        assertThat(CaseStateMachine.isOpen(TAMAMLANDI)).isFalse();
+        assertThat(CaseStateMachine.isOpen(YAYINDA)).isFalse();
+        assertThat(CaseStateMachine.isOpen(ARSIVLENDI)).isFalse();
+    }
+
+    @Test
     void assertAllowedThrowsInvalidStateTransition() {
         assertThatThrownBy(() -> CaseStateMachine.assertAllowed(YENI, TAMAMLANDI))
                 .isInstanceOf(ApiException.class)

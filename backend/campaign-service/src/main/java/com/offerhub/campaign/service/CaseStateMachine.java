@@ -29,7 +29,14 @@ public final class CaseStateMachine {
             YAYINDA, Set.of(ARSIVLENDI),
             ARSIVLENDI, Set.of());
 
+    /** Still being worked on. Assigning an expert to a finished case buys nothing. */
+    private static final Set<CaseStatus> OPEN = Set.of(YENI, ATANDI, OPTIMIZE_EDILIYOR, TEST_EDILIYOR);
+
     private CaseStateMachine() {
+    }
+
+    public static boolean isOpen(CaseStatus status) {
+        return OPEN.contains(status);
     }
 
     public static boolean isAllowed(CaseStatus from, CaseStatus to) {
