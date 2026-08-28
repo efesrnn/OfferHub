@@ -97,12 +97,12 @@ GET /api/v1/campaigns?status=&segment=&page=0&size=20
 
 ### Query parametreleri
 
-| Parametre | Tip  | Varsayılan | Not                                                      |
-| --------- | ---- | ---------- | -------------------------------------------------------- |
-| `status`  | enum | yok        | Verilmezse tüm durumlar                                  |
-| `segment` | enum | yok        | Verilmezse tüm segmentler                                |
-| `page`    | Int  | `0`        | Sıfırdan başlar                                          |
-| `size`    | Int  | `20`       | En fazla 100; üzerini isterseniz sessizce 100'e kırpılır |
+| Parametre | Tip  | Varsayılan | Not                                                        |
+| --------- | ---- | ---------- | ---------------------------------------------------------- |
+| `status`  | enum | yok        | Verilmezse tüm durumlar                                    |
+| `segment` | enum | yok        | Verilmezse tüm segmentler                                  |
+| `page`    | Int  | `0`        | Sıfırdan başlar                                            |
+| `size`    | Int  | `20`       | En fazla 100 -> üzerini isterseniz sessizce 100'e kırpılır |
 
 ### Yanıt — 200
 
