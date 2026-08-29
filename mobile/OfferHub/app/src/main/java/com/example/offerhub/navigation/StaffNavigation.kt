@@ -4,6 +4,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -108,12 +109,12 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.EXPERT_PROFILE) {
         val authState by authViewModel.uiState.collectAsState()
-        val user = authState.currentUser
+        val profileUser = remember { authState.currentUser }
         ExpertProfileScreen(
-            userId = user?.id.orEmpty(),
-            role = user?.role ?: "EXPERT",
-            specialties = user?.specialties.orEmpty(),
-            regions = user?.regions.orEmpty(),
+            userId = profileUser?.id.orEmpty(),
+            role = profileUser?.role ?: "EXPERT",
+            specialties = profileUser?.specialties.orEmpty(),
+            regions = profileUser?.regions.orEmpty(),
             onLogoutClick = {
                 navController.navigate(Routes.AUTH_CHOICE) {
                     popUpTo(Routes.EXPERT_HOME) { inclusive = true }
@@ -300,11 +301,11 @@ fun NavGraphBuilder.staffRoleGraphs(
 
     composable(Routes.ADMIN_PROFILE) {
         val authState by authViewModel.uiState.collectAsState()
-        val user = authState.currentUser
+        val profileUser = remember { authState.currentUser }
 
         AdminProfileScreen(
-            userId = user?.id.orEmpty(),
-            role = user?.role ?: "ADMIN",
+            userId = profileUser?.id.orEmpty(),
+            role = profileUser?.role ?: "ADMIN",
             onLogoutClick = {
                 navController.navigate(Routes.AUTH_CHOICE) {
                     popUpTo(Routes.ADMIN_HOME) { inclusive = true }

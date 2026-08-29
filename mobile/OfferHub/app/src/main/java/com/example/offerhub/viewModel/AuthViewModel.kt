@@ -146,7 +146,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         viewModelScope.launch {
             repository.clearLocalSession()
             lockJob?.cancel()
-            _uiState.value = AuthUiState()
+            _uiState.value = AuthUiState(isSessionChecking = false)
         }
     }
     fun clearError() = _uiState.update { it.copy(errorMessage = null) }
