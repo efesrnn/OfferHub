@@ -68,4 +68,32 @@ class MockSupervisorRepositoryTest {
         assertTrue(result is SupervisorResult.Failure)
         assertEquals("CASE_CLASSIFICATION_LOCKED", (result as SupervisorResult.Failure).error.code)
     }
+
+    @Test
+    fun `already assigned case cannot be assigned again`() = runBlocking {
+        val result = MockSupervisorRepository().assignCase("case-101", "expert-3")
+
+        assertTrue(result is SupervisorResult.Failure)
+        assertEquals("CASE_ALREADY_ASSIGNED", (result as SupervisorResult.Failure).error.code)
+    }
+
+    @Test
+    fun `churn risk segment cannot have low priority`() = runBlocking {
+        val result = MockSupervisorRepository().updateCaseClassification(
+            "case-102",
+            Segment.RISKLI_KAYIP,
+            Priority.DUSUK
+        )
+
+        assertTrue(result is SupervisorResult.Failure)
+        assertEquals("RISK_SEGMENT_PRIORITY_TOO_LOW", (result as SupervisorResult.Failure).error.code)
+    }
+
+    @Test
+    fun `only completed case can be published`() = runBlocking {
+        val result = MockSupervisorRepository().publishCase("case-104")
+
+        assertTrue(result is SupervisorResult.Failure)
+        assertEquals("INVALID_STATUS_TRANSITION", (result as SupervisorResult.Failure).error.code)
+    }
 }

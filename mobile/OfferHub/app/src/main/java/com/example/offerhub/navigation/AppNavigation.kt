@@ -90,11 +90,6 @@ fun AppNavigation(
     }
 }
 
-@Composable
-fun SubscriberHomeRoute() {
-    TODO("Not yet implemented")
-}
-
 private fun String.toHomeRoute(): String? = when (uppercase()) {
     "SUBSCRIBER" -> Routes.SUBSCRIBER_HOME
     "EXPERT" -> Routes.EXPERT_HOME

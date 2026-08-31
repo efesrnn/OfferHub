@@ -467,10 +467,12 @@ fun NavGraphBuilder.staffRoleGraphs(
             onClearFilters = adminViewModel::clearAuditFilters,
             onLoadNextPage = { adminViewModel.loadAuditLogs(reset = false) },
             onRetryClick = { adminViewModel.loadAuditLogs(reset = true) },
+            onRetryNextPageClick = { adminViewModel.loadAuditLogs(reset = false) },
             isLoading = adminState.isLoadingAudit,
             isLoadingNextPage = adminState.isLoadingNextAuditPage,
             canLoadMore = adminState.canLoadMoreAudit,
-            errorMessage = adminState.auditError
+            errorMessage = adminState.auditError,
+            nextPageErrorMessage = adminState.auditNextPageError
         )
     }
 

@@ -95,7 +95,7 @@ fun SubscriberRegisterScreen(
                 prefix = "",
                 keyboardType = KeyboardType.Text,
                 isError=firstNameTouched&&firstNameIsInvalid,
-                errorMessage="First name cannot be empty",
+                errorMessage = stringResource(R.string.error_first_name_empty),
                 onFocusChanged= { isFocused ->
                     if (!isFocused) {
                         firstNameTouched = true
@@ -110,7 +110,7 @@ fun SubscriberRegisterScreen(
                 prefix = "",
                 keyboardType = KeyboardType.Text,
                 isError=lastNameTouched&&lastNameIsInvalid,
-                errorMessage="Last name cannot be empty",
+                errorMessage = stringResource(R.string.error_last_name_empty),
                 onFocusChanged={isFocused->
                     if(!isFocused)
                     {
@@ -182,7 +182,6 @@ fun SubscriberRegisterScreen(
                     lastNameTouched=true
                     gsmTouched=true
                     emailTouched=true
-                    android.util.Log.d("OfferHubDebug", "firstName='$firstName' lastName='$lastName' gsm='$gsm' (len=${gsm.length}) email='$email' formIsValid=$formIsValid")
                     if(formIsValid)
                     {
                         onRegisterClick(

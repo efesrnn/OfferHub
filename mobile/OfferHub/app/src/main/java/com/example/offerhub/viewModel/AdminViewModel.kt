@@ -27,6 +27,7 @@ data class AdminUiState(
     val isLoadingAudit: Boolean = false,
     val isLoadingNextAuditPage: Boolean = false,
     val auditError: String? = null,
+    val auditNextPageError: String? = null,
     val isSubmitting: Boolean = false,
     val actionMessage: String? = null,
     val actionError: String? = null,
@@ -67,7 +68,8 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
                 it.copy(
                     isLoadingAudit = reset,
                     isLoadingNextAuditPage = !reset,
-                    auditError = null,
+                    auditError = if (reset) null else it.auditError,
+                    auditNextPageError = null,
                     auditLogs = if (reset) emptyList() else it.auditLogs
                 )
             }
@@ -82,13 +84,24 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
             )) {
                 is AdminResult.Success -> _uiState.update {
                     it.copy(
-                        auditLogs = if (reset) result.value.items else it.auditLogs + result.value.items,
+                        auditLogs = if (reset) {
+                            result.value.items.distinctBy(AuditLog::id)
+                        } else {
+                            (it.auditLogs + result.value.items).distinctBy(AuditLog::id)
+                        },
                         auditPage = result.value.page,
-                        auditTotal = result.value.total
+                        auditTotal = result.value.total,
+                        auditError = null,
+                        auditNextPageError = null
                     )
                 }
                 is AdminResult.Failure -> _uiState.update {
-                    it.copy(auditError = result.error.message ?: "Audit logs could not be loaded")
+                    val message = result.error.message ?: "Audit logs could not be loaded"
+                    if (reset) {
+                        it.copy(auditError = message)
+                    } else {
+                        it.copy(auditNextPageError = message)
+                    }
                 }
             }
             _uiState.update { it.copy(isLoadingAudit = false, isLoadingNextAuditPage = false) }

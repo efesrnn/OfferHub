@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,6 +47,9 @@ fun SubscriberHomeScreen(
     firstName: String,
     recommendedOffers: List<Offer>,
     latestAcceptedOffer: Offer?,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onRetryClick: () -> Unit,
     onOfferClick: (String) -> Unit,
     onCategoryClick: (OfferType) -> Unit,
     onHomeClick: () -> Unit,
@@ -100,6 +105,29 @@ fun SubscriberHomeScreen(
             }
 
 
+            if (isLoading && recommendedOffers.isEmpty() && latestAcceptedOffer == null) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (errorMessage != null && recommendedOffers.isEmpty() && latestAcceptedOffer == null) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(errorMessage, color = MaterialTheme.colorScheme.error)
+                        Button(onClick = onRetryClick) {
+                            Text(stringResource(R.string.profile_retry))
+                        }
+                    }
+                }
+            } else {
             // RECOMMENDED OFFERS
             item {
                 Text(
@@ -111,22 +139,30 @@ fun SubscriberHomeScreen(
             }
 
             item {
-                LazyRow(
-                    state = recommendedState,
-                    flingBehavior = recommendedFling,
-                    contentPadding = PaddingValues(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(18.dp)
-                ) {
+                if (recommendedOffers.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.subscriber_no_recommended_offers),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                } else {
+                    LazyRow(
+                        state = recommendedState,
+                        flingBehavior = recommendedFling,
+                        contentPadding = PaddingValues(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(18.dp)
+                    ) {
 
-                    items(recommendedOffers) { offer ->
+                        items(recommendedOffers) { offer ->
 
-                        OfferCard(
-                            offer = offer,
-                            modifier = Modifier.width(300.dp),
-                            onClick = {
-                                onOfferClick(offer.offerId)
-                            }
-                        )
+                            OfferCard(
+                                offer = offer,
+                                modifier = Modifier.width(300.dp),
+                                onClick = {
+                                    onOfferClick(offer.offerId)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -222,6 +258,7 @@ fun SubscriberHomeScreen(
                     }
                 }
             }
+            }
         }
     }
 }
@@ -275,6 +312,9 @@ fun SubscriberHomeScreenPreview() {
             latestAcceptedOffer = MockOfferData.offers
                 .filter { it.status == OfferStatus.ACCEPTED }
                 .maxByOrNull { it.acceptedAt.orEmpty() },
+            isLoading = false,
+            errorMessage = null,
+            onRetryClick = {},
             onOfferClick = {},
             onCategoryClick = {},
             onHomeClick = {},

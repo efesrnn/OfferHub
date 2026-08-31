@@ -75,12 +75,12 @@
     <string name="error_password_requirements">ⓘ Password must be at least 8 characters and include an uppercase letter, a number, and a special character.</string>
     <string name="error_otp_empty">OTP code cannot be empty</string>
     <string name="error_otp_length">OTP code must be 4 digits</string>
-    <string name="error_invalid_mock_otp">Invalid mock OTP code</string>
 
     <string name="subscriber_hello">Hello, %1$s</string>
     <string name="subscriber_recommended">Recommended for you</string>
     <string name="subscriber_recently_accepted">Recently accepted</string>
     <string name="subscriber_no_accepted_offer">You have not accepted an offer yet.</string>
+    <string name="subscriber_no_recommended_offers">No recommended offers are available right now.</string>
     <string name="subscriber_quick_actions">Quick actions</string>
     <string name="offers_subtitle">Offers selected for you</string>
     <string name="offers_add_on_packages">Add-on Packages</string>
@@ -105,36 +105,25 @@
     <string name="profile_email">Email</string>
     <string name="profile_not_provided">Not provided</string>
     <string name="profile_not_available">Not available</string>
-    <string name="role_home">%1$s home</string>
-    <string name="role_expert">Expert</string>
     <string name="role_supervisor">Supervisor</string>
     <string name="supervisor_dashboard">Supervisor Dashboard</string>
-    <string name="supervisor_dashboard_subtitle">Operational performance overview</string>
     <string name="supervisor_ai_accuracy">AI accuracy</string>
     <string name="supervisor_sla_compliance">SLA compliance</string>
     <string name="supervisor_active_cases">Active cases</string>
     <string name="supervisor_pending_assignment">Pending assignment</string>
     <string name="supervisor_segment_distribution">Segment distribution</string>
     <string name="supervisor_segment">Segment</string>
-    <string name="supervisor_campaign_count">Campaigns</string>
     <string name="supervisor_conversion_trend">Conversion trend</string>
-    <string name="supervisor_period">Period</string>
-    <string name="supervisor_conversion_rate">Conversion rate</string>
     <string name="supervisor_attention_cases">Cases requiring attention</string>
     <string name="supervisor_no_attention_cases">No active cases currently require attention.</string>
     <string name="supervisor_expert_performance">Expert performance</string>
     <string name="supervisor_waiting_assignment">Waiting for assignment</string>
-    <string name="supervisor_completed_cases_value">Completed cases: %1$d</string>
-    <string name="supervisor_conversion_increase_value">Average conversion increase: %1$.1f%%</string>
-    <string name="supervisor_average_time_value">Average completion time: %1$.1f hours</string>
-    <string name="supervisor_expert_summary">%1$d completed · +%2$.1f%% · %3$.1f h average</string>
+    <plurals name="supervisor_expert_summary">
+        <item quantity="one">%1$d completed case · +%2$.1f%% · %3$.1f h average</item>
+        <item quantity="other">%1$d completed cases · +%2$.1f%% · %3$.1f h average</item>
+    </plurals>
     <string name="supervisor_view_experts">View experts</string>
-    <string name="supervisor_cases">Cases</string>
     <string name="supervisor_operations">Operations</string>
-    <string name="supervisor_case_management">Case Management</string>
-    <string name="supervisor_case_management_description">Review cases waiting for an expert assignment.</string>
-    <string name="supervisor_assigned_cases">Assigned Cases</string>
-    <string name="supervisor_assigned_cases_description">Review cases currently assigned to experts.</string>
     <string name="supervisor_pending_assignment_description">Assign uncertain or capacity-waiting cases to an expert.</string>
     <string name="supervisor_active_cases_description">Track assigned cases that are being optimized or tested.</string>
     <string name="supervisor_approval_queue">Approval Queue</string>
@@ -159,7 +148,6 @@
     <string name="supervisor_update_classification">Segment and priority</string>
     <string name="supervisor_save_changes">Save changes</string>
     <string name="supervisor_assign_expert">Assign expert</string>
-    <string name="supervisor_expert_capacity_value">%1$s · %2$d/%3$d active cases</string>
     <string name="supervisor_publish_case">Publish case</string>
     <string name="error_expert_capacity_full">This expert has reached the active case capacity.</string>
     <string name="error_invalid_case_transition">This case cannot be moved to the requested status.</string>
@@ -194,10 +182,8 @@
     <string name="supervisor_empty_published_cases">No cases have been published yet.</string>
     <string name="supervisor_experts">Experts</string>
     <string name="supervisor_experts_description">Select an expert to view detailed performance metrics.</string>
-    <string name="supervisor_cases_subtitle">SLA breaches and cases waiting for assignment</string>
     <string name="supervisor_profile">Supervisor Profile</string>
     <string name="error_supervisor_dashboard">Supervisor dashboard could not be loaded.</string>
-    <string name="role_admin">Admin</string>
     <string name="error_invalid_credentials">E-posta veya şifre hatalı.</string>
     <string name="error_account_locked">Çok fazla başarısız deneme nedeniyle hesap geçici olarak kilitlendi.</string>
     <string name="error_invalid_otp_backend">Doğrulama kodu geçersiz veya süresi dolmuş.</string>
@@ -210,6 +196,8 @@
     <string name="error_unsupported_role">Bu kullanıcı rolü mobil uygulama tarafından desteklenmiyor.</string>
     <string name="error_offer_not_found">Teklif bulunamadı.</string>
     <string name="error_offer_not_accepted">Yalnızca kabul edilmiş teklifler puanlanabilir.</string>
+    <string name="error_offer_already_responded">You have already responded to this offer.</string>
+    <string name="error_offer_already_rated">You have already rated this offer.</string>
     <string name="error_invalid_rating">Puan 1 ile 5 arasında olmalıdır.</string>
 
     <string name="admin_dashboard">Admin Dashboard</string>
@@ -244,9 +232,6 @@
     <string name="admin_search_action">Search action, user ID or IP</string>
     <string name="admin_from_date">From date</string>
     <string name="admin_to_date">To date</string>
-    <string name="admin_any_date">Any date</string>
-    <string name="admin_select_date">Select date</string>
-    <string name="admin_clear_date">Clear date</string>
     <string name="admin_filters">Filters</string>
     <string name="admin_filter_audit_logs">Filter audit logs</string>
     <string name="admin_action_type">Action type</string>
@@ -257,10 +242,10 @@
     <string name="admin_to_value">To %1$s</string>
     <string name="admin_no_audit_logs">No audit logs found.</string>
     <string name="admin_try_again">Try Again</string>
+    <string name="admin_next_page_error">More audit logs could not be loaded.</string>
+    <string name="admin_retry_more_logs">Retry loading more</string>
     <string name="admin_ok">OK</string>
     <string name="admin_cancel">Cancel</string>
-    <string name="admin_log_user">User: %1$s</string>
-    <string name="admin_log_ip">IP: %1$s</string>
     <string name="admin_error_first_name">First name is required.</string>
     <string name="admin_error_last_name">Last name is required.</string>
     <string name="admin_error_email">Enter a valid email address.</string>
@@ -268,9 +253,6 @@
     <string name="admin_error_region">Select at least one region.</string>
     <string name="admin_error_staff_id">Staff ID is required.</string>
     <string name="admin_clear">Clear</string>
-    <string name="admin_select_staff">Select staff member</string>
-    <string name="admin_no_staff">Create a staff account before updating a role.</string>
-    <string name="admin_error_select_staff">Select a staff member.</string>
     <string name="admin_looking_up_staff">Looking up staff…</string>
     <string name="admin_staff_information">Staff information</string>
     <string name="admin_current_role">Current role</string>
@@ -290,7 +272,6 @@
     <string name="expert_critical_cases">Critical cases</string>
     <string name="expert_active_cases">Loaded cases</string>
     <string name="expert_priority_cases">Priority cases</string>
-    <string name="expert_view_all_cases">View all cases</string>
     <string name="expert_assigned_cases">Assigned Cases</string>
     <string name="expert_status">Status</string>
     <string name="expert_sla_remaining">SLA remaining: %1$s</string>
@@ -330,7 +311,6 @@
     <string name="expert_filter_assigned">Assigned</string>
     <string name="expert_filter_optimizing">Optimizing</string>
     <string name="expert_filter_testing">Testing</string>
-    <string name="expert_critical_only">Critical only</string>
     <string name="expert_sort_by">Sort: %1$s</string>
     <string name="expert_sort_priority">Priority</string>
     <string name="expert_sort_sla">SLA remaining</string>

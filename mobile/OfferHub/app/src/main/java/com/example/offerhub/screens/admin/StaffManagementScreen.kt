@@ -1,5 +1,6 @@
 package com.example.offerhub.screens.admin
 
+import android.content.ClipData
 import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,18 +29,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.components.OfferHubDetailTopBar
 import com.example.offerhub.R
 import com.example.offerhub.data.model.admin.AdminStaff
+import kotlinx.coroutines.launch
 
 @Composable
 fun CreateStaffScreen(
@@ -335,7 +338,8 @@ private fun Set<String>.toggle(value: String): Set<String> =
 
 @Composable
 private fun CopyableStaffId(id: String) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val coroutineScope = rememberCoroutineScope()
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -346,7 +350,13 @@ private fun CopyableStaffId(id: String) {
             modifier = Modifier.weight(1f)
         )
         IconButton(
-            onClick = { clipboardManager.setText(AnnotatedString(id)) },
+            onClick = {
+                coroutineScope.launch {
+                    clipboard.setClipEntry(
+                        ClipEntry(ClipData.newPlainText("staff id", id))
+                    )
+                }
+            },
             modifier = Modifier.size(40.dp)
         ) {
             Icon(

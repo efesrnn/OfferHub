@@ -41,6 +41,9 @@ fun NavGraphBuilder.subscriberGraph(
                 it.status == OfferStatus.PENDING
             },
             latestAcceptedOffer = latestAcceptedOffer,
+            isLoading = subscriberState.isLoading,
+            errorMessage = subscriberState.loadErrorMessage?.asString(),
+            onRetryClick = subscriberViewModel::loadOffers,
             onOfferClick = openOfferDetail,
             onCategoryClick = { type ->
                 navController.navigate(Routes.offerCategory(type.name)) {

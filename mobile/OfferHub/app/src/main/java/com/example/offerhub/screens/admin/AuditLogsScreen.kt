@@ -1,5 +1,6 @@
 package com.example.offerhub.screens.admin
 
+import android.content.ClipData
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,15 +39,16 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.components.OfferHubDetailTopBar
@@ -57,6 +59,7 @@ import java.time.ZoneOffset
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,10 +76,12 @@ fun AuditLogsScreen(
     onClearFilters: () -> Unit,
     onLoadNextPage: () -> Unit,
     onRetryClick: () -> Unit,
+    onRetryNextPageClick: () -> Unit,
     isLoading: Boolean = false,
     isLoadingNextPage: Boolean = false,
     canLoadMore: Boolean = false,
-    errorMessage: String? = null
+    errorMessage: String? = null,
+    nextPageErrorMessage: String? = null
 ) {
     var showFilterSheet by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -91,12 +96,17 @@ fun AuditLogsScreen(
     val hasActiveFilters = selectedAction != null || selectedResult != null ||
         selectedFromDate != null || selectedToDate != null
     val listState = rememberLazyListState()
-    val shouldLoadNextPage by remember(listState, canLoadMore, isLoadingNextPage) {
+    val shouldLoadNextPage by remember(
+        listState,
+        canLoadMore,
+        isLoadingNextPage,
+        nextPageErrorMessage
+    ) {
         derivedStateOf {
             val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
                 ?: return@derivedStateOf false
             val totalItems = listState.layoutInfo.totalItemsCount
-            canLoadMore && !isLoadingNextPage &&
+            canLoadMore && !isLoadingNextPage && nextPageErrorMessage == null &&
                 totalItems > 0 && lastVisibleIndex >= totalItems - 3
         }
     }
@@ -215,6 +225,24 @@ fun AuditLogsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator()
+                            }
+                        }
+                    } else if (nextPageErrorMessage != null) {
+                        item(key = "next-page-error") {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.admin_next_page_error),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                                Button(onClick = onRetryNextPageClick) {
+                                    Text(stringResource(R.string.admin_retry_more_logs))
+                                }
                             }
                         }
                     }
@@ -414,7 +442,8 @@ private fun AuditLogDetailSheet(
 
 @Composable
 private fun AuditDetailRow(label: String, value: String, copyable: Boolean = false) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val coroutineScope = rememberCoroutineScope()
 
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -428,7 +457,15 @@ private fun AuditDetailRow(label: String, value: String, copyable: Boolean = fal
                 modifier = Modifier.weight(1f)
             )
             if (copyable) {
-                IconButton(onClick = { clipboardManager.setText(AnnotatedString(value)) }) {
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(
+                                ClipEntry(ClipData.newPlainText("audit log id", value))
+                            )
+                        }
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = stringResource(R.string.admin_copy_id),

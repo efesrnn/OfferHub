@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
@@ -197,7 +198,13 @@ private fun ExpertSummaryCard(expert: ExpertPerformanceSummary) {
         Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(expert.displayName, fontWeight = FontWeight.Bold)
             Text(
-                stringResource(R.string.supervisor_expert_summary, expert.completedCases, expert.averageConversionIncrease, expert.averageCompletionHours),
+                pluralStringResource(
+                    R.plurals.supervisor_expert_summary,
+                    expert.completedCases,
+                    expert.completedCases,
+                    expert.averageConversionIncrease,
+                    expert.averageCompletionHours
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
