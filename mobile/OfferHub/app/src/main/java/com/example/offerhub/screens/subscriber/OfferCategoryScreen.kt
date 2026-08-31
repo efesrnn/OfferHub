@@ -16,11 +16,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.OfferStatus
+import com.example.offerhub.data.model.OfferType
 import com.example.offerhub.R
+import com.example.offerhub.ui.theme.OfferHubTheme
 
 @Composable
 fun OfferCategoryScreen(
@@ -107,5 +112,21 @@ fun OfferCategoryScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OfferCategoryScreenPreview() {
+    // TODO: Remove temporary subscriber previews after real backend integration is testable.
+    OfferHubTheme {
+        OfferCategoryScreen(
+            title = "Add-on Packages",
+            offers = MockOfferData.offers.filter {
+                it.type == OfferType.ADD_ON && it.status == OfferStatus.PENDING
+            },
+            onBackClick = {},
+            onOfferClick = {}
+        )
     }
 }

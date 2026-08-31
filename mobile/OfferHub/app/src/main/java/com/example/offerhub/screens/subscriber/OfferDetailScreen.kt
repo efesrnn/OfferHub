@@ -25,13 +25,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.model.OfferType
 import com.example.offerhub.R
 import com.example.offerhub.ui.format.formatOfferTimestamp
+import com.example.offerhub.ui.theme.OfferHubTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -305,5 +308,20 @@ private fun Double.toDisplayNumber(): String {
         toInt().toString()
     } else {
         toString()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OfferDetailBottomSheetPreview() {
+    // TODO: Remove temporary subscriber previews after real backend integration is testable.
+    OfferHubTheme {
+        OfferDetailBottomSheet(
+            offer = MockOfferData.offers.first { it.status == OfferStatus.ACCEPTED },
+            onDismiss = {},
+            onAcceptClick = {},
+            onDeclineClick = {},
+            onSubmitRating = { _, _ -> }
+        )
     }
 }

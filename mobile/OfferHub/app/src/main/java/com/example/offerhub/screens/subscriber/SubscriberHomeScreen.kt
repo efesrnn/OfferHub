@@ -37,6 +37,8 @@ import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.model.OfferType
 import com.example.offerhub.R
+import com.example.offerhub.data.mock.MockOfferData
+import com.example.offerhub.ui.theme.OfferHubTheme
 
 @Composable
 fun SubscriberHomeScreen(
@@ -265,57 +267,19 @@ private fun QuickActionCard(
 @Preview(showBackground = true)
 @Composable
 fun SubscriberHomeScreenPreview() {
-    val offers = listOf(
-        Offer(
-            offerId = "f1a2",
-            campaignNo = "CMP-2026-000123",
-            title = "Summer Extra Package",
-            score = 0.83,
-            highlighted = true,
-            status = OfferStatus.PENDING,
-            type = OfferType.ADD_ON
-        ),
-
-        Offer(
-            offerId = "f1a3",
-            campaignNo = "CMP-2026-000124",
-            title = "Advantage Tariff",
-            score = 0.76,
-            highlighted = true,
-            status = OfferStatus.PENDING,
-            type = OfferType.TARIFF_UPGRADE
-        ),
-
-        Offer(
-            offerId = "f1a4",
-            campaignNo = "CMP-2026-000125",
-            title = "Device Discount",
-            score = 0.68,
-            highlighted = false,
-            status = OfferStatus.PENDING,
-            type = OfferType.DEVICE_OFFER
+    // TODO: Remove temporary subscriber previews after real backend integration is testable.
+    OfferHubTheme {
+        SubscriberHomeScreen(
+            firstName = "Test",
+            recommendedOffers = MockOfferData.offers.filter { it.status == OfferStatus.PENDING },
+            latestAcceptedOffer = MockOfferData.offers
+                .filter { it.status == OfferStatus.ACCEPTED }
+                .maxByOrNull { it.acceptedAt.orEmpty() },
+            onOfferClick = {},
+            onCategoryClick = {},
+            onHomeClick = {},
+            onOffersClick = {},
+            onProfileClick = {}
         )
-    )
-
-    val latestAcceptedOffer =
-        Offer(
-            offerId = "f1a5",
-            campaignNo = "CMP-2026-000126",
-            title = "25 GB Internet",
-            score = 0.91,
-            highlighted = true,
-            status = OfferStatus.ACCEPTED,
-            type = OfferType.ADD_ON
-        )
-
-    SubscriberHomeScreen(
-        firstName = "Test",
-        recommendedOffers = offers,
-        latestAcceptedOffer = latestAcceptedOffer,
-        onOfferClick = {},
-        onCategoryClick = {},
-        onHomeClick = {},
-        onOffersClick = {},
-        onProfileClick = {}
-    )
+    }
 }
