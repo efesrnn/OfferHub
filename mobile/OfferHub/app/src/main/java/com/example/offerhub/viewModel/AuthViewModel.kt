@@ -26,6 +26,8 @@ data class AuthUiState(
     val errorMessage: UiText? = null,
     val currentUser: AuthUser? = null,
     val pendingNavigationRole: String? = null,
+    val pendingPasswordChangeNavigation: Boolean = false,
+    val passwordChangeCompleted: Boolean = false,
     val pendingPhone: String? = null,
     val otpReady: Boolean = false,
     val lockRemainingSeconds: Long = 0
@@ -42,12 +44,15 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     private fun restoreSession() {
         viewModelScope.launch {
-            val user = repository.restoreLocalSession()
+            val session = repository.restoreLocalSession()
             _uiState.update {
                 it.copy(
                     isSessionChecking = false,
-                    currentUser = user,
-                    pendingNavigationRole = user?.role
+                    currentUser = session?.user,
+                    pendingNavigationRole = session?.user?.role
+                        ?.takeUnless { session.passwordChangeRequired },
+                    pendingPasswordChangeNavigation =
+                        session?.passwordChangeRequired == true
                 )
             }
         }
@@ -90,6 +95,22 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
                 it.copy(
                     currentUser = data.user,
                     pendingNavigationRole = data.user.role
+                        .takeUnless { data.passwordChangeRequired },
+                    pendingPasswordChangeNavigation = data.passwordChangeRequired,
+                    passwordChangeCompleted = false
+                )
+            }
+        }
+    )
+
+    fun changePassword(newPassword: String, confirmPassword: String) = execute(
+        operation = { repository.changePassword(newPassword, confirmPassword) },
+        onSuccess = {
+            _uiState.update {
+                it.copy(
+                    currentUser = null,
+                    pendingNavigationRole = null,
+                    passwordChangeCompleted = true
                 )
             }
         }
@@ -150,6 +171,24 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     fun consumeAuthenticationNavigation() =
         _uiState.update { it.copy(pendingNavigationRole = null) }
 
+    fun consumePasswordChangeNavigation() =
+        _uiState.update { it.copy(pendingPasswordChangeNavigation = false) }
+
+    fun finishPasswordChangeFlow() =
+        _uiState.update {
+            it.copy(
+                passwordChangeCompleted = false,
+                errorMessage = null
+            )
+        }
+
+    fun cancelPasswordChange() {
+        viewModelScope.launch {
+            repository.clearLocalSession()
+            _uiState.value = AuthUiState(isSessionChecking = false)
+        }
+    }
+
     fun handleUnsupportedRole() {
         _uiState.update {
             it.copy(
@@ -207,6 +246,8 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         "INVALID_CREDENTIALS" -> R.string.error_invalid_credentials
         "ACCOUNT_LOCKED" -> R.string.error_account_locked
         "INVALID_OTP" -> R.string.error_invalid_otp_backend
+        "WEAK_PASSWORD" -> R.string.error_weak_password
+        "PASSWORD_MISMATCH" -> R.string.error_password_mismatch
         "DUPLICATE_RESOURCE", "PHONE_ALREADY_EXISTS", "SUBSCRIBER_ALREADY_EXISTS" ->
             R.string.error_phone_exists
         "EMAIL_ALREADY_EXISTS" -> R.string.error_email_exists

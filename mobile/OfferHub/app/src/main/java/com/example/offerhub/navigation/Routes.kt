@@ -4,6 +4,7 @@ object Routes{
     const val SPLASH="splash"
     const val AUTH_CHOICE="auth_choice"
     const val STAFF_LOGIN="staff_login"
+    const val STAFF_CHANGE_PASSWORD = "staff_change_password"
     const val SUBSCRIBER_LOGIN="subscriber_login"
     const val SUBSCRIBER_REGISTER="subscriber_register"
     const val OTP_VERIFICATION="otp_verification"

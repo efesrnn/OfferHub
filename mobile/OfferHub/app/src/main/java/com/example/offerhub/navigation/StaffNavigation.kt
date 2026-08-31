@@ -269,7 +269,10 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_PENDING_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsState()
-        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        LaunchedEffect(Unit) {
+            supervisorViewModel.clearActionError()
+            supervisorViewModel.loadDashboard()
+        }
         SupervisorCaseListScreen(
             title = stringResource(R.string.supervisor_pending_assignment),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
@@ -292,7 +295,10 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_ACTIVE_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsState()
-        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        LaunchedEffect(Unit) {
+            supervisorViewModel.clearActionError()
+            supervisorViewModel.loadDashboard()
+        }
         SupervisorCaseListScreen(
             title = stringResource(R.string.supervisor_active_cases),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
@@ -318,7 +324,10 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_APPROVAL_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsState()
-        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        LaunchedEffect(Unit) {
+            supervisorViewModel.clearActionError()
+            supervisorViewModel.loadDashboard()
+        }
         SupervisorCaseListScreen(
             title = stringResource(R.string.supervisor_approval_queue),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
@@ -340,7 +349,10 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_PUBLISHED_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsState()
-        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        LaunchedEffect(Unit) {
+            supervisorViewModel.clearActionError()
+            supervisorViewModel.loadDashboard()
+        }
         SupervisorCaseListScreen(
             title = stringResource(R.string.supervisor_published_cases),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter { it.status == CaseStatus.YAYINDA },

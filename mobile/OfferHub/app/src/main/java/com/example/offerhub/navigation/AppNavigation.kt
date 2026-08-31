@@ -60,11 +60,19 @@ fun AppNavigation(
         }
     }
 
+    LaunchedEffect(authState.pendingPasswordChangeNavigation) {
+        if (authState.pendingPasswordChangeNavigation) {
+            navController.navigate(Routes.STAFF_CHANGE_PASSWORD) {
+                launchSingleTop = true
+            }
+            authViewModel.consumePasswordChangeNavigation()
+        }
+    }
+
     NavHost(navController, startDestination = Routes.SPLASH) {
-        authGraph(navController, authState, authViewModel)
+        authGraph(navController, authViewModel)
         subscriberGraph(
             navController,
-            subscriberState,
             authViewModel,
             subscriberViewModel
         )

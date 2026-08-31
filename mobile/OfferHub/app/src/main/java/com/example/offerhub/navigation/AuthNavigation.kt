@@ -1,7 +1,10 @@
 package com.example.offerhub.navigation
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -11,19 +14,19 @@ import com.example.offerhub.screens.auth.AuthChoiceScreen
 import com.example.offerhub.screens.auth.OtpVerificationScreen
 import com.example.offerhub.screens.auth.SplashScreen
 import com.example.offerhub.screens.auth.StaffLoginScreen
+import com.example.offerhub.screens.auth.StaffChangePasswordScreen
 import com.example.offerhub.screens.auth.SubscriberLoginScreen
 import com.example.offerhub.screens.auth.SubscriberRegisterScreen
 import com.example.offerhub.BuildConfig
-import com.example.offerhub.viewModel.AuthUiState
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.ui.text.asString
 
 fun NavGraphBuilder.authGraph(
     navController: NavHostController,
-    authState: AuthUiState,
     authViewModel: AuthViewModel
 ) {
     composable(Routes.SPLASH) {
+        val authState by authViewModel.uiState.collectAsState()
         SplashScreen(
             onSplashFinished = {
                 if (authState.currentUser == null) {
@@ -47,6 +50,10 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Routes.STAFF_LOGIN) {
+        val authState by authViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) {
+            authViewModel.clearError()
+        }
         StaffLoginScreen(
             onLoginClick = authViewModel::staffLogin,
             isLoading = authState.isLoading,
@@ -70,6 +77,29 @@ fun NavGraphBuilder.authGraph(
         )
     }
 
+    composable(Routes.STAFF_CHANGE_PASSWORD) {
+        val authState by authViewModel.uiState.collectAsState()
+        val returnToStaffLogin = {
+            if (authState.passwordChangeCompleted) {
+                authViewModel.finishPasswordChangeFlow()
+            } else {
+                authViewModel.cancelPasswordChange()
+            }
+            navController.navigate(Routes.STAFF_LOGIN) {
+                popUpTo(Routes.STAFF_LOGIN) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+        BackHandler(onBack = returnToStaffLogin)
+        StaffChangePasswordScreen(
+            isLoading = authState.isLoading,
+            backendError = authState.errorMessage?.asString(),
+            isCompleted = authState.passwordChangeCompleted,
+            onChangePassword = authViewModel::changePassword,
+            onBackToLogin = returnToStaffLogin
+        )
+    }
+
     composable(Routes.SUBSCRIBER_LOGIN) {
         SubscriberLoginScreen(
             onSendCodeClick = { phone ->
@@ -86,6 +116,7 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Routes.SUBSCRIBER_REGISTER) {
+        val authState by authViewModel.uiState.collectAsState()
         SubscriberRegisterScreen(
             onRegisterClick = authViewModel::registerSubscriber,
             onLoginClick = {
@@ -103,6 +134,7 @@ fun NavGraphBuilder.authGraph(
             navArgument("phoneNumber") { type = NavType.StringType }
         )
     ) { backStackEntry ->
+        val authState by authViewModel.uiState.collectAsState()
         val phone = backStackEntry.arguments
             ?.getString("phoneNumber")
             .orEmpty()

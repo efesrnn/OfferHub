@@ -21,7 +21,7 @@ class OfferHubApplication : Application() {
 
     val authRepository: AuthRepository by lazy {
         AuthRepository(
-            ApiClient.createAuthApi(),
+            ApiClient.createAuthApi(sessionTokenProvider),
             tokenStorage
         )
     }

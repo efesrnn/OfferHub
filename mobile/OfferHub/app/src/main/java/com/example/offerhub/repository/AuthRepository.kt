@@ -5,6 +5,7 @@ import com.example.offerhub.data.local.TokenStorage
 import com.example.offerhub.data.model.auth.AuthData
 import com.example.offerhub.data.model.auth.AuthMode
 import com.example.offerhub.data.model.auth.AuthUser
+import com.example.offerhub.data.model.auth.ChangePasswordRequest
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
@@ -22,6 +23,11 @@ sealed interface AuthResult<out T> {
     data class Success<T>(val value: T) : AuthResult<T>
     data class Failure(val error: ApiError) : AuthResult<Nothing>
 }
+
+data class RestoredAuthSession(
+    val user: AuthUser,
+    val passwordChangeRequired: Boolean
+)
 
 class AuthRepository(
     private val api: AuthApi,
@@ -48,7 +54,8 @@ class AuthRepository(
                         Instant.now().epochSecond + value.expiresIn,
                     userId = value.user.id,
                     userRole = value.user.role,
-                    phone = value.user.phone
+                    phone = value.user.phone,
+                    passwordChangeRequired = value.passwordChangeRequired
                 )
             )
         }
@@ -67,16 +74,41 @@ class AuthRepository(
         tokenStorage.clear()
     }
 
-    suspend fun restoreLocalSession(): AuthUser? {
+    suspend fun changePassword(
+        newPassword: String,
+        confirmPassword: String
+    ): AuthResult<Unit> = try {
+        val response = api.changePassword(
+            ChangePasswordRequest(newPassword, confirmPassword)
+        )
+        val envelope = response.body()
+        if (response.isSuccessful && envelope?.success == true) {
+            tokenStorage.clear()
+            AuthResult.Success(Unit)
+        } else {
+            AuthResult.Failure(
+                envelope?.error ?: parseError(response) ?: ApiError("UNKNOWN_ERROR")
+            )
+        }
+    } catch (_: IOException) {
+        AuthResult.Failure(ApiError("NETWORK_ERROR"))
+    } catch (_: Exception) {
+        AuthResult.Failure(ApiError("UNKNOWN_ERROR"))
+    }
+
+    suspend fun restoreLocalSession(): RestoredAuthSession? {
         val tokens = tokenStorage.read() ?: return null
         if (tokens.isAccessTokenExpired(Instant.now().epochSecond)) {
             tokenStorage.clear()
             return null
         }
-        return AuthUser(
-            id = tokens.userId,
-            role = tokens.userRole,
-            phone = tokens.phone
+        return RestoredAuthSession(
+            user = AuthUser(
+                id = tokens.userId,
+                role = tokens.userRole,
+                phone = tokens.phone
+            ),
+            passwordChangeRequired = tokens.passwordChangeRequired
         )
     }
 

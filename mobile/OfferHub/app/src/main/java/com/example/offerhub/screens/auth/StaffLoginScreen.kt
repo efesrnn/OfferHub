@@ -36,15 +36,8 @@ import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
-import com.example.offerhub.components.PasswordRequirements
 import com.example.offerhub.R
 
-fun isPasswordValid(password: String): Boolean {
-    return password.length >= 8 &&
-            password.any { it.isUpperCase() } &&
-            password.any { it.isDigit() } &&
-            password.any { !it.isLetterOrDigit() }
-}
 @Composable
 fun StaffLoginScreen(
     onLoginClick: (
@@ -70,7 +63,7 @@ fun StaffLoginScreen(
         var passwordTouched by remember { mutableStateOf(false) }
         val emailIsInvalid=email.isBlank()||!Patterns.EMAIL_ADDRESS.matcher(email).matches()
         var emailTouched by remember { mutableStateOf(false) }
-       val passwordIsInvalid= password.isBlank()||!isPasswordValid(password)
+       val passwordIsInvalid = password.isBlank()
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -127,16 +120,7 @@ fun StaffLoginScreen(
                 keyboardType= KeyboardType.Password,
                 visualTransformation = PasswordVisualTransformation(),
                 isError = passwordTouched&&passwordIsInvalid,
-                errorMessage = when {
-                    password.isBlank() ->
-                        stringResource(R.string.error_password_empty)
-
-                    !isPasswordValid(password) ->
-                        stringResource(R.string.error_password_requirements)
-
-                    else ->
-                        null
-                },
+                errorMessage = stringResource(R.string.error_password_empty),
                 prefix="",
                 onFocusChanged = { isFocused ->
                     if (!isFocused) {

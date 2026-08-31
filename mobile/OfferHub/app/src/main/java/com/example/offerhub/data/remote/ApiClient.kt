@@ -28,8 +28,9 @@ object ApiClient {
             )
             .build()
 
-    fun createAuthApi(): AuthApi {
+    fun createAuthApi(tokenProvider: AccessTokenProvider): AuthApi {
         val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
             .addInterceptor(loggingInterceptor)
             .build()
         return createRetrofit(client).create(AuthApi::class.java)

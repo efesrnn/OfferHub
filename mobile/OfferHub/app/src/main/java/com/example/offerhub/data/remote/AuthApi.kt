@@ -1,6 +1,7 @@
 package com.example.offerhub.data.remote
 
 import com.example.offerhub.data.model.auth.AuthData
+import com.example.offerhub.data.model.auth.ChangePasswordRequest
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
@@ -21,4 +22,9 @@ interface AuthApi {
 
     @POST("api/v1/auth/login")
     suspend fun staffLogin(@Body request: StaffLoginRequest): Response<ApiResponse<AuthData>>
+
+    @POST("api/v1/auth/change-password")
+    suspend fun changePassword(
+        @Body request: ChangePasswordRequest
+    ): Response<ApiResponse<Unit>>
 }

@@ -44,6 +44,16 @@
     <string name="auth_gsm">GSM</string>
     <string name="auth_email">Email</string>
     <string name="auth_password">Password</string>
+    <string name="auth_create_new_password">Create New Password</string>
+    <string name="auth_temporary_password_message">You must change your temporary password before continuing.</string>
+    <string name="auth_new_password">New Password</string>
+    <string name="auth_confirm_password">Confirm Password</string>
+    <string name="auth_change_password">Change Password</string>
+    <string name="auth_changing_password">Changing password…</string>
+    <string name="auth_password_changed_title">Password Changed</string>
+    <string name="auth_password_changed_message">Your password was changed successfully. Sign in with your new password.</string>
+    <string name="auth_back_to_login">Back to Login</string>
+    <string name="auth_password_requirements_compact"> 8+ characters   %2$s Uppercase %3$s Number          %4$s Special character</string>
     <string name="auth_register">Register</string>
     <string name="auth_registering">Registering…</string>
     <string name="auth_login_link">Already have an account? Log in</string>
@@ -72,7 +82,9 @@
     <string name="error_email_empty">Email cannot be empty</string>
     <string name="error_invalid_email">Please enter a valid email address</string>
     <string name="error_password_empty">Password cannot be empty</string>
-    <string name="error_password_requirements">ⓘ Password must be at least 8 characters and include an uppercase letter, a number, and a special character.</string>
+    <string name="error_password_requirements">Password does not meet the requirements.</string>
+    <string name="error_password_mismatch">Passwords do not match.</string>
+    <string name="error_weak_password">The password does not meet the security requirements.</string>
     <string name="error_otp_empty">OTP code cannot be empty</string>
     <string name="error_otp_length">OTP code must be 4 digits</string>
 

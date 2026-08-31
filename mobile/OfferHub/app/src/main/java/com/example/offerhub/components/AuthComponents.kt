@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
@@ -36,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.ui.theme.Primary
 import com.example.offerhub.ui.theme.Secondary
+import com.example.offerhub.R
+import com.example.offerhub.data.model.auth.PasswordPolicy
 
 @Composable
 fun TextFieldComponent(
@@ -186,20 +189,22 @@ fun ClickableText(text:String,
 fun PasswordRequirements(
     password: String
 ) {
-    val isValid =
-        password.length >= 8 &&
-                password.any { it.isUpperCase() } &&
-                password.any { it.isDigit() } &&
-                password.any { !it.isLetterOrDigit() }
+    val lengthMarker = if (password.length >= 8) "✓" else "○"
+    val uppercaseMarker = if (password.any(Char::isUpperCase)) "✓" else "○"
+    val numberMarker = if (password.any(Char::isDigit)) "✓" else "○"
+    val specialMarker = if (password.any { !it.isLetterOrDigit() }) "✓" else "○"
 
     Text(
-        text = if (isValid) {
-            "✓ Your password meets the requirements"
-        } else {
-            "ⓘ Your password must be at least 8 characters and include an uppercase letter, a number, and a special character."
-        },
-        fontSize = 12.sp,
-        color = if (isValid) {
+        text = stringResource(
+            R.string.auth_password_requirements_compact,
+            lengthMarker,
+            uppercaseMarker,
+            numberMarker,
+            specialMarker
+        ),
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        color = if (PasswordPolicy.isValid(password)) {
             MaterialTheme.colorScheme.primary
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
