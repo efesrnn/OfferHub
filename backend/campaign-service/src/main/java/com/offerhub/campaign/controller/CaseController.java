@@ -6,6 +6,10 @@ import com.offerhub.campaign.dto.CaseResponse;
 import com.offerhub.campaign.dto.PagedResult;
 import com.offerhub.campaign.dto.StatusChangeRequest;
 import com.offerhub.campaign.entity.CaseStatus;
+import com.offerhub.campaign.exception.ApiException;
+import com.offerhub.campaign.exception.ErrorCode;
+import com.offerhub.campaign.security.CallerIdentity;
+import com.offerhub.campaign.security.Role;
 import com.offerhub.campaign.service.OptimizationCaseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,33 +38,60 @@ public class CaseController {
     /**
      * The list is always priority ordered, so no sort parameter yet - sort=sla arrives
      * with the SLA round.
-     * TODO: assignedTo=me should resolve to the caller once JWT roles land.
      */
     @GetMapping
     public ApiResponse<PagedResult<CaseResponse>> list(
             @RequestParam(required = false) CaseStatus status,
-            @RequestParam(required = false) UUID assignedTo,
+            @RequestParam(required = false) String assignedTo,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            CallerIdentity caller) {
 
+        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
-        return ApiResponse.ok(caseService.list(status, assignedTo, pageable));
+        return ApiResponse.ok(caseService.list(status, resolveAssignedTo(assignedTo, caller), pageable));
     }
 
     @GetMapping("/{caseId}")
-    public ApiResponse<CaseResponse> get(@PathVariable UUID caseId) {
-        return ApiResponse.ok(caseService.getById(caseId));
+    public ApiResponse<CaseResponse> get(@PathVariable UUID caseId, CallerIdentity caller) {
+        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR, Role.ADMIN);
+        return ApiResponse.ok(caseService.getById(caseId, caller));
     }
 
     @PostMapping("/{caseId}/assign")
     public ApiResponse<CaseResponse> assign(@PathVariable UUID caseId,
-                                            @Valid @RequestBody AssignRequest request) {
+                                            @Valid @RequestBody AssignRequest request,
+                                            CallerIdentity caller) {
+        caller.requireAnyOf(Role.SUPERVISOR);
         return ApiResponse.ok(caseService.assign(caseId, request));
     }
 
     @PatchMapping("/{caseId}/status")
     public ApiResponse<CaseResponse> changeStatus(@PathVariable UUID caseId,
-                                                  @Valid @RequestBody StatusChangeRequest request) {
-        return ApiResponse.ok(caseService.changeStatus(caseId, request));
+                                                  @Valid @RequestBody StatusChangeRequest request,
+                                                  CallerIdentity caller) {
+        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
+        return ApiResponse.ok(caseService.changeStatus(caseId, request, caller));
+    }
+
+    /**
+     * An expert only ever sees their own cases, whatever they asked for - the filter is
+     * not a preference for them, it is the rule. Supervisors may filter by anyone.
+     */
+    private static UUID resolveAssignedTo(String assignedTo, CallerIdentity caller) {
+        if (caller.isExpert()) {
+            return caller.userId();
+        }
+        if (assignedTo == null || assignedTo.isBlank()) {
+            return null;
+        }
+        if ("me".equals(assignedTo)) {
+            return caller.userId();
+        }
+        try {
+            return UUID.fromString(assignedTo);
+        } catch (IllegalArgumentException ex) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "assignedTo must be 'me' or a user id");
+        }
     }
 }

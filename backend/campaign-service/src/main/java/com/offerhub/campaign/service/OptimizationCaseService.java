@@ -11,6 +11,7 @@ import com.offerhub.campaign.entity.OptimizationCase;
 import com.offerhub.campaign.exception.ApiException;
 import com.offerhub.campaign.exception.ErrorCode;
 import com.offerhub.campaign.repository.OptimizationCaseRepository;
+import com.offerhub.campaign.security.CallerIdentity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -61,22 +62,25 @@ public class OptimizationCaseService {
     }
 
     @Transactional(readOnly = true)
-    public CaseResponse getById(UUID caseId) {
-        return CaseResponse.from(load(caseId));
+    public CaseResponse getById(UUID caseId, CallerIdentity caller) {
+        OptimizationCase optimizationCase = load(caseId);
+        requireOwnCaseWhenExpert(optimizationCase, caller);
+        return CaseResponse.from(optimizationCase);
     }
 
     /**
      * The only way a case status changes. No save() call below: inside a transaction
      * Hibernate tracks the loaded entities and writes the changed fields on commit.
-     * TODO: check the caller's role against the transition table once JWT roles land.
      */
     @Transactional
-    public CaseResponse changeStatus(UUID caseId, StatusChangeRequest request) {
+    public CaseResponse changeStatus(UUID caseId, StatusChangeRequest request, CallerIdentity caller) {
         OptimizationCase optimizationCase = load(caseId);
+        requireOwnCaseWhenExpert(optimizationCase, caller);
+
         CaseStatus current = optimizationCase.getStatus();
         CaseStatus target = request.targetStatus();
 
-        CaseStateMachine.assertAllowed(current, target);
+        CaseStateMachine.assertAllowed(current, target, caller.role());
 
         if (target == CaseStatus.TAMAMLANDI) {
             requireOptimizationNote(request.optimizationNote());
@@ -97,7 +101,6 @@ public class OptimizationCaseService {
     /**
      * Supervisor override of the AI assignment. Not a state transition of its own, but it
      * starts a case that nobody had picked up yet.
-     * TODO: supervisor only, once JWT roles land.
      */
     @Transactional
     public CaseResponse assign(UUID caseId, AssignRequest request) {
@@ -121,6 +124,16 @@ public class OptimizationCaseService {
     private OptimizationCase load(UUID caseId) {
         return caseRepository.findByIdWithCampaign(caseId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "Case not found"));
+    }
+
+    /**
+     * IDOR guard: knowing another expert's caseId must not be enough to read or move it.
+     * Supervisors and admins see every case, that is their job.
+     */
+    private static void requireOwnCaseWhenExpert(OptimizationCase optimizationCase, CallerIdentity caller) {
+        if (caller.isExpert() && !caller.userId().equals(optimizationCase.getAssignedExpertId())) {
+            throw new ApiException(ErrorCode.FORBIDDEN, "This case is assigned to another expert");
+        }
     }
 
     /** The note says what the expert changed - a completed case without one is unauditable. */

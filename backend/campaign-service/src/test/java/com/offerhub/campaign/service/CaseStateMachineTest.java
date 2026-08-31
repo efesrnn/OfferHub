@@ -3,6 +3,7 @@ package com.offerhub.campaign.service;
 import com.offerhub.campaign.entity.CaseStatus;
 import com.offerhub.campaign.exception.ApiException;
 import com.offerhub.campaign.exception.ErrorCode;
+import com.offerhub.campaign.security.Role;
 import org.junit.jupiter.api.Test;
 
 import static com.offerhub.campaign.entity.CaseStatus.ARSIVLENDI;
@@ -72,7 +73,7 @@ class CaseStateMachineTest {
 
     @Test
     void assertAllowedThrowsInvalidStateTransition() {
-        assertThatThrownBy(() -> CaseStateMachine.assertAllowed(YENI, TAMAMLANDI))
+        assertThatThrownBy(() -> CaseStateMachine.assertAllowed(YENI, TAMAMLANDI, Role.SUPERVISOR))
                 .isInstanceOf(ApiException.class)
                 .hasMessage("Cannot move from YENI to TAMAMLANDI")
                 .extracting(ex -> ((ApiException) ex).getCode())
@@ -81,6 +82,42 @@ class CaseStateMachineTest {
 
     @Test
     void assertAllowedIsSilentOnAValidMove() {
-        CaseStateMachine.assertAllowed(YENI, ATANDI);
+        CaseStateMachine.assertAllowed(YENI, ATANDI, Role.SUPERVISOR);
+        CaseStateMachine.assertAllowed(ATANDI, OPTIMIZE_EDILIYOR, Role.EXPERT);
+        CaseStateMachine.assertAllowed(OPTIMIZE_EDILIYOR, TAMAMLANDI, Role.EXPERT);
+        CaseStateMachine.assertAllowed(TAMAMLANDI, YAYINDA, Role.SUPERVISOR);
+    }
+
+    /** An existing move made by the wrong role is 403, not 422 - a different failure. */
+    @Test
+    void expertCannotMakeSupervisorTransitions() {
+        assertThatThrownBy(() -> CaseStateMachine.assertAllowed(TAMAMLANDI, YAYINDA, Role.EXPERT))
+                .isInstanceOf(ApiException.class)
+                .extracting(ex -> ((ApiException) ex).getCode())
+                .isEqualTo(ErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    void supervisorCannotDoTheExpertsWork() {
+        assertThatThrownBy(() -> CaseStateMachine.assertAllowed(ATANDI, OPTIMIZE_EDILIYOR, Role.SUPERVISOR))
+                .isInstanceOf(ApiException.class)
+                .extracting(ex -> ((ApiException) ex).getCode())
+                .isEqualTo(ErrorCode.FORBIDDEN);
+    }
+
+    /** Subscribers and admins are not part of the case workflow at all. */
+    @Test
+    void subscriberAndAdminCanMakeNoTransition() {
+        for (CaseStatus from : CaseStatus.values()) {
+            for (CaseStatus to : CaseStatus.values()) {
+                if (!CaseStateMachine.isAllowed(from, to)) {
+                    continue;
+                }
+                assertThatThrownBy(() -> CaseStateMachine.assertAllowed(from, to, Role.SUBSCRIBER))
+                        .isInstanceOf(ApiException.class);
+                assertThatThrownBy(() -> CaseStateMachine.assertAllowed(from, to, Role.ADMIN))
+                        .isInstanceOf(ApiException.class);
+            }
+        }
     }
 }

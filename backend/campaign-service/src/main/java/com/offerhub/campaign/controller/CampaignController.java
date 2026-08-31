@@ -6,6 +6,8 @@ import com.offerhub.campaign.dto.CreateCampaignRequest;
 import com.offerhub.campaign.dto.PagedResult;
 import com.offerhub.campaign.entity.CampaignStatus;
 import com.offerhub.campaign.entity.Segment;
+import com.offerhub.campaign.security.CallerIdentity;
+import com.offerhub.campaign.security.Role;
 import com.offerhub.campaign.service.CampaignService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,9 @@ public class CampaignController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<CampaignResponse> create(@Valid @RequestBody CreateCampaignRequest request) {
+    public ApiResponse<CampaignResponse> create(@Valid @RequestBody CreateCampaignRequest request,
+                                                CallerIdentity caller) {
+        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
         return ApiResponse.ok(campaignService.create(request));
     }
 
@@ -41,14 +45,17 @@ public class CampaignController {
             @RequestParam(required = false) CampaignStatus status,
             @RequestParam(required = false) Segment segment,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            CallerIdentity caller) {
 
+        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR, Role.ADMIN);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
         return ApiResponse.ok(campaignService.list(status, segment, pageable));
     }
 
     @GetMapping("/{campaignNo}")
-    public ApiResponse<CampaignResponse> get(@PathVariable String campaignNo) {
+    public ApiResponse<CampaignResponse> get(@PathVariable String campaignNo, CallerIdentity caller) {
+        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR, Role.ADMIN);
         return ApiResponse.ok(campaignService.getByCampaignNo(campaignNo));
     }
 }
