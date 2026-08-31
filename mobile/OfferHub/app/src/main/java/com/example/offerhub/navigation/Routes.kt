@@ -13,6 +13,7 @@ object Routes{
     const val EXPERT_CASES = "expert_cases"
     const val EXPERT_CRITICAL_CASES = "expert_critical_cases"
     const val EXPERT_PROFILE = "expert_profile"
+    const val EXPERT_PROGRESS = "expert_progress"
     const val EXPERT_OPERATIONS = "expert_operations"
     const val EXPERT_CAMPAIGNS = "expert_campaigns"
     const val EXPERT_CREATE_CAMPAIGN = "expert_create_campaign"

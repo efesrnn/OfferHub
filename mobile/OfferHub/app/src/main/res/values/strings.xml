@@ -282,4 +282,21 @@
     <string name="expert_select_valid_until">Select valid-until date</string>
     <string name="error_forbidden">You are not authorized to perform this operation.</string>
     <string name="error_campaign_not_found">The requested campaign could not be found.</string>
+    <string name="expert_my_progress">My Progress</string>
+    <string name="expert_my_progress_arrow">My Progress  ›</string>
+    <string name="expert_progress_subtitle">Points, badges &amp; ranking</string>
+    <string name="expert_points_value">%1$s points</string>
+    <string name="expert_cases_short">Cases</string>
+    <string name="expert_rating_short">Rating</string>
+    <string name="expert_daily_short">Daily</string>
+    <string name="expert_weekly_short">Weekly</string>
+    <string name="expert_badges">Badges</string>
+    <string name="expert_no_badges">No badges yet.</string>
+    <string name="expert_ranking">Ranking</string>
+    <string name="expert_no_ranking">No ranking data is available.</string>
+    <string name="expert_level_bronze">Bronze</string>
+    <string name="expert_level_silver">Silver</string>
+    <string name="expert_level_gold">Gold</string>
+    <string name="expert_level_platinum">Platinum</string>
+    <string name="error_gamification">Progress information could not be loaded.</string>
 </resources>

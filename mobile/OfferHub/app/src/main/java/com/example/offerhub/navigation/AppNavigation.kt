@@ -20,6 +20,7 @@ import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
 import com.example.offerhub.viewModel.AdminViewModel
 import com.example.offerhub.viewModel.ExpertViewModel
+import com.example.offerhub.viewModel.GamificationViewModel
 import com.example.offerhub.ui.text.asString
 
 @Composable
@@ -27,7 +28,8 @@ fun AppNavigation(
     authViewModel: AuthViewModel,
     subscriberViewModel: SubscriberViewModel,
     adminViewModel: AdminViewModel,
-    expertViewModel: ExpertViewModel
+    expertViewModel: ExpertViewModel,
+    gamificationViewModel: GamificationViewModel
 ) {
     val navController = rememberNavController()
     val authState by authViewModel.uiState.collectAsState()
@@ -68,7 +70,8 @@ fun AppNavigation(
             navController = navController,
             authViewModel = authViewModel,
             adminViewModel = adminViewModel,
-            expertViewModel = expertViewModel
+            expertViewModel = expertViewModel,
+            gamificationViewModel = gamificationViewModel
         )
     }
     subscriberState.selectedOffer?.let { offer ->

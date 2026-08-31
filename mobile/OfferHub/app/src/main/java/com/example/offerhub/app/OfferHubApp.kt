@@ -9,6 +9,7 @@ import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
 import com.example.offerhub.viewModel.AdminViewModel
 import com.example.offerhub.viewModel.ExpertViewModel
+import com.example.offerhub.viewModel.GamificationViewModel
 
 @Composable
 fun OfferHubApp() {
@@ -25,10 +26,14 @@ fun OfferHubApp() {
     val expertViewModel: ExpertViewModel = viewModel(
         factory = ExpertViewModel.Factory(application.expertRepository)
     )
+    val gamificationViewModel: GamificationViewModel = viewModel(
+        factory = GamificationViewModel.Factory(application.gamificationRepository)
+    )
     AppNavigation(
         authViewModel = authViewModel,
         subscriberViewModel = subscriberViewModel,
         adminViewModel = adminViewModel,
-        expertViewModel = expertViewModel
+        expertViewModel = expertViewModel,
+        gamificationViewModel = gamificationViewModel
     )
 }

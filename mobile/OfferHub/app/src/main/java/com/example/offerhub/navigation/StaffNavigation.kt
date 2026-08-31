@@ -26,16 +26,19 @@ import com.example.offerhub.screens.expert.ExpertCampaignListScreen
 import com.example.offerhub.screens.expert.ExpertCampaignDetailScreen
 import com.example.offerhub.screens.expert.CreateCampaignScreen
 import com.example.offerhub.screens.expert.ExpertOperationsScreen
+import com.example.offerhub.screens.expert.ExpertProgressScreen
 import com.example.offerhub.ui.text.asString
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.AdminViewModel
 import com.example.offerhub.viewModel.ExpertViewModel
+import com.example.offerhub.viewModel.GamificationViewModel
 
 fun NavGraphBuilder.staffRoleGraphs(
     navController: NavHostController,
     authViewModel: AuthViewModel,
     adminViewModel: AdminViewModel,
-    expertViewModel: ExpertViewModel
+    expertViewModel: ExpertViewModel,
+    gamificationViewModel: GamificationViewModel
 ) {
     composable(Routes.EXPERT_HOME) {
         val expertState by expertViewModel.uiState.collectAsState()
@@ -115,6 +118,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             role = profileUser?.role ?: "EXPERT",
             specialties = profileUser?.specialties.orEmpty(),
             regions = profileUser?.regions.orEmpty(),
+            onProgressClick = { navController.navigate(Routes.EXPERT_PROGRESS) },
             onLogoutClick = {
                 navController.navigate(Routes.AUTH_CHOICE) {
                     popUpTo(Routes.EXPERT_HOME) { inclusive = true }
@@ -124,6 +128,27 @@ fun NavGraphBuilder.staffRoleGraphs(
             },
             onHomeClick = { navController.navigateExpertTopLevel(Routes.EXPERT_HOME) },
             onOperationsClick = { navController.navigateExpertTopLevel(Routes.EXPERT_OPERATIONS) }
+        )
+    }
+    composable(Routes.EXPERT_PROGRESS) {
+        val authState by authViewModel.uiState.collectAsState()
+        val gamificationState by gamificationViewModel.uiState.collectAsState()
+        val expertId = authState.currentUser?.id.orEmpty()
+
+        LaunchedEffect(expertId) {
+            gamificationViewModel.load(expertId)
+        }
+
+        ExpertProgressScreen(
+            profile = gamificationState.profile,
+            ranking = gamificationState.ranking,
+            selectedPeriod = gamificationState.selectedPeriod,
+            isLoading = gamificationState.isLoading,
+            isLoadingRanking = gamificationState.isLoadingRanking,
+            errorMessage = gamificationState.errorMessage?.asString(),
+            onBackClick = navController::popBackStack,
+            onRetryClick = gamificationViewModel::retry,
+            onPeriodSelected = gamificationViewModel::selectPeriod
         )
     }
     composable(Routes.EXPERT_CAMPAIGNS) {

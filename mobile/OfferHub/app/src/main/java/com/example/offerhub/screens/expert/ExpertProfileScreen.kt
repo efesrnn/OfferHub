@@ -26,6 +26,7 @@ fun ExpertProfileScreen(
     role: String,
     specialties: List<String>,
     regions: List<String>,
+    onProgressClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onHomeClick: () -> Unit,
     onOperationsClick: () -> Unit
@@ -64,6 +65,28 @@ fun ExpertProfileScreen(
                     ExpertProfileValue(
                         stringResource(R.string.admin_regions),
                         regions.ifEmpty { listOf(stringResource(R.string.common_not_available)) }.joinToString()
+                    )
+                }
+            }
+            Card(
+                onClick = onProgressClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.expert_my_progress_arrow),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = stringResource(R.string.expert_progress_subtitle),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

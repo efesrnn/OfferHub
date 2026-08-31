@@ -250,9 +250,10 @@ private fun Double?.toPercentage(): String = this
     ?.let { "${(it * 100).roundToInt()}%" }
     ?: "—"
 
+@Composable
 private fun Long?.toSlaText(): String = when {
     this == null -> "—"
-    this < 0 -> "SLA exceeded"
+    this < 0 -> stringResource(R.string.expert_sla_exceeded)
     else -> "%02d:%02d".format(this / 3600, (this % 3600) / 60)
 }
 
