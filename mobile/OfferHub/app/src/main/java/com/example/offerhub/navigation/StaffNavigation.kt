@@ -1,6 +1,5 @@
 package com.example.offerhub.navigation
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
@@ -27,18 +26,28 @@ import com.example.offerhub.screens.expert.ExpertCampaignDetailScreen
 import com.example.offerhub.screens.expert.CreateCampaignScreen
 import com.example.offerhub.screens.expert.ExpertOperationsScreen
 import com.example.offerhub.screens.expert.ExpertProgressScreen
+import com.example.offerhub.screens.supervisor.SupervisorDashboardScreen
+import com.example.offerhub.screens.supervisor.SupervisorCaseListScreen
+import com.example.offerhub.screens.supervisor.SupervisorProfileScreen
+import com.example.offerhub.screens.supervisor.SupervisorOperationsScreen
+import com.example.offerhub.screens.supervisor.SupervisorExpertPerformanceScreen
+import com.example.offerhub.screens.supervisor.SupervisorCaseListMode
 import com.example.offerhub.ui.text.asString
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.AdminViewModel
 import com.example.offerhub.viewModel.ExpertViewModel
 import com.example.offerhub.viewModel.GamificationViewModel
+import com.example.offerhub.viewModel.SupervisorViewModel
+import com.example.offerhub.data.model.campaign.CaseStatus
+import com.example.offerhub.data.model.campaign.Segment
 
 fun NavGraphBuilder.staffRoleGraphs(
     navController: NavHostController,
     authViewModel: AuthViewModel,
     adminViewModel: AdminViewModel,
     expertViewModel: ExpertViewModel,
-    gamificationViewModel: GamificationViewModel
+    gamificationViewModel: GamificationViewModel,
+    supervisorViewModel: SupervisorViewModel
 ) {
     composable(Routes.EXPERT_HOME) {
         val expertState by expertViewModel.uiState.collectAsState()
@@ -233,7 +242,148 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.SUPERVISOR_HOME) {
-        Text(text = stringResource(R.string.role_home, stringResource(R.string.role_supervisor)))
+        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        SupervisorDashboardScreen(
+            dashboard = supervisorState.dashboard,
+            isLoading = supervisorState.isLoading,
+            errorMessage = supervisorState.errorMessage?.asString(),
+            onRetryClick = supervisorViewModel::loadDashboard,
+            onActiveCasesClick = { navController.navigate(Routes.SUPERVISOR_ACTIVE_CASES) },
+            onPendingAssignmentClick = { navController.navigate(Routes.SUPERVISOR_PENDING_CASES) },
+            onExpertsClick = { navController.navigate(Routes.SUPERVISOR_EXPERT_PERFORMANCE) },
+            onCasesClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_OPERATIONS) },
+            onProfileClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_PROFILE) }
+        )
+    }
+    composable(Routes.SUPERVISOR_OPERATIONS) {
+        SupervisorOperationsScreen(
+            onPendingAssignmentClick = { navController.navigate(Routes.SUPERVISOR_PENDING_CASES) },
+            onActiveCasesClick = { navController.navigate(Routes.SUPERVISOR_ACTIVE_CASES) },
+            onApprovalQueueClick = { navController.navigate(Routes.SUPERVISOR_APPROVAL_CASES) },
+            onPublishedCasesClick = { navController.navigate(Routes.SUPERVISOR_PUBLISHED_CASES) },
+            onExpertPerformanceClick = { navController.navigate(Routes.SUPERVISOR_EXPERT_PERFORMANCE) },
+            onHomeClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_HOME) },
+            onProfileClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_PROFILE) }
+        )
+    }
+    composable(Routes.SUPERVISOR_PENDING_CASES) {
+        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        SupervisorCaseListScreen(
+            title = stringResource(R.string.supervisor_pending_assignment),
+            cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
+                it.status == CaseStatus.YENI &&
+                    it.assignedExpertId == null
+            },
+            mode = SupervisorCaseListMode.PENDING_ASSIGNMENT,
+            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
+            loadError = supervisorState.errorMessage?.asString(),
+            isSubmitting = supervisorState.isSubmittingAction,
+            actionError = supervisorState.actionErrorMessage?.asString(),
+            onAssignCase = supervisorViewModel::assignCase,
+            onPublishCase = supervisorViewModel::publishCase,
+            onUpdateClassification = supervisorViewModel::updateCaseClassification,
+            onClearActionError = supervisorViewModel::clearActionError,
+            onRetryClick = supervisorViewModel::loadDashboard,
+            onBackClick = navController::popBackStack
+        )
+    }
+    composable(Routes.SUPERVISOR_ACTIVE_CASES) {
+        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        SupervisorCaseListScreen(
+            title = stringResource(R.string.supervisor_active_cases),
+            cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
+                it.assignedExpertId != null && it.status in setOf(
+                    CaseStatus.ATANDI,
+                    CaseStatus.OPTIMIZE_EDILIYOR,
+                    CaseStatus.TEST_EDILIYOR
+                )
+            },
+            mode = SupervisorCaseListMode.ACTIVE,
+            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
+            loadError = supervisorState.errorMessage?.asString(),
+            isSubmitting = supervisorState.isSubmittingAction,
+            actionError = supervisorState.actionErrorMessage?.asString(),
+            onAssignCase = supervisorViewModel::assignCase,
+            onPublishCase = supervisorViewModel::publishCase,
+            onUpdateClassification = supervisorViewModel::updateCaseClassification,
+            onClearActionError = supervisorViewModel::clearActionError,
+            onRetryClick = supervisorViewModel::loadDashboard,
+            onBackClick = navController::popBackStack
+        )
+    }
+    composable(Routes.SUPERVISOR_APPROVAL_CASES) {
+        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        SupervisorCaseListScreen(
+            title = stringResource(R.string.supervisor_approval_queue),
+            cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
+                it.status == CaseStatus.TAMAMLANDI
+            },
+            mode = SupervisorCaseListMode.APPROVAL,
+            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
+            loadError = supervisorState.errorMessage?.asString(),
+            isSubmitting = supervisorState.isSubmittingAction,
+            actionError = supervisorState.actionErrorMessage?.asString(),
+            onAssignCase = supervisorViewModel::assignCase,
+            onPublishCase = supervisorViewModel::publishCase,
+            onUpdateClassification = supervisorViewModel::updateCaseClassification,
+            onClearActionError = supervisorViewModel::clearActionError,
+            onRetryClick = supervisorViewModel::loadDashboard,
+            onBackClick = navController::popBackStack
+        )
+    }
+    composable(Routes.SUPERVISOR_PUBLISHED_CASES) {
+        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        SupervisorCaseListScreen(
+            title = stringResource(R.string.supervisor_published_cases),
+            cases = supervisorState.dashboard?.attentionCases.orEmpty().filter { it.status == CaseStatus.YAYINDA },
+            mode = SupervisorCaseListMode.PUBLISHED,
+            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
+            loadError = supervisorState.errorMessage?.asString(),
+            isSubmitting = supervisorState.isSubmittingAction,
+            actionError = supervisorState.actionErrorMessage?.asString(),
+            onAssignCase = supervisorViewModel::assignCase,
+            onPublishCase = supervisorViewModel::publishCase,
+            onUpdateClassification = supervisorViewModel::updateCaseClassification,
+            onClearActionError = supervisorViewModel::clearActionError,
+            onRetryClick = supervisorViewModel::loadDashboard,
+            onBackClick = navController::popBackStack
+        )
+    }
+    composable(Routes.SUPERVISOR_EXPERT_PERFORMANCE) {
+        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
+        SupervisorExpertPerformanceScreen(
+            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
+            errorMessage = supervisorState.errorMessage?.asString(),
+            onRetryClick = supervisorViewModel::loadDashboard,
+            onBackClick = navController::popBackStack
+        )
+    }
+    composable(Routes.SUPERVISOR_PROFILE) {
+        val authState by authViewModel.uiState.collectAsState()
+        val profileUser = remember { authState.currentUser }
+        SupervisorProfileScreen(
+            userId = profileUser?.id.orEmpty(),
+            onHomeClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_HOME) },
+            onCasesClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_OPERATIONS) },
+            onLogoutClick = {
+                navController.navigate(Routes.AUTH_CHOICE) {
+                    popUpTo(Routes.SUPERVISOR_HOME) { inclusive = true }
+                    launchSingleTop = true
+                }
+                authViewModel.logout()
+            }
+        )
     }
     composable(Routes.ADMIN_HOME) {
         AdminHomeScreen(
@@ -355,6 +505,13 @@ private fun NavHostController.navigateExpertTopLevel(route: String) {
 private fun NavHostController.navigateAdminTopLevel(route: String) {
     navigate(route) {
         popUpTo(Routes.ADMIN_HOME)
+        launchSingleTop = true
+    }
+}
+
+private fun NavHostController.navigateSupervisorTopLevel(route: String) {
+    navigate(route) {
+        popUpTo(Routes.SUPERVISOR_HOME)
         launchSingleTop = true
     }
 }

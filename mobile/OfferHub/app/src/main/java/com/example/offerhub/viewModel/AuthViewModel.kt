@@ -129,6 +129,23 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    fun debugLoginAsSupervisor() {
+        if (!BuildConfig.DEBUG) return
+
+        val debugSupervisor = AuthUser(
+            id = "debug-supervisor",
+            role = "SUPERVISOR",
+            regions = listOf("ISTANBUL", "ANKARA")
+        )
+        _uiState.update {
+            it.copy(
+                currentUser = debugSupervisor,
+                pendingNavigationRole = debugSupervisor.role,
+                errorMessage = null
+            )
+        }
+    }
+
     fun consumeOtpReady() = _uiState.update { it.copy(otpReady = false) }
     fun consumeAuthenticationNavigation() =
         _uiState.update { it.copy(pendingNavigationRole = null) }

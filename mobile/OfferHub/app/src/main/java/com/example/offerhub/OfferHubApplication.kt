@@ -11,6 +11,7 @@ import com.example.offerhub.repository.SubscriberRepositoryImpl
 import com.example.offerhub.repository.MockAdminRepository
 import com.example.offerhub.repository.MockExpertRepository
 import com.example.offerhub.repository.MockGamificationRepository
+import com.example.offerhub.repository.MockSupervisorRepository
 
 class OfferHubApplication : Application() {
     private val sessionTokenProvider = SessionTokenProvider()
@@ -45,5 +46,9 @@ class OfferHubApplication : Application() {
 
     val gamificationRepository by lazy {
         MockGamificationRepository()
+    }
+
+    val supervisorRepository by lazy {
+        MockSupervisorRepository()
     }
 }

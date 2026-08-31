@@ -61,6 +61,11 @@ fun NavGraphBuilder.authGraph(
                 authViewModel::debugLoginAsExpert
             } else {
                 null
+            },
+            onMockSupervisorClick = if (BuildConfig.DEBUG) {
+                authViewModel::debugLoginAsSupervisor
+            } else {
+                null
             }
         )
     }

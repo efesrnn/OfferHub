@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -58,7 +58,7 @@ fun AdminProfileScreen(
                 stringResource(R.string.admin_profile_pending),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Button(onClick = onLogoutClick, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = onLogoutClick, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.profile_log_out))
             }
         }
