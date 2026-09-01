@@ -183,6 +183,7 @@ services:
       CAMPAIGN_SERVICE_URL: http://campaign-service:8080
       AI_SERVICE_URL: http://ai-service:8080
       GAMIFICATION_SERVICE_URL: http://gamification-service:8080
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - identity-service
       - campaign-service

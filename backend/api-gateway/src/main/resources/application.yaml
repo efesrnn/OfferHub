@@ -23,5 +23,9 @@ spring:
               predicates:
                 - Path=/api/v1/game/**
 
+jwt:
+  # Must be the exact value identity-service signs with, otherwise every token fails.
+  secret: ${JWT_SECRET}
+
 server:
   port: 8080
