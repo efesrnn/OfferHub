@@ -51,4 +51,12 @@ object ApiClient {
             .build()
         return createRetrofit(client).create(ExpertApi::class.java)
     }
+
+    fun createGamificationApi(tokenProvider: AccessTokenProvider): GamificationApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(GamificationApi::class.java)
+    }
 }

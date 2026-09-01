@@ -17,13 +17,16 @@ class MockGamificationRepository : GamificationRepository {
                 totalPoints = 2_140,
                 level = ExpertLevel.GOLD,
                 completedCases = 34,
-                averageRating = 4.6,
+                averagePointsPerCase = 11.2,
                 dailyRank = 3,
                 weeklyRank = 7,
                 badges = listOf(
-                    ExpertBadge("first-campaign", "First Campaign"),
-                    ExpertBadge("churn-hunter", "Churn Hunter"),
-                    ExpertBadge("sla-master", "SLA Master")
+                    ExpertBadge("ILK_KAMPANYA", "First Campaign"),
+                    ExpertBadge("CHURN_AVCISI", "Churn Hunter"),
+                    ExpertBadge("HIZ_USTASI", "Speed Master"),
+                    ExpertBadge("DONUSUM_KRALI", "Conversion King", earned = false),
+                    ExpertBadge("MARATONCU", "Marathoner", earned = false),
+                    ExpertBadge("UZMAN", "Expert", earned = false)
                 )
             )
         )

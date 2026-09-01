@@ -10,7 +10,11 @@ import com.example.offerhub.repository.MockSubscriberRepository
 import com.example.offerhub.repository.SubscriberRepositoryImpl
 import com.example.offerhub.repository.MockAdminRepository
 import com.example.offerhub.repository.MockExpertRepository
+import com.example.offerhub.repository.ExpertRepository
+import com.example.offerhub.repository.ExpertRepositoryImpl
 import com.example.offerhub.repository.MockGamificationRepository
+import com.example.offerhub.repository.GamificationRepositoryImpl
+import com.example.offerhub.repository.GamificationRepository
 import com.example.offerhub.repository.MockSupervisorRepository
 
 class OfferHubApplication : Application() {
@@ -40,12 +44,24 @@ class OfferHubApplication : Application() {
         MockAdminRepository()
     }
 
-    val expertRepository by lazy {
-        MockExpertRepository()
+    val expertRepository: ExpertRepository by lazy {
+        if (BuildConfig.USE_MOCK_EXPERT) {
+            MockExpertRepository()
+        } else {
+            ExpertRepositoryImpl(
+                ApiClient.createExpertApi(sessionTokenProvider)
+            )
+        }
     }
 
-    val gamificationRepository by lazy {
-        MockGamificationRepository()
+    val gamificationRepository: GamificationRepository by lazy {
+        if (BuildConfig.USE_MOCK_GAMIFICATION) {
+            MockGamificationRepository()
+        } else {
+            GamificationRepositoryImpl(
+                ApiClient.createGamificationApi(sessionTokenProvider)
+            )
+        }
     }
 
     val supervisorRepository by lazy {

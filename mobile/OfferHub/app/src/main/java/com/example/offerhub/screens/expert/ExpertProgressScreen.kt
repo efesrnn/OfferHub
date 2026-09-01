@@ -96,7 +96,11 @@ private fun ProgressContent(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 MetricCard(stringResource(R.string.expert_cases_short), profile.completedCases.toString(), Modifier.weight(1f))
-                MetricCard(stringResource(R.string.expert_rating_short), "%.1f".format(profile.averageRating), Modifier.weight(1f))
+                MetricCard(
+                    stringResource(R.string.expert_average_points_short),
+                    "%.1f".format(profile.averagePointsPerCase),
+                    Modifier.weight(1f)
+                )
             }
         }
         item {
@@ -126,13 +130,26 @@ private fun ProgressContent(
                     items(profile.badges, key = { it.id }) { badge ->
                         Card(
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                containerColor = if (badge.earned) {
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceContainerHigh
+                                }
                             )
                         ) {
                             Text(
-                                text = badge.title,
+                                text = if (badge.earned) {
+                                    badge.title
+                                } else {
+                                    stringResource(R.string.expert_locked_badge, badge.title)
+                                },
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                style = MaterialTheme.typography.labelLarge
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (badge.earned) {
+                                    MaterialTheme.colorScheme.onSecondaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         }
                     }

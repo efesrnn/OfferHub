@@ -14,7 +14,9 @@ enum class RankingPeriod {
 
 data class ExpertBadge(
     val id: String,
-    val title: String
+    val title: String,
+    val earned: Boolean = true,
+    val earnedAt: String? = null
 )
 
 data class GamificationProfile(
@@ -22,7 +24,7 @@ data class GamificationProfile(
     val totalPoints: Int,
     val level: ExpertLevel,
     val completedCases: Int,
-    val averageRating: Double,
+    val averagePointsPerCase: Double,
     val dailyRank: Int?,
     val weeklyRank: Int?,
     val badges: List<ExpertBadge>

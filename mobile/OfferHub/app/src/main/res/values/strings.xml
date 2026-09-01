@@ -370,7 +370,8 @@
     <string name="expert_progress_subtitle">Points, badges &amp; ranking</string>
     <string name="expert_points_value">%1$s points</string>
     <string name="expert_cases_short">Cases</string>
-    <string name="expert_rating_short">Rating</string>
+    <string name="expert_average_points_short">Avg points/case</string>
+    <string name="expert_locked_badge">%1$s · Locked</string>
     <string name="expert_daily_short">Daily</string>
     <string name="expert_weekly_short">Weekly</string>
     <string name="expert_badges">Badges</string>
