@@ -1,3 +1,17 @@
+"""
+OfferHub AI Service — model eğitimi.
+
+generate_data.py ile üretilen sentetik veriden iki model eğitir:
+  1. Dönüşüm/öneri skoru modeli — Lojistik Regresyon (ikili sınıflandırma:
+     converted 0/1), çıktısı sigmoid(w·x + b) = 0..1 arası "skor".
+  2. Segment sınıflandırma modeli — Çok sınıflı Lojistik Regresyon
+     (YUKSEK_DEGER / RISKLI_KAYIP / YENI_ABONE / PASIF).
+
+Öğrenilen katsayılar (ağırlık + bias + standardizasyon için mean/std)
+model_weights.json dosyasına yazılır. Java tarafı bu JSON'u okuyup aynı
+standardizasyon + sigmoid/softmax işlemini runtime'da uygular — yani
+gerçekten "öğrenilmiş" katsayılarla, girdiye göre değişen bir çıktı üretir.
+"""
 import json
 
 import numpy as np

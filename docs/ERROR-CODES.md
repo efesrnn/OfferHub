@@ -28,7 +28,8 @@ Yeni bir hata durumu bulduğunuzda önce bu listeye bakın, burada karşılığ�
 
 | Kod | HTTP Status | Ne zaman | Örnek mesaj |
 |---|---|---|---|
-| `INVALID_CREDENTIALS` | 401 | Yanlış şifre veya yanlış OTP kodu | "GSM numarası veya OTP kodu hatalı" |
+| `INVALID_CREDENTIALS` | 401 | Personel girişinde yanlış e-posta/şifre | "E-posta veya şifre hatalı" |
+| `INVALID_OTP` | 401 | Abone OTP doğrulamasında yanlış/süresi dolmuş kod, veya telefon numarası bulunamadı | "Doğrulama kodu geçersiz veya süresi dolmuş" |
 | `WEAK_PASSWORD` | 400 | Şifre politikası ihlali — case, **hangi kuralın** ihlal edildiğini belirten mesaj istiyor | "Şifre en az 1 büyük harf içermelidir" |
 | `ACCOUNT_LOCKED` | 401 | 5 başarısız girişten sonra hesap 15 dakika kilitli | "Hesabınız kilitlendi, kalan süre: 12 dakika" |
 | `TOKEN_EXPIRED` | 401 | Access token'ın 15 dakikalık ömrü doldu | "Oturum süresi doldu" (mobil bunu görmeden refresh akışı devreye girmeli) |
