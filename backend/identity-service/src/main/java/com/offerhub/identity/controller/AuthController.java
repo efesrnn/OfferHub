@@ -34,4 +34,12 @@ public class AuthController {
         AuthDataResponse response = authService.staffLogin(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @RequestBody ChangePasswordRequest request,
+            java.security.Principal principal) {
+        authService.changePassword(principal.getName(), request);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }
