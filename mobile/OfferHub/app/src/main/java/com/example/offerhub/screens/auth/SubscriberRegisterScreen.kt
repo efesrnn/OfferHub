@@ -176,7 +176,6 @@ fun SubscriberRegisterScreen(
                     lastNameTouched=true
                     gsmTouched=true
                     emailTouched=true
-                    android.util.Log.d("OfferHubDebug", "firstName='$firstName' lastName='$lastName' gsm='$gsm' (len=${gsm.length}) email='$email' formIsValid=$formIsValid")
                     if(formIsValid)
                     {
                         onRegisterClick(

@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidOtpException.class)
     public ResponseEntity<ApiResponse<Object>> handleInvalidOtp(InvalidOtpException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error("INVALID_CREDENTIALS", ex.getMessage()));
+                .body(ApiResponse.error("INVALID_OTP", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

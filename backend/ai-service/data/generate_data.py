@@ -1,4 +1,22 @@
+"""
+OfferHub AI Service — sentetik eğitim verisi üreticisi.
 
+Bu script, gerçek kullanıcı verisi yerine kullanılacak GERÇEKÇİ Türkçe abone
+profilleri ve kampanya kabul/ret geçmişi üretir. Amaç: AI Service'in skorlama
+ve segment sınıflandırma modellerini eğitmek için minimum 100 örnek üretmek
+(bkz. offerhub-staj-projesi.md madde 6.1).
+
+Üretilen iki dosya:
+  1. subscriber_profiles.csv  — abone başına 1 satır, segment etiketi içerir
+  2. offer_training_data.csv  — abone x kampanya_tipi kombinasyonu başına 1 satır,
+                                  dönüşüm (converted) etiketi içerir
+
+Not: Etiketler tamamen deterministik bir formülden değil, gerçekçi bir
+"gerçek dünya kuralı + gürültü" karışımından üretiliyor — yani model bu
+kuralı ezbere öğrenmek yerine gürültülü/örtüşen sınırlarla gerçek bir
+sınıflandırma problemi çözüyor (aksi halde model %100 isabetle "hile"
+yapıyor gibi görünürdü, gerçekçi olmazdı).
+"""
 import numpy as np
 import pandas as pd
 
@@ -63,13 +81,21 @@ def generate_subscribers(rng: np.random.Generator, n: int) -> pd.DataFrame:
 
 
 def label_segments(subs: pd.DataFrame, rng: np.random.Generator) -> pd.Series:
-    """Her abone için 4 segmente ait bir 'uygunluk skoru' hesaplanır; skorlar
-    tüm popülasyona göre z-normalize edilir (aksi halde ölçek farkları bir
-    segmenti sistematik olarak domine eder), sonra en yüksek skorlu segment
-    seçilir (argmax). Böylece her satır gerçek, öğrenilebilir bir kurala göre
-    etiketlenir. Sonda küçük bir gürültü payı eklenir (etiket kusursuzluğunu
-    kırmak için)."""
-    yeni_abone_raw = np.maximum(0.0, 6 - subs["tenureMonths"])
+    """YENI_ABONE, tenure<=6 ay için KESİN/deterministik bir kuraldır (bu
+    konuda belirsizlik yok, z-skorla 'öğrenilmesi' gereken bir şey değil).
+    Geri kalan abonelerde YUKSEK_DEGER / RISKLI_KAYIP / PASIF arasında seçim,
+    3 skorun popülasyona göre z-normalize edilip en yükseğinin seçilmesiyle
+    yapılır (ölçek farklarını dengelemek için). Sonda küçük bir gürültü payı
+    eklenir (etiket kusursuzluğunu kırmak için).
+
+    NOT: İlk versiyonda YENI_ABONE'u da diğer 3'le birlikte z-skora sokmuştuk;
+    ama bu skor popülasyonun ~%90'ında sabit 0 olduğundan, z-normalize sonrası
+    bazı yüksek-tenure abonelerde yanlışlıkla en yüksek çıkabiliyordu (ör.
+    62 aylık bir abone YENI_ABONE etiketleniyordu). Tenure zaten net bir sinyal
+    olduğu için ayrı, deterministik bir kapı olarak ele almak daha doğru.
+    """
+    is_new = subs["tenureMonths"] <= 6
+
     risk_raw = (
         subs["complaintCount6m"] * 0.7
         + np.maximum(0.0, -subs["usageTrend"]) * 3.0
@@ -96,16 +122,17 @@ def label_segments(subs: pd.DataFrame, rng: np.random.Generator) -> pd.Series:
     scores = np.column_stack([
         zscore(deger_raw),   # YUKSEK_DEGER
         zscore(risk_raw),    # RISKLI_KAYIP
-        zscore(yeni_abone_raw),  # YENI_ABONE
         zscore(pasif_raw),   # PASIF
     ])
-    labels = np.array(["YUKSEK_DEGER", "RISKLI_KAYIP", "YENI_ABONE", "PASIF"])
-    base = labels[np.argmax(scores, axis=1)]
+    labels_3 = np.array(["YUKSEK_DEGER", "RISKLI_KAYIP", "PASIF"])
+    base = labels_3[np.argmax(scores, axis=1)]
+    base = np.where(is_new, "YENI_ABONE", base)
 
+    all_labels = np.array(["YUKSEK_DEGER", "RISKLI_KAYIP", "YENI_ABONE", "PASIF"])
     # Etiket gürültüsü: %7 ihtimalle rastgele bir komşu segmente kaydır.
     noise_mask = rng.random(len(base)) < 0.07
     for idx in np.where(noise_mask)[0]:
-        base[idx] = rng.choice([s for s in labels if s != base[idx]])
+        base[idx] = rng.choice([s for s in all_labels if s != base[idx]])
 
     return pd.Series(base, index=subs.index)
 
