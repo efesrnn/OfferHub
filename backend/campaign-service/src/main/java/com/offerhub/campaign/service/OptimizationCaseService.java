@@ -8,12 +8,15 @@ import com.offerhub.campaign.entity.Campaign;
 import com.offerhub.campaign.entity.CampaignStatus;
 import com.offerhub.campaign.entity.CaseStatus;
 import com.offerhub.campaign.entity.OptimizationCase;
+import com.offerhub.campaign.event.CampaignOptimizedPayload;
+import com.offerhub.campaign.event.OutboundEvent;
 import com.offerhub.campaign.exception.ApiException;
 import com.offerhub.campaign.exception.ErrorCode;
 import com.offerhub.campaign.repository.OptimizationCaseRepository;
 import com.offerhub.campaign.security.CallerIdentity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,7 @@ public class OptimizationCaseService {
     private static final BigDecimal LOW_CONVERSION_THRESHOLD = new BigDecimal("0.60");
 
     private final OptimizationCaseRepository caseRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * A null probability means AI Service never answered. The contract puts that campaign
@@ -85,7 +89,6 @@ public class OptimizationCaseService {
         if (target == CaseStatus.TAMAMLANDI) {
             requireOptimizationNote(request.optimizationNote());
             optimizationCase.setCompletedAt(Instant.now());
-            // TODO: publish campaign.optimized once RabbitMQ is in place.
         }
         if (StringUtils.hasText(request.optimizationNote())) {
             optimizationCase.setOptimizationNote(request.optimizationNote().trim());
@@ -93,6 +96,12 @@ public class OptimizationCaseService {
 
         optimizationCase.setStatus(target);
         applyToCampaign(optimizationCase.getCampaign(), target);
+
+        // Only this transition earns points, so it is the only one Gamification hears about.
+        if (target == CaseStatus.TAMAMLANDI) {
+            eventPublisher.publishEvent(new OutboundEvent(
+                    OutboundEvent.CAMPAIGN_OPTIMIZED, CampaignOptimizedPayload.from(optimizationCase)));
+        }
 
         log.info("Case {} moved {} -> {}", caseId, current, target);
         return CaseResponse.from(optimizationCase);

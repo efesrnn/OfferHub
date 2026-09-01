@@ -7,10 +7,14 @@ import com.offerhub.campaign.entity.Campaign;
 import com.offerhub.campaign.entity.CampaignStatus;
 import com.offerhub.campaign.entity.Priority;
 import com.offerhub.campaign.entity.Segment;
+import com.offerhub.campaign.event.CampaignCreatedPayload;
+import com.offerhub.campaign.event.OutboundEvent;
 import com.offerhub.campaign.exception.ApiException;
 import com.offerhub.campaign.exception.ErrorCode;
 import com.offerhub.campaign.repository.CampaignRepository;
+import com.offerhub.campaign.security.CallerIdentity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,13 +26,14 @@ public class CampaignService {
     private final CampaignRepository campaignRepository;
     private final CampaignNumberGenerator numberGenerator;
     private final OptimizationCaseService caseService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * AI Service is not wired in yet, so every campaign takes the fallback path the
      * contract already defines: segment BELIRSIZ, priority ORTA, still created.
      */
     @Transactional
-    public CampaignResponse create(CreateCampaignRequest request) {
+    public CampaignResponse create(CreateCampaignRequest request, CallerIdentity caller) {
         Campaign campaign = Campaign.builder()
                 .campaignNo(numberGenerator.next())
                 .title(request.title())
@@ -40,6 +45,7 @@ public class CampaignService {
                 .validUntil(request.validUntil())
                 .status(CampaignStatus.YENI)
                 .priority(Priority.ORTA)
+                .createdBy(caller.userId())
                 .build();
 
         // saveAndFlush, not save: @CreationTimestamp is filled during the insert, and
@@ -48,6 +54,9 @@ public class CampaignService {
 
         // Same transaction: a campaign that should be optimized never exists without its case.
         caseService.openIfLowConversion(saved);
+
+        eventPublisher.publishEvent(new OutboundEvent(
+                OutboundEvent.CAMPAIGN_CREATED, CampaignCreatedPayload.from(saved)));
 
         return CampaignResponse.from(saved);
     }

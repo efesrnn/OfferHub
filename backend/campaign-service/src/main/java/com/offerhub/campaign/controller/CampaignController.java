@@ -37,7 +37,7 @@ public class CampaignController {
     public ApiResponse<CampaignResponse> create(@Valid @RequestBody CreateCampaignRequest request,
                                                 CallerIdentity caller) {
         caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
-        return ApiResponse.ok(campaignService.create(request));
+        return ApiResponse.ok(campaignService.create(request, caller));
     }
 
     @GetMapping
