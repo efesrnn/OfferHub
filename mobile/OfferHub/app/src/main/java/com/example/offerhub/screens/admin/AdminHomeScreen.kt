@@ -11,7 +11,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.ManageAccounts
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -30,7 +29,6 @@ import com.example.offerhub.R
 @Composable
 fun AdminHomeScreen(
     onCreateStaffClick: () -> Unit,
-    onSearchStaffClick: () -> Unit,
     onUpdateRoleClick: () -> Unit,
     onAuditLogsClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -53,17 +51,6 @@ fun AdminHomeScreen(
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = stringResource(R.string.admin_dashboard),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            AdminActionCard(
-                title = stringResource(R.string.admin_search_staff),
-                description = stringResource(R.string.admin_search_staff_description),
-                icon = { Icon(Icons.Default.Search, contentDescription = null) },
-                onClick = onSearchStaffClick
-            )
             AdminActionCard(
                 title = stringResource(R.string.admin_create_staff),
                 description = stringResource(R.string.admin_create_staff_description),

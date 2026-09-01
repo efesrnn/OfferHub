@@ -2,8 +2,10 @@ package com.example.offerhub.screens.expert
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,6 +40,7 @@ fun ExpertHomeScreen(
     onCaseClick: (String) -> Unit,
     onOperationsClick: () -> Unit,
     onCriticalCasesClick: () -> Unit,
+    onActiveCasesClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
     val activeCases = cases.filter { it.status in expertActiveStatuses }
@@ -95,11 +99,27 @@ fun ExpertHomeScreen(
                     )
                 }
                 item {
-                    ExpertMetricCard(
-                        title = stringResource(R.string.expert_critical_cases),
-                        value = activeCases.count { it.priority == Priority.KRITIK },
-                        onClick = onCriticalCasesClick
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ExpertMetricCard(
+                            title = stringResource(R.string.expert_critical_cases),
+                            value = activeCases.count { it.priority == Priority.KRITIK },
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            onClick = onCriticalCasesClick,
+                            modifier = Modifier.weight(1f)
+                        )
+                        ExpertMetricCard(
+                            title = stringResource(R.string.expert_active_cases),
+                            value = activeCases.size,
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            onClick = onActiveCasesClick,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
                 item { Text(stringResource(R.string.expert_priority_cases), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
                 items(activeCases.take(3), key = { it.caseId }) { case ->
@@ -120,19 +140,19 @@ private val expertActiveStatuses = setOf(
 private fun ExpertMetricCard(
     title: String,
     value: Int,
+    containerColor: Color,
+    contentColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+        modifier = modifier.fillMaxWidth().height(120.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(value.toString(), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
-            Text(title, color = MaterialTheme.colorScheme.onErrorContainer)
-            Text(stringResource(R.string.expert_critical_cases_description), color = MaterialTheme.colorScheme.onErrorContainer)
+            Text(value.toString(), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = contentColor)
+            Text(title, color = contentColor, fontWeight = FontWeight.SemiBold)
         }
     }
 }
-

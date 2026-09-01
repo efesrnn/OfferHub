@@ -9,7 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.example.offerhub.R
@@ -29,8 +28,8 @@ fun SupervisorBottomBar(
         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-        NavigationBarItem(selected = selectedItem == "home", onClick = onHomeClick, icon = { Icon(Icons.Default.Home, null) }, label = { Text(stringResource(R.string.expert_home)) }, colors = colors)
-        NavigationBarItem(selected = selectedItem == "operations", onClick = onOperationsClick, icon = { Icon(Icons.Default.Work, null) }, label = { Text(stringResource(R.string.supervisor_operations)) }, colors = colors)
-        NavigationBarItem(selected = selectedItem == "profile", onClick = onProfileClick, icon = { Icon(Icons.Default.Person, null) }, label = { Text(stringResource(R.string.nav_profile)) }, colors = colors)
+        NavigationBarItem(selected = selectedItem == "home", onClick = onHomeClick, icon = { Icon(Icons.Default.Home, stringResource(R.string.expert_home)) }, colors = colors)
+        NavigationBarItem(selected = selectedItem == "operations", onClick = onOperationsClick, icon = { Icon(Icons.Default.Work, stringResource(R.string.supervisor_operations)) }, colors = colors)
+        NavigationBarItem(selected = selectedItem == "profile", onClick = onProfileClick, icon = { Icon(Icons.Default.Person, stringResource(R.string.nav_profile)) }, colors = colors)
     }
 }

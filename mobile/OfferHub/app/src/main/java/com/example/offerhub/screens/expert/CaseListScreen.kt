@@ -16,9 +16,12 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButton
@@ -31,14 +34,17 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import com.example.offerhub.R
-import com.example.offerhub.components.ExpertBottomBar
 import com.example.offerhub.components.ExpertCaseCard
 import com.example.offerhub.components.OfferHubDetailTopBar
 import com.example.offerhub.data.model.campaign.CaseStatus
@@ -64,19 +70,17 @@ fun ExpertCaseListScreen(
     onLoadNextPage: () -> Unit,
     onStatusFilterChanged: (CaseStatus?) -> Unit,
     onCaseClick: (String) -> Unit,
-    onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
-    onOperationsClick: () -> Unit,
-    onProfileClick: () -> Unit
+    onBackClick: () -> Unit
 ) {
-    var selectedGroup by remember { mutableStateOf(CaseGroup.ACTIVE) }
-    var statusFilter by remember(initialStatusFilter) {
+    var selectedGroup by rememberSaveable { mutableStateOf(CaseGroup.ACTIVE) }
+    var statusFilter by rememberSaveable(initialStatusFilter) {
         mutableStateOf(initialStatusFilter.toActiveStatusFilter())
     }
-    var priorityFilter by remember(initialCriticalOnly) {
+    var priorityFilter by rememberSaveable(initialCriticalOnly) {
         mutableStateOf(if (initialCriticalOnly) PriorityFilter.CRITICAL else PriorityFilter.ALL)
     }
-    var selectedSort by remember { mutableStateOf(CaseSort.PRIORITY) }
+    var selectedSort by rememberSaveable { mutableStateOf(CaseSort.PRIORITY) }
+    var completedSearchQuery by rememberSaveable { mutableStateOf("") }
     var showFilterSheet by remember { mutableStateOf(false) }
     var showSortOptions by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -84,7 +88,15 @@ fun ExpertCaseListScreen(
         (if (statusFilter == ActiveStatusFilter.ALL) 0 else 1) +
             (if (priorityFilter == PriorityFilter.ALL) 0 else 1)
 
-    val visibleCases = remember(cases, selectedGroup, statusFilter, priorityFilter, selectedSort) {
+    val visibleCases = remember(
+        cases,
+        selectedGroup,
+        statusFilter,
+        priorityFilter,
+        selectedSort,
+        completedSearchQuery
+    ) {
+        val normalizedSearchQuery = completedSearchQuery.trim()
         cases.asSequence()
             .filter { case ->
                 when (selectedGroup) {
@@ -109,6 +121,11 @@ fun ExpertCaseListScreen(
                     PriorityFilter.LOW -> case.priority == Priority.DUSUK
                 }
             }
+            .filter { case ->
+                selectedGroup != CaseGroup.COMPLETED ||
+                    normalizedSearchQuery.isBlank() ||
+                    case.campaignNo.contains(normalizedSearchQuery, ignoreCase = true)
+            }
             .sortedWith(if (selectedGroup == CaseGroup.COMPLETED) caseComparator(CaseSort.NEWEST) else caseComparator(selectedSort))
             .toList()
     }
@@ -128,14 +145,6 @@ fun ExpertCaseListScreen(
             OfferHubDetailTopBar(
                 title = stringResource(R.string.expert_assigned_cases),
                 onBackClick = onBackClick
-            )
-        },
-        bottomBar = {
-            ExpertBottomBar(
-                selectedItem = "operations",
-                onHomeClick = onHomeClick,
-                onOperationsClick = onOperationsClick,
-                onProfileClick = onProfileClick
             )
         }
     ) { padding ->
@@ -159,7 +168,9 @@ fun ExpertCaseListScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 item {
-                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    SingleChoiceSegmentedButtonRow(
+                        Modifier.fillMaxWidth().padding(top = 16.dp)
+                    ) {
                         CaseGroup.entries.forEachIndexed { index, group ->
                             SegmentedButton(
                                 selected = selectedGroup == group,
@@ -214,6 +225,29 @@ fun ExpertCaseListScreen(
                             }
                         }
                     }
+                } else {
+                    item {
+                        OutlinedTextField(
+                            value = completedSearchQuery,
+                            onValueChange = { completedSearchQuery = it },
+                            label = { Text(stringResource(R.string.expert_search_completed_cases)) },
+                            leadingIcon = {
+                                Icon(Icons.Default.Search, contentDescription = null)
+                            },
+                            trailingIcon = {
+                                if (completedSearchQuery.isNotEmpty()) {
+                                    IconButton(onClick = { completedSearchQuery = "" }) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.admin_clear_search)
+                                        )
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
                 if (visibleCases.isEmpty()) {
                     item {
@@ -221,9 +255,26 @@ fun ExpertCaseListScreen(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(stringResource(R.string.expert_no_matching_cases), style = MaterialTheme.typography.titleMedium)
                             Text(
-                                stringResource(R.string.expert_adjust_filters),
+                                stringResource(
+                                    when {
+                                        selectedGroup == CaseGroup.COMPLETED && completedSearchQuery.isBlank() ->
+                                            R.string.expert_no_completed_cases
+                                        else -> R.string.expert_no_matching_cases
+                                    }
+                                ),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                stringResource(
+                                    when {
+                                        selectedGroup == CaseGroup.COMPLETED && completedSearchQuery.isBlank() ->
+                                            R.string.expert_no_completed_cases_description
+                                        selectedGroup == CaseGroup.COMPLETED ->
+                                            R.string.expert_try_different_completed_search
+                                        else -> R.string.expert_adjust_filters
+                                    }
+                                ),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 6.dp)
                             )

@@ -190,7 +190,11 @@ private fun OptimizationNoteSheet(
     val containsInvalidCharacters = '<' in note || '>' in note
     val isValid = normalizedNote.isNotEmpty() && note.length <= 1000 && !containsInvalidCharacters
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(
+        onDismissRequest = {
+            if (!isSubmitting) onDismiss()
+        }
+    ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)

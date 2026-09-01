@@ -33,7 +33,6 @@ object Routes{
     const val ADMIN_HOME = "admin_home"
     const val ADMIN_CREATE_STAFF = "admin_create_staff"
     const val ADMIN_UPDATE_ROLE = "admin_update_role"
-    const val ADMIN_SEARCH_STAFF = "admin_search_staff"
     const val ADMIN_AUDIT_LOGS = "admin_audit_logs"
     const val ADMIN_PROFILE = "admin_profile"
     const val OFFERS = "offers"

@@ -21,7 +21,8 @@ data class SupervisorUiState(
     val isLoading: Boolean = false,
     val errorMessage: UiText? = null,
     val isSubmittingAction: Boolean = false,
-    val actionErrorMessage: UiText? = null
+    val actionErrorMessage: UiText? = null,
+    val actionSuccessVersion: Long = 0L
 )
 
 class SupervisorViewModel(
@@ -65,7 +66,11 @@ class SupervisorViewModel(
             _uiState.update { it.copy(isSubmittingAction = true, actionErrorMessage = null) }
             when (val result = operation()) {
                 is SupervisorResult.Success -> _uiState.update {
-                    it.copy(dashboard = result.value, isSubmittingAction = false)
+                    it.copy(
+                        dashboard = result.value,
+                        isSubmittingAction = false,
+                        actionSuccessVersion = it.actionSuccessVersion + 1
+                    )
                 }
                 is SupervisorResult.Failure -> _uiState.update {
                     it.copy(

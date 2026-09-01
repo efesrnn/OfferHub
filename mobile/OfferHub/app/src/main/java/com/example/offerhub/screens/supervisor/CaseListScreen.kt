@@ -68,6 +68,7 @@ fun SupervisorCaseListScreen(
     loadError: String?,
     isSubmitting: Boolean,
     actionError: String?,
+    actionSuccessVersion: Long,
     onAssignCase: (String, String) -> Unit,
     onPublishCase: (String) -> Unit,
     onUpdateClassification: (String, Segment, Priority) -> Unit,
@@ -81,6 +82,7 @@ fun SupervisorCaseListScreen(
     var assignmentQuery by remember { mutableStateOf("") }
     var pendingClassification by remember { mutableStateOf<Triple<String, Segment, Priority>?>(null) }
     var activeCaseTab by remember { mutableStateOf(ActiveCaseTab.ASSIGNED) }
+    var handledActionSuccessVersion by remember { mutableStateOf(actionSuccessVersion) }
     val displayedCases = if (mode == SupervisorCaseListMode.ACTIVE) {
         cases.filter { it.status == activeCaseTab.status }
     } else {
@@ -89,6 +91,15 @@ fun SupervisorCaseListScreen(
     LaunchedEffect(cases, selectedCase?.caseId) {
         selectedCase?.let { selected ->
             selectedCase = cases.firstOrNull { it.caseId == selected.caseId }
+        }
+    }
+    LaunchedEffect(actionSuccessVersion) {
+        if (actionSuccessVersion != handledActionSuccessVersion) {
+            selectedCase = null
+            editingCase = null
+            assignmentCase = null
+            pendingClassification = null
+            handledActionSuccessVersion = actionSuccessVersion
         }
     }
     Scaffold(
@@ -198,7 +209,12 @@ fun SupervisorCaseListScreen(
         }
     }
     selectedCase?.let { item ->
-        ModalBottomSheet(onDismissRequest = { selectedCase = null; onClearActionError() }) {
+        ModalBottomSheet(onDismissRequest = {
+            if (!isSubmitting) {
+                selectedCase = null
+                onClearActionError()
+            }
+        }) {
             Column(
                 Modifier.fillMaxWidth().heightIn(max = 650.dp).verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp).padding(bottom = 32.dp),
@@ -222,17 +238,18 @@ fun SupervisorCaseListScreen(
                     ) { Text(stringResource(R.string.supervisor_publish_case)) }
                 }
                 actionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                OutlinedButton(
-                    onClick = { selectedCase = null; onClearActionError() },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text(stringResource(R.string.admin_close)) }
             }
         }
     }
     editingCase?.let { item ->
         var selectedSegment by remember(item.caseId, item.segment) { mutableStateOf(item.segment) }
         var selectedPriority by remember(item.caseId, item.priority) { mutableStateOf(item.priority) }
-        ModalBottomSheet(onDismissRequest = { editingCase = null; onClearActionError() }) {
+        ModalBottomSheet(onDismissRequest = {
+            if (!isSubmitting) {
+                editingCase = null
+                onClearActionError()
+            }
+        }) {
             Column(
                 Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -270,7 +287,6 @@ fun SupervisorCaseListScreen(
                             if (item.status == CaseStatus.OPTIMIZE_EDILIYOR) {
                                 pendingClassification = Triple(item.caseId, selectedSegment, selectedPriority)
                             } else {
-                                editingCase = null
                                 onUpdateClassification(item.caseId, selectedSegment, selectedPriority)
                             }
                     },
@@ -278,16 +294,17 @@ fun SupervisorCaseListScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) { Text(stringResource(R.string.supervisor_save_changes)) }
                 actionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                OutlinedButton(
-                    onClick = { editingCase = null; onClearActionError() },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text(stringResource(R.string.admin_close)) }
             }
         }
     }
     assignmentCase?.let { item ->
         val filteredExperts = experts.filter { it.displayName.contains(assignmentQuery.trim(), ignoreCase = true) }
-        ModalBottomSheet(onDismissRequest = { assignmentCase = null; onClearActionError() }) {
+        ModalBottomSheet(onDismissRequest = {
+            if (!isSubmitting) {
+                assignmentCase = null
+                onClearActionError()
+            }
+        }) {
             Column(
                 Modifier.fillMaxWidth().heightIn(max = 650.dp).verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp).padding(bottom = 32.dp),
@@ -313,7 +330,7 @@ fun SupervisorCaseListScreen(
                                 Text(stringResource(R.string.supervisor_capacity_value, expert.activeCaseCount, expert.maximumCaseCapacity))
                             }
                             Button(
-                                onClick = { assignmentCase = null; onAssignCase(item.caseId, expert.expertId) },
+                                onClick = { onAssignCase(item.caseId, expert.expertId) },
                                 enabled = !isSubmitting && hasCapacity
                             ) { Text(stringResource(R.string.supervisor_assign)) }
                         }
@@ -321,10 +338,6 @@ fun SupervisorCaseListScreen(
                 }
                 if (filteredExperts.isEmpty()) Text(stringResource(R.string.supervisor_no_experts))
                 actionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                OutlinedButton(
-                    onClick = { assignmentCase = null; onClearActionError() },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text(stringResource(R.string.admin_close)) }
             }
         }
     }
@@ -336,7 +349,6 @@ fun SupervisorCaseListScreen(
             confirmButton = {
                 TextButton(onClick = {
                     pendingClassification = null
-                    editingCase = null
                     onUpdateClassification(caseId, segment, priority)
                 }) { Text(stringResource(R.string.supervisor_confirm)) }
             },

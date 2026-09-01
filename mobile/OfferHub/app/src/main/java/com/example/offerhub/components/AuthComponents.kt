@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -53,6 +54,8 @@ fun TextFieldComponent(
     onFocusChanged: (Boolean) -> Unit = {}
 )
 {
+ var hasBeenFocused by remember { mutableStateOf(false) }
+
  OutlinedTextField(
      value=value,
      onValueChange = onValueChange,
@@ -121,7 +124,16 @@ fun TextFieldComponent(
              MaterialTheme.colorScheme.error
      ),
      singleLine=true,  //?
-     modifier=Modifier.fillMaxWidth()
+     modifier = Modifier
+         .fillMaxWidth()
+         .onFocusChanged { focusState ->
+             if (focusState.isFocused) {
+                 hasBeenFocused = true
+                 onFocusChanged(true)
+             } else if (hasBeenFocused) {
+                 onFocusChanged(false)
+             }
+         }
  )
 }
 

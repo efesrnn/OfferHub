@@ -73,7 +73,7 @@ class MockAdminRepository : AdminRepository {
     override suspend fun searchStaff(query: String): AdminResult<List<AdminStaff>> {
         delay(300)
         val normalizedQuery = query.trim()
-        if (normalizedQuery.isBlank()) return AdminResult.Success(emptyList())
+        if (normalizedQuery.isBlank()) return AdminResult.Success(staff.toList())
 
         return AdminResult.Success(
             staff.filter { member ->

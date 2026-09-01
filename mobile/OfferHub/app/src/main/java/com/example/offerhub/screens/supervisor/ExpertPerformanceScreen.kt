@@ -14,7 +14,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -109,10 +108,6 @@ fun SupervisorExpertPerformanceScreen(
                 ExpertDetailRow(stringResource(R.string.supervisor_completed_cases), expert.completedCases.toString())
                 ExpertDetailRow(stringResource(R.string.supervisor_average_conversion_increase), "${expert.averageConversionIncrease}%")
                 ExpertDetailRow(stringResource(R.string.supervisor_average_completion_time), "${expert.averageCompletionHours} h")
-                OutlinedButton(
-                    onClick = { selectedExpert = null },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text(stringResource(R.string.admin_close)) }
             }
         }
     }

@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.offerhub.data.model.admin.AuditLog
 import com.example.offerhub.data.model.admin.AdminStaff
+import com.example.offerhub.data.network.ApiError
 import com.example.offerhub.repository.AdminRepository
 import com.example.offerhub.repository.AdminResult
+import com.example.offerhub.ui.text.UiText
+import com.example.offerhub.R
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,13 +32,10 @@ data class AdminUiState(
     val auditError: String? = null,
     val auditNextPageError: String? = null,
     val isSubmitting: Boolean = false,
-    val actionMessage: String? = null,
-    val actionError: String? = null,
+    val actionMessage: UiText? = null,
+    val actionError: UiText? = null,
     val createdStaffId: String? = null,
-    val staffIdQuery: String = "",
     val selectedStaff: AdminStaff? = null,
-    val isLookingUpStaff: Boolean = false,
-    val staffLookupError: String? = null,
     val staffSearchQuery: String = "",
     val staffSearchResults: List<AdminStaff> = emptyList(),
     val isSearchingStaff: Boolean = false,
@@ -50,7 +50,6 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
     val uiState: StateFlow<AdminUiState> = _uiState.asStateFlow()
     private var searchJob: Job? = null
     private var auditJob: Job? = null
-    private var staffLookupJob: Job? = null
     private var staffSearchJob: Job? = null
 
     fun loadAuditLogs(reset: Boolean = true) {
@@ -151,12 +150,12 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
             when (val result = repository.createStaff(firstName, lastName, email, role, specialties, regions)) {
                 is AdminResult.Success -> _uiState.update {
                     it.copy(
-                        actionMessage = "Staff created successfully",
+                        actionMessage = UiText.Resource(R.string.admin_staff_created_success),
                         createdStaffId = result.value.id
                     )
                 }
                 is AdminResult.Failure -> _uiState.update {
-                    it.copy(actionError = result.error.message ?: "Staff account could not be created")
+                    it.copy(actionError = result.error.toUiText(R.string.admin_staff_create_failed))
                 }
             }
             loadAuditLogs(reset = true)
@@ -168,64 +167,47 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         if (_uiState.value.isSubmitting) return
         viewModelScope.launch {
             beginSubmission()
+            val activeQuery = _uiState.value.staffSearchQuery
+            var shouldRefreshStaff = false
             when (val result = repository.updateRole(staffId, role)) {
                 is AdminResult.Success -> _uiState.update {
+                    shouldRefreshStaff = true
                     it.copy(
-                        selectedStaff = result.value,
-                        actionMessage = "Role updated to ${result.value.role}"
+                        selectedStaff = null,
+                        actionMessage = UiText.Resource(
+                            R.string.admin_role_updated,
+                            listOf(result.value.role)
+                        )
                     )
                 }
                 is AdminResult.Failure -> _uiState.update {
-                    it.copy(actionError = result.error.message ?: "Role could not be updated")
+                    it.copy(actionError = result.error.toUiText(R.string.admin_role_update_failed))
                 }
+            }
+            if (shouldRefreshStaff) {
+                searchStaff(query = activeQuery, useDebounce = false)
             }
             loadAuditLogs(reset = true)
             endSubmission()
         }
     }
 
-    fun onStaffIdChange(staffId: String) {
-        val normalizedStaffId = staffId.trim()
-        staffLookupJob?.cancel()
+    fun loadStaff() = searchStaff(query = "", useDebounce = false)
+
+    fun selectStaff(staff: AdminStaff) {
         _uiState.update {
             it.copy(
-                staffIdQuery = normalizedStaffId,
-                selectedStaff = null,
-                isLookingUpStaff = false,
-                staffLookupError = null,
+                selectedStaff = staff,
                 actionMessage = null,
                 actionError = null
             )
         }
-        if (normalizedStaffId.isBlank()) return
-
-        staffLookupJob = viewModelScope.launch {
-            delay(STAFF_LOOKUP_DEBOUNCE_MS)
-            _uiState.update { it.copy(isLookingUpStaff = true) }
-            when (val result = repository.findStaff(normalizedStaffId)) {
-                is AdminResult.Success -> _uiState.update {
-                    if (it.staffIdQuery == normalizedStaffId) {
-                        it.copy(selectedStaff = result.value, staffLookupError = null)
-                    } else it
-                }
-                is AdminResult.Failure -> _uiState.update {
-                    if (it.staffIdQuery == normalizedStaffId) {
-                        it.copy(staffLookupError = result.error.message ?: "Staff member not found")
-                    } else it
-                }
-            }
-            _uiState.update { it.copy(isLookingUpStaff = false) }
-        }
     }
 
-    fun clearStaffLookup() {
-        staffLookupJob?.cancel()
+    fun clearSelectedStaff() {
         _uiState.update {
             it.copy(
-                staffIdQuery = "",
                 selectedStaff = null,
-                isLookingUpStaff = false,
-                staffLookupError = null,
                 actionMessage = null,
                 actionError = null
             )
@@ -233,47 +215,49 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
     }
 
     fun onStaffSearchQueryChange(query: String) {
+        searchStaff(query = query, useDebounce = query.isNotBlank())
+    }
+
+    private fun searchStaff(query: String, useDebounce: Boolean) {
         staffSearchJob?.cancel()
+        val normalizedQuery = query.trim()
         _uiState.update {
             it.copy(
                 staffSearchQuery = query,
-                staffSearchResults = if (query.isBlank()) emptyList() else it.staffSearchResults,
-                isSearchingStaff = false,
+                staffSearchResults = emptyList(),
+                selectedStaff = null,
+                isSearchingStaff = true,
                 staffSearchError = null
             )
         }
-        val normalizedQuery = query.trim()
-        if (normalizedQuery.isBlank()) return
 
         staffSearchJob = viewModelScope.launch {
-            delay(STAFF_SEARCH_DEBOUNCE_MS)
-            _uiState.update { it.copy(isSearchingStaff = true) }
+            if (useDebounce) delay(STAFF_SEARCH_DEBOUNCE_MS)
             when (val result = repository.searchStaff(normalizedQuery)) {
                 is AdminResult.Success -> _uiState.update {
                     if (it.staffSearchQuery.trim() == normalizedQuery) {
-                        it.copy(staffSearchResults = result.value, staffSearchError = null)
+                        it.copy(
+                            staffSearchResults = result.value,
+                            isSearchingStaff = false,
+                            staffSearchError = null
+                        )
                     } else it
                 }
                 is AdminResult.Failure -> _uiState.update {
                     if (it.staffSearchQuery.trim() == normalizedQuery) {
-                        it.copy(staffSearchResults = emptyList(), staffSearchError = result.error.message)
+                        it.copy(
+                            staffSearchResults = emptyList(),
+                            isSearchingStaff = false,
+                            staffSearchError = result.error.message
+                        )
                     } else it
                 }
             }
-            _uiState.update { it.copy(isSearchingStaff = false) }
         }
     }
 
     fun clearStaffSearch() {
-        staffSearchJob?.cancel()
-        _uiState.update {
-            it.copy(
-                staffSearchQuery = "",
-                staffSearchResults = emptyList(),
-                isSearchingStaff = false,
-                staffSearchError = null
-            )
-        }
+        searchStaff(query = "", useDebounce = false)
     }
 
     fun clearActionFeedback() {
@@ -291,6 +275,11 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
 
     private fun endSubmission() = _uiState.update { it.copy(isSubmitting = false) }
 
+    private fun ApiError.toUiText(fallbackResource: Int): UiText =
+        message?.takeIf { it.isNotBlank() }
+            ?.let(UiText::Dynamic)
+            ?: UiText.Resource(fallbackResource)
+
     class Factory(private val repository: AdminRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T = AdminViewModel(repository) as T
@@ -299,7 +288,6 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
     private companion object {
         const val PAGE_SIZE = 20
         const val SEARCH_DEBOUNCE_MS = 400L
-        const val STAFF_LOOKUP_DEBOUNCE_MS = 400L
         const val STAFF_SEARCH_DEBOUNCE_MS = 400L
     }
 }

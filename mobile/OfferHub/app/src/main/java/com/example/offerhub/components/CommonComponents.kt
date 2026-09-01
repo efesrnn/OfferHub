@@ -166,10 +166,6 @@ fun OfferHubBottomBar(
                     imageVector = Icons.Default.Home,
                     contentDescription = stringResource(R.string.nav_home)
                 )
-            },
-
-            label = {
-                Text(text = stringResource(R.string.nav_home))
             }
         )
 
@@ -185,10 +181,6 @@ fun OfferHubBottomBar(
 
                     contentDescription = stringResource(R.string.nav_offers)
                 )
-            },
-
-            label = {
-                Text(text = stringResource(R.string.nav_offers))
             }
         )
 
@@ -204,10 +196,6 @@ fun OfferHubBottomBar(
 
                     contentDescription = stringResource(R.string.nav_profile)
                 )
-            },
-
-            label = {
-                Text(text = stringResource(R.string.nav_profile))
             }
         )
     }

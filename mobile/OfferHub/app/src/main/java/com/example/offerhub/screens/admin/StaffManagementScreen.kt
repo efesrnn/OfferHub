@@ -3,12 +3,16 @@ package com.example.offerhub.screens.admin
 import android.content.ClipData
 import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -19,11 +23,13 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +39,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
@@ -193,14 +201,18 @@ fun CreateStaffScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateStaffRoleScreen(
-    staffId: String,
+    query: String,
+    searchResults: List<AdminStaff>,
     selectedStaff: AdminStaff?,
-    isLookingUpStaff: Boolean,
-    staffLookupError: String?,
+    isSearchingStaff: Boolean,
+    staffSearchError: String?,
     onBackClick: () -> Unit,
-    onStaffIdChange: (String) -> Unit,
+    onQueryChange: (String) -> Unit,
+    onStaffSelected: (AdminStaff) -> Unit,
+    onDismissStaff: () -> Unit,
     onUpdateRole: (String, String) -> Unit,
     onClearClick: () -> Unit,
     isSubmitting: Boolean = false,
@@ -208,118 +220,168 @@ fun UpdateStaffRoleScreen(
     errorMessage: String? = null
 ) {
     var role by remember { mutableStateOf("SUPERVISOR") }
-    var submitAttempted by remember { mutableStateOf(false) }
-    val availableRoles = listOf("EXPERT", "SUPERVISOR").filter { it != selectedStaff?.role }
+    val availableRoles = listOf("EXPERT", "SUPERVISOR")
 
     LaunchedEffect(selectedStaff?.id, selectedStaff?.role) {
-        role = availableRoles.firstOrNull() ?: ""
-        submitAttempted = false
+        role = availableRoles.firstOrNull { it != selectedStaff?.role } ?: ""
+    }
+
+    LaunchedEffect(successMessage) {
+        if (successMessage != null) {
+            onDismissStaff()
+        }
     }
 
     Scaffold(
-        topBar = { OfferHubDetailTopBar(stringResource(R.string.admin_update_role), onBackClick) },
-        bottomBar = {
-            Surface(tonalElevation = 3.dp) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = {
-                            onClearClick()
-                            role = "SUPERVISOR"
-                            submitAttempted = false
-                        },
-                        enabled = !isSubmitting && staffId.isNotBlank(),
-                        modifier = Modifier.weight(1f)
-                    ) { Text(stringResource(R.string.admin_clear)) }
-                    Button(
-                        enabled = !isSubmitting && selectedStaff != null && role.isNotBlank(),
-                        onClick = {
-                            submitAttempted = true
-                            if (selectedStaff != null && role != selectedStaff.role) {
-                                onUpdateRole(selectedStaff.id, role)
+        topBar = { OfferHubDetailTopBar(stringResource(R.string.admin_update_role), onBackClick) }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp),
+            contentPadding = PaddingValues(vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    label = { Text(stringResource(R.string.admin_search_staff_hint)) },
+                    singleLine = true,
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = onClearClick) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.admin_clear_search)
+                                )
                             }
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            if (isSubmitting) stringResource(R.string.admin_updating)
-                            else stringResource(R.string.admin_update_role)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            when {
+                isSearchingStaff -> item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) { CircularProgressIndicator() }
+                }
+                staffSearchError != null -> item {
+                    Text(staffSearchError, color = MaterialTheme.colorScheme.error)
+                }
+                searchResults.isEmpty() -> item {
+                    Text(
+                        stringResource(R.string.admin_staff_search_empty),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                else -> items(searchResults, key = { it.id }) { staff ->
+                    Card(
+                        onClick = { onStaffSelected(staff) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                "${staff.firstName} ${staff.lastName}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(staff.email, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                "${stringResource(R.string.admin_current_role)}: ${staff.role}",
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
             }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+    }
+
+    selectedStaff?.let { staff ->
+        ModalBottomSheet(
+            onDismissRequest = {
+                if (!isSubmitting) onDismissStaff()
+            }
         ) {
-            OutlinedTextField(
-                value = staffId,
-                onValueChange = onStaffIdChange,
-                label = { Text(stringResource(R.string.admin_staff_id)) },
-                isError = submitAttempted && staffId.isBlank(),
-                supportingText = {
-                    if (submitAttempted && staffId.isBlank()) {
-                        Text(stringResource(R.string.admin_error_staff_id))
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            if (isLookingUpStaff) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CircularProgressIndicator()
-                    Text(stringResource(R.string.admin_looking_up_staff))
-                }
-            }
-            staffLookupError?.let {
-                Text(it, color = MaterialTheme.colorScheme.error)
-            }
-            selectedStaff?.let { staff ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Text(stringResource(R.string.admin_staff_information), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                CopyableStaffId(id = staff.id)
+                StaffDetailValue(stringResource(R.string.admin_first_name), staff.firstName)
+                StaffDetailValue(stringResource(R.string.admin_last_name), staff.lastName)
+                StaffDetailValue(stringResource(R.string.admin_email), staff.email)
+                StaffDetailValue(stringResource(R.string.admin_current_role), staff.role)
+                StaffDetailValue(
+                    stringResource(R.string.admin_specialties),
+                    staff.specialties.joinToString().ifBlank { stringResource(R.string.common_not_available) }
+                )
+                StaffDetailValue(
+                    stringResource(R.string.admin_regions),
+                    staff.regions.joinToString().ifBlank { stringResource(R.string.common_not_available) }
+                )
+                Text(stringResource(R.string.admin_new_role), fontWeight = FontWeight.SemiBold)
+                ChoiceRow(
+                    options = availableRoles,
+                    selected = role,
+                    isOptionEnabled = { it != staff.role },
+                    onSelect = { role = it }
+                )
+                successMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+                errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                Button(
+                    enabled = !isSubmitting && role.isNotBlank() && role != staff.role,
+                    onClick = { onUpdateRole(staff.id, role) },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(stringResource(R.string.admin_staff_information), fontWeight = FontWeight.Bold)
-                        CopyableStaffId(id = staff.id)
-                        Text("${staff.firstName} ${staff.lastName}")
-                        Text(staff.email, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(
-                            "${stringResource(R.string.admin_current_role)}: ${staff.role}",
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    Text(
+                        if (isSubmitting) stringResource(R.string.admin_updating)
+                        else stringResource(R.string.admin_update_role)
+                    )
                 }
             }
-            Text(stringResource(R.string.admin_new_role), fontWeight = FontWeight.SemiBold)
-            if (selectedStaff != null) {
-                ChoiceRow(availableRoles, role) { role = it }
-            }
-            successMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
-            errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }
 }
 
 @Composable
-private fun ChoiceRow(options: List<String>, selected: String, onSelect: (String) -> Unit) {
+private fun StaffDetailValue(label: String, value: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value)
+    }
+}
+
+@Composable
+private fun ChoiceRow(
+    options: List<String>,
+    selected: String,
+    isOptionEnabled: (String) -> Boolean = { true },
+    onSelect: (String) -> Unit
+) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         options.forEach { option ->
-            FilterChip(selected = option == selected, onClick = { onSelect(option) }, label = { Text(option) })
+            FilterChip(
+                selected = option == selected,
+                onClick = { onSelect(option) },
+                enabled = isOptionEnabled(option),
+                label = { Text(option) }
+            )
         }
     }
 }

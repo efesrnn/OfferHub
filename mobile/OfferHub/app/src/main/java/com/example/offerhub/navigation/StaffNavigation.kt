@@ -15,7 +15,6 @@ import com.example.offerhub.screens.admin.AdminHomeScreen
 import com.example.offerhub.screens.admin.AdminProfileScreen
 import com.example.offerhub.screens.admin.AuditLogsScreen
 import com.example.offerhub.screens.admin.CreateStaffScreen
-import com.example.offerhub.screens.admin.SearchStaffScreen
 import com.example.offerhub.screens.admin.UpdateStaffRoleScreen
 import com.example.offerhub.screens.expert.ExpertCaseListScreen
 import com.example.offerhub.screens.expert.ExpertCaseDetailScreen
@@ -66,6 +65,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             },
             onOperationsClick = { navController.navigateExpertTopLevel(Routes.EXPERT_OPERATIONS) },
             onCriticalCasesClick = { navController.navigateExpertTopLevel(Routes.EXPERT_CRITICAL_CASES) },
+            onActiveCasesClick = { navController.navigateExpertTopLevel(Routes.EXPERT_CASES) },
             onProfileClick = { navController.navigateExpertTopLevel(Routes.EXPERT_PROFILE) }
         )
     }
@@ -93,10 +93,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             onCaseClick = { caseId ->
                 navController.navigate(Routes.expertCaseDetail(caseId))
             },
-            onBackClick = navController::popBackStack,
-            onHomeClick = { navController.navigateExpertTopLevel(Routes.EXPERT_HOME) },
-            onOperationsClick = { navController.navigateExpertTopLevel(Routes.EXPERT_OPERATIONS) },
-            onProfileClick = { navController.navigateExpertTopLevel(Routes.EXPERT_PROFILE) }
+            onBackClick = navController::popBackStack
         )
     }
     composable(Routes.EXPERT_CRITICAL_CASES) {
@@ -113,10 +110,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             onLoadNextPage = { expertViewModel.loadCases(reset = false) },
             onStatusFilterChanged = { status -> expertViewModel.loadCases(reset = true, status = status) },
             onCaseClick = { caseId -> navController.navigate(Routes.expertCaseDetail(caseId)) },
-            onBackClick = navController::popBackStack,
-            onHomeClick = { navController.navigateExpertTopLevel(Routes.EXPERT_HOME) },
-            onOperationsClick = { navController.navigateExpertTopLevel(Routes.EXPERT_OPERATIONS) },
-            onProfileClick = { navController.navigateExpertTopLevel(Routes.EXPERT_PROFILE) }
+            onBackClick = navController::popBackStack
         )
     }
     composable(Routes.EXPERT_PROFILE) {
@@ -285,6 +279,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             loadError = supervisorState.errorMessage?.asString(),
             isSubmitting = supervisorState.isSubmittingAction,
             actionError = supervisorState.actionErrorMessage?.asString(),
+            actionSuccessVersion = supervisorState.actionSuccessVersion,
             onAssignCase = supervisorViewModel::assignCase,
             onPublishCase = supervisorViewModel::publishCase,
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
@@ -314,6 +309,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             loadError = supervisorState.errorMessage?.asString(),
             isSubmitting = supervisorState.isSubmittingAction,
             actionError = supervisorState.actionErrorMessage?.asString(),
+            actionSuccessVersion = supervisorState.actionSuccessVersion,
             onAssignCase = supervisorViewModel::assignCase,
             onPublishCase = supervisorViewModel::publishCase,
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
@@ -339,6 +335,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             loadError = supervisorState.errorMessage?.asString(),
             isSubmitting = supervisorState.isSubmittingAction,
             actionError = supervisorState.actionErrorMessage?.asString(),
+            actionSuccessVersion = supervisorState.actionSuccessVersion,
             onAssignCase = supervisorViewModel::assignCase,
             onPublishCase = supervisorViewModel::publishCase,
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
@@ -362,6 +359,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             loadError = supervisorState.errorMessage?.asString(),
             isSubmitting = supervisorState.isSubmittingAction,
             actionError = supervisorState.actionErrorMessage?.asString(),
+            actionSuccessVersion = supervisorState.actionSuccessVersion,
             onAssignCase = supervisorViewModel::assignCase,
             onPublishCase = supervisorViewModel::publishCase,
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
@@ -402,9 +400,6 @@ fun NavGraphBuilder.staffRoleGraphs(
             onCreateStaffClick = {
                 navController.navigate(Routes.ADMIN_CREATE_STAFF)
             },
-            onSearchStaffClick = {
-                navController.navigate(Routes.ADMIN_SEARCH_STAFF)
-            },
             onUpdateRoleClick = {
                 navController.navigate(Routes.ADMIN_UPDATE_ROLE)
             },
@@ -425,41 +420,33 @@ fun NavGraphBuilder.staffRoleGraphs(
             onCreateStaff = adminViewModel::createStaff,
             onClearClick = adminViewModel::clearActionFeedback,
             isSubmitting = adminState.isSubmitting,
-            successMessage = adminState.actionMessage,
+            successMessage = adminState.actionMessage?.asString(),
             createdStaffId = adminState.createdStaffId,
-            errorMessage = adminState.actionError
-        )
-    }
-
-    composable(Routes.ADMIN_SEARCH_STAFF) {
-        val adminState by adminViewModel.uiState.collectAsState()
-        LaunchedEffect(Unit) { adminViewModel.clearStaffSearch() }
-        SearchStaffScreen(
-            query = adminState.staffSearchQuery,
-            results = adminState.staffSearchResults,
-            isLoading = adminState.isSearchingStaff,
-            errorMessage = adminState.staffSearchError,
-            onBackClick = navController::popBackStack,
-            onQueryChange = adminViewModel::onStaffSearchQueryChange,
-            onClearClick = adminViewModel::clearStaffSearch
+            errorMessage = adminState.actionError?.asString()
         )
     }
 
     composable(Routes.ADMIN_UPDATE_ROLE) {
         val adminState by adminViewModel.uiState.collectAsState()
-        LaunchedEffect(Unit) { adminViewModel.clearActionFeedback() }
+        LaunchedEffect(Unit) {
+            adminViewModel.clearActionFeedback()
+            adminViewModel.loadStaff()
+        }
         UpdateStaffRoleScreen(
-            staffId = adminState.staffIdQuery,
+            query = adminState.staffSearchQuery,
+            searchResults = adminState.staffSearchResults,
             selectedStaff = adminState.selectedStaff,
-            isLookingUpStaff = adminState.isLookingUpStaff,
-            staffLookupError = adminState.staffLookupError,
+            isSearchingStaff = adminState.isSearchingStaff,
+            staffSearchError = adminState.staffSearchError,
             onBackClick = navController::popBackStack,
-            onStaffIdChange = adminViewModel::onStaffIdChange,
+            onQueryChange = adminViewModel::onStaffSearchQueryChange,
+            onStaffSelected = adminViewModel::selectStaff,
+            onDismissStaff = adminViewModel::clearSelectedStaff,
             onUpdateRole = adminViewModel::updateRole,
-            onClearClick = adminViewModel::clearStaffLookup,
+            onClearClick = adminViewModel::clearStaffSearch,
             isSubmitting = adminState.isSubmitting,
-            successMessage = adminState.actionMessage,
-            errorMessage = adminState.actionError
+            successMessage = adminState.actionMessage?.asString(),
+            errorMessage = adminState.actionError?.asString()
         )
     }
 

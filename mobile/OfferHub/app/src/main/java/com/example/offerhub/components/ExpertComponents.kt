@@ -48,22 +48,34 @@ fun ExpertBottomBar(
             selected = selectedItem == "home",
             onClick = onHomeClick,
             colors = colors,
-            icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text(stringResource(R.string.expert_home)) }
+            icon = {
+                Icon(
+                    Icons.Default.Home,
+                    contentDescription = stringResource(R.string.expert_home)
+                )
+            }
         )
         NavigationBarItem(
             selected = selectedItem == "operations",
             onClick = onOperationsClick,
             colors = colors,
-            icon = { Icon(Icons.Default.Work, contentDescription = null) },
-            label = { Text(stringResource(R.string.expert_operations)) }
+            icon = {
+                Icon(
+                    Icons.Default.Work,
+                    contentDescription = stringResource(R.string.expert_operations)
+                )
+            }
         )
         NavigationBarItem(
             selected = selectedItem == "profile",
             onClick = onProfileClick,
             colors = colors,
-            icon = { Icon(Icons.Default.Person, contentDescription = null) },
-            label = { Text(stringResource(R.string.nav_profile)) }
+            icon = {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = stringResource(R.string.nav_profile)
+                )
+            }
         )
     }
 }

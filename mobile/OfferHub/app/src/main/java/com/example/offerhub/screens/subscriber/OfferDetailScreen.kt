@@ -52,7 +52,9 @@ fun OfferDetailBottomSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            if (!isSubmitting) onDismiss()
+        },
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
@@ -170,7 +172,13 @@ fun OfferDetailBottomSheet(
 
                 OfferStatus.ACCEPTED -> {
                     Text(
-                        text = stringResource(R.string.offer_rate_experience),
+                        text = stringResource(
+                            if (offer.rating == null) {
+                                R.string.offer_rate_experience
+                            } else {
+                                R.string.offer_your_rating
+                            }
+                        ),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -196,9 +204,15 @@ fun OfferDetailBottomSheet(
                                 color =
                                     MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
-                                    .clickable {
-                                        selectedRating = ratingValue
-                                    }
+                                    .then(
+                                        if (offer.rating == null) {
+                                            Modifier.clickable {
+                                                selectedRating = ratingValue
+                                            }
+                                        } else {
+                                            Modifier
+                                        }
+                                    )
                                     .padding(4.dp)
                             )
                         }
@@ -206,36 +220,28 @@ fun OfferDetailBottomSheet(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement =
-                            Arrangement.spacedBy(12.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.weight(1f)
+                    if (offer.rating == null) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(text = stringResource(R.string.offer_rate_later))
-                        }
+                            OutlinedButton(
+                                onClick = onDismiss,
+                                modifier = Modifier.weight(1f),
+                                enabled = !isSubmitting
+                            ) {
+                                Text(text = stringResource(R.string.offer_rate_later))
+                            }
 
-                        Button(
-                            onClick = {
-                                onSubmitRating(
-                                    offer.offerId,
-                                    selectedRating
-                                )
-                            },
-                            enabled = selectedRating in 1..5 && !isSubmitting,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text =
-                                    if (offer.rating == null) {
-                                        stringResource(R.string.offer_submit_rating)
-                                    } else {
-                                        stringResource(R.string.offer_update_rating)
-                                    }
-                            )
+                            Button(
+                                onClick = {
+                                    onSubmitRating(offer.offerId, selectedRating)
+                                },
+                                enabled = selectedRating in 1..5 && !isSubmitting,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(text = stringResource(R.string.offer_submit_rating))
+                            }
                         }
                     }
                 }
