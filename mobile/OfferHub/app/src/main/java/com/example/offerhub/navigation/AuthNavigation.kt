@@ -10,6 +10,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.offerhub.screens.auth.AuthChoiceScreen
+import com.example.offerhub.screens.auth.AuthHelpScreen
+import com.example.offerhub.screens.auth.ForgotPasswordScreen
 import com.example.offerhub.screens.auth.OtpVerificationScreen
 import com.example.offerhub.screens.auth.SplashScreen
 import com.example.offerhub.screens.auth.StaffLoginScreen
@@ -44,7 +46,33 @@ fun NavGraphBuilder.authGraph(
             },
             onStaffClick = {
                 navController.navigate(Routes.STAFF_LOGIN)
+            },
+            onHelpClick = {
+                navController.navigate(Routes.AUTH_HELP)
             }
+        )
+    }
+
+    composable(Routes.AUTH_HELP) {
+        AuthHelpScreen(
+            onBackClick = navController::popBackStack,
+            onSubscriberLoginClick = {
+                navController.navigate(Routes.SUBSCRIBER_LOGIN) {
+                    popUpTo(Routes.AUTH_HELP) { inclusive = true }
+                    launchSingleTop = true
+                }
+            },
+            onForgotPasswordClick = {
+                navController.navigate(Routes.FORGOT_PASSWORD)
+            }
+        )
+    }
+
+    composable(Routes.FORGOT_PASSWORD) {
+        ForgotPasswordScreen(
+            onBackClick = navController::popBackStack,
+            onRequestCodeClick = {},
+            isRequestAvailable = false
         )
     }
 
@@ -55,6 +83,7 @@ fun NavGraphBuilder.authGraph(
         }
         StaffLoginScreen(
             onLoginClick = authViewModel::staffLogin,
+            onBackClick = navController::popBackStack,
             isLoading = authState.isLoading,
             backendError = authState.errorMessage?.asString(),
             lockRemainingSeconds = authState.lockRemainingSeconds,
@@ -72,6 +101,9 @@ fun NavGraphBuilder.authGraph(
                 authViewModel::debugLoginAsSupervisor
             } else {
                 null
+            },
+            onForgotPasswordClick = {
+                navController.navigate(Routes.FORGOT_PASSWORD)
             }
         )
     }
@@ -112,7 +144,8 @@ fun NavGraphBuilder.authGraph(
                 authViewModel.clearError()
                 navController.navigate(Routes.SUBSCRIBER_REGISTER)
             },
-            isLoading = authState.isLoading,
+            onBackClick = navController::popBackStack,
+            isLoading = authState.isOtpRequestLoading,
             backendError = authState.errorMessage?.asString()
         )
     }
@@ -124,6 +157,12 @@ fun NavGraphBuilder.authGraph(
             onLoginClick = {
                 authViewModel.clearError()
                 navController.popBackStack()
+            },
+            onBackClick = {
+                navController.popBackStack(
+                    route = Routes.AUTH_CHOICE,
+                    inclusive = false
+                )
             },
             isLoading = authState.isLoading,
             backendError = authState.errorMessage?.asString()
@@ -150,10 +189,13 @@ fun NavGraphBuilder.authGraph(
             onVerifyClick = { otp, useFirebase ->
                 authViewModel.verifyOtp(phone, otp, useFirebase)
             },
-            onResendClick = {
-                // Backend OTP resend endpoint'i sözleşme kesinleşince bağlanacak.
+            onResendClick = { useFirebase ->
+                authViewModel.resendOtp(phone, useFirebase)
             },
-            isLoading = authState.isLoading,
+            onBackClick = navController::popBackStack,
+            isVerifying = authState.isLoading,
+            isResending = authState.isOtpRequestLoading,
+            resendCooldownSeconds = authState.resendCooldownSeconds,
             backendError = authState.errorMessage?.asString()
         )
     }

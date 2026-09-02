@@ -9,6 +9,8 @@ import com.example.offerhub.data.model.auth.ChangePasswordRequest
 import com.example.offerhub.data.model.auth.OtpRequestData
 import com.example.offerhub.data.model.auth.OtpRequestRequest
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
+import com.example.offerhub.data.model.auth.OtpRequestData
+import com.example.offerhub.data.model.auth.OtpRequestRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
 import com.example.offerhub.data.model.auth.SubscriberRegisterRequest
@@ -39,7 +41,7 @@ class AuthRepository(
     suspend fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String?, authMode: AuthMode) =
         call { api.registerSubscriber(SubscriberRegisterRequest(firstName, lastName, phone, email, authMode)) }
 
-    suspend fun requestOtp(phone: String, authMode: AuthMode = AuthMode.MOCK): AuthResult<OtpRequestData> =
+    suspend fun requestOtp(phone: String, authMode: AuthMode): AuthResult<OtpRequestData> =
         call { api.requestOtp(OtpRequestRequest(authMode, phone)) }
 
     suspend fun verifyOtp(authMode: AuthMode, phone: String, credential: String): AuthResult<AuthData> =
@@ -80,11 +82,11 @@ class AuthRepository(
     }
 
     suspend fun changePassword(
-        newPassword: String,
-        confirmPassword: String
+        currentPassword: String,
+        newPassword: String
     ): AuthResult<Unit> = try {
         val response = api.changePassword(
-            ChangePasswordRequest(newPassword, confirmPassword)
+            ChangePasswordRequest(currentPassword, newPassword)
         )
         val envelope = response.body()
         if (response.isSuccessful && envelope?.success == true) {
@@ -104,6 +106,10 @@ class AuthRepository(
     suspend fun restoreLocalSession(): RestoredAuthSession? {
         val tokens = tokenStorage.read() ?: return null
         if (tokens.isAccessTokenExpired(Instant.now().epochSecond)) {
+            tokenStorage.clear()
+            return null
+        }
+        if (tokens.passwordChangeRequired) {
             tokenStorage.clear()
             return null
         }
