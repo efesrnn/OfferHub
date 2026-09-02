@@ -30,6 +30,8 @@ data class AuthUiState(
     val passwordChangeCompleted: Boolean = false,
     val pendingPhone: String? = null,
     val otpReady: Boolean = false,
+    val isOtpRequestLoading: Boolean = false,
+    val resendCooldownSeconds: Int = 0,
     val lockRemainingSeconds: Long = 0
 )
 
@@ -37,6 +39,8 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
     private var lockJob: Job? = null
+    private var resendCooldownJob: Job? = null
+    private var pendingCurrentPassword: String? = null
 
     init {
         restoreSession()
@@ -58,19 +62,36 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun setPendingPhone(phone: String) {
-        _uiState.update {
-            it.copy(
-                pendingPhone = phone,
-                errorMessage = null
-            )
-        }
-    }
     fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String) =
         execute(
             operation = { repository.registerSubscriber(firstName, lastName, phone, email.ifBlank { null }, AuthMode.MOCK) },
-            onSuccess = { _uiState.update { it.copy(pendingPhone = phone, otpReady = true) } }
+            onSuccess = { data ->
+                if (data.otpSent) {
+                    _uiState.update {
+                        it.copy(
+                            pendingPhone = phone,
+                            otpReady = true,
+                            resendCooldownSeconds = RESEND_COOLDOWN_SECONDS
+                        )
+                    }
+                    startResendCooldown()
+                } else {
+                    handleError(ApiError("OTP_SEND_FAILED"))
+                }
+            }
         )
+
+    fun requestOtpForLogin(phone: String) = requestOtp(
+        phone = phone,
+        authMode = AuthMode.MOCK,
+        navigateToVerification = true
+    )
+
+    fun resendOtp(phone: String, useFirebase: Boolean) = requestOtp(
+        phone = phone,
+        authMode = if (useFirebase) AuthMode.FIREBASE else AuthMode.MOCK,
+        navigateToVerification = false
+    )
 
     fun verifyOtp(phone: String, otp: String, useFirebase: Boolean) = execute(
         operation = {
@@ -91,30 +112,42 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     fun staffLogin(email: String, password: String) = execute(
         operation = { repository.staffLogin(email, password) },
         onSuccess = { data ->
+            pendingCurrentPassword = password.takeIf { data.user.mustChangePassword }
             _uiState.update {
                 it.copy(
                     currentUser = data.user,
                     pendingNavigationRole = data.user.role
-                        .takeUnless { data.passwordChangeRequired },
-                    pendingPasswordChangeNavigation = data.passwordChangeRequired,
+                        .takeUnless { data.user.mustChangePassword },
+                    pendingPasswordChangeNavigation = data.user.mustChangePassword,
                     passwordChangeCompleted = false
                 )
             }
         }
     )
 
-    fun changePassword(newPassword: String, confirmPassword: String) = execute(
-        operation = { repository.changePassword(newPassword, confirmPassword) },
-        onSuccess = {
-            _uiState.update {
-                it.copy(
-                    currentUser = null,
-                    pendingNavigationRole = null,
-                    passwordChangeCompleted = true
-                )
-            }
+    fun changePassword(newPassword: String, confirmPassword: String) {
+        if (newPassword != confirmPassword) {
+            handleError(ApiError("PASSWORD_MISMATCH"))
+            return
         }
-    )
+        val currentPassword = pendingCurrentPassword ?: run {
+            handleError(ApiError("INVALID_CREDENTIALS"))
+            return
+        }
+        execute(
+            operation = { repository.changePassword(currentPassword, newPassword) },
+            onSuccess = {
+                pendingCurrentPassword = null
+                _uiState.update {
+                    it.copy(
+                        currentUser = null,
+                        pendingNavigationRole = null,
+                        passwordChangeCompleted = true
+                    )
+                }
+            }
+        )
+    }
 
     fun debugLoginAsAdmin() {
         if (!BuildConfig.DEBUG) return
@@ -184,6 +217,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     fun cancelPasswordChange() {
         viewModelScope.launch {
+            pendingCurrentPassword = null
             repository.clearLocalSession()
             _uiState.value = AuthUiState(isSessionChecking = false)
         }
@@ -200,12 +234,69 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     fun logout() {
         viewModelScope.launch {
+            pendingCurrentPassword = null
             repository.clearLocalSession()
             lockJob?.cancel()
+            resendCooldownJob?.cancel()
             _uiState.value = AuthUiState(isSessionChecking = false)
         }
     }
     fun clearError() = _uiState.update { it.copy(errorMessage = null) }
+
+    private fun requestOtp(
+        phone: String,
+        authMode: AuthMode,
+        navigateToVerification: Boolean
+    ) {
+        if (_uiState.value.isOtpRequestLoading) return
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isOtpRequestLoading = true, errorMessage = null)
+            }
+            when (val result = repository.requestOtp(phone, authMode)) {
+                is AuthResult.Success -> {
+                    if (result.value.otpSent) {
+                        _uiState.update {
+                            it.copy(
+                                pendingPhone = phone,
+                                otpReady = navigateToVerification,
+                                isOtpRequestLoading = false,
+                                resendCooldownSeconds = RESEND_COOLDOWN_SECONDS
+                            )
+                        }
+                        startResendCooldown()
+                    } else {
+                        _uiState.update { it.copy(isOtpRequestLoading = false) }
+                        handleError(ApiError("OTP_SEND_FAILED"))
+                    }
+                }
+                is AuthResult.Failure -> {
+                    val error = if (result.error.code == "INVALID_OTP") {
+                        result.error.copy(code = "SUBSCRIBER_NOT_FOUND")
+                    } else {
+                        result.error
+                    }
+                    _uiState.update { it.copy(isOtpRequestLoading = false) }
+                    handleError(error)
+                }
+            }
+        }
+    }
+
+    private fun startResendCooldown() {
+        resendCooldownJob?.cancel()
+        resendCooldownJob = viewModelScope.launch {
+            while (_uiState.value.resendCooldownSeconds > 0) {
+                delay(1_000)
+                _uiState.update {
+                    it.copy(
+                        resendCooldownSeconds =
+                            (it.resendCooldownSeconds - 1).coerceAtLeast(0)
+                    )
+                }
+            }
+        }
+    }
 
     private fun <T> execute(operation: suspend () -> AuthResult<T>, onSuccess: (T) -> Unit) {
         if (_uiState.value.isLoading) return
@@ -246,12 +337,14 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         "INVALID_CREDENTIALS" -> R.string.error_invalid_credentials
         "ACCOUNT_LOCKED" -> R.string.error_account_locked
         "INVALID_OTP" -> R.string.error_invalid_otp_backend
+        "OTP_SEND_FAILED" -> R.string.error_otp_send_failed
         "WEAK_PASSWORD" -> R.string.error_weak_password
         "PASSWORD_MISMATCH" -> R.string.error_password_mismatch
         "DUPLICATE_RESOURCE", "PHONE_ALREADY_EXISTS", "SUBSCRIBER_ALREADY_EXISTS" ->
             R.string.error_phone_exists
         "EMAIL_ALREADY_EXISTS" -> R.string.error_email_exists
-        "USER_NOT_FOUND", "SUBSCRIBER_NOT_FOUND" -> R.string.error_user_not_found
+        "SUBSCRIBER_NOT_FOUND" -> R.string.error_subscriber_phone_not_found
+        "USER_NOT_FOUND" -> R.string.error_user_not_found
         "RATE_LIMITED", "TOO_MANY_REQUESTS" -> R.string.error_too_many_requests
         "NETWORK_ERROR" -> R.string.error_network
         else -> R.string.error_unknown
@@ -260,5 +353,9 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     class Factory(private val repository: AuthRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T = AuthViewModel(repository) as T
+    }
+
+    private companion object {
+        const val RESEND_COOLDOWN_SECONDS = 30
     }
 }

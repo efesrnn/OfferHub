@@ -32,10 +32,25 @@
     <string name="auth_subscriber">Subscriber</string>
     <string name="auth_staff">Staff</string>
     <string name="auth_help">Do you need help ↗</string>
+    <string name="auth_help_title">Help</string>
+    <string name="auth_help_intro">Choose the topic that best describes the problem you are experiencing.</string>
+    <string name="auth_help_otp_title">I did not receive an OTP code</string>
+    <string name="auth_help_otp_description">Check your phone number and wait until the resend timer finishes. You can then request a new code.</string>
+    <string name="auth_help_account_title">My account is locked</string>
+    <string name="auth_help_account_description">After five failed staff login attempts, the account is temporarily locked for 15 minutes.</string>
+    <string name="auth_help_staff_title">I cannot access my staff account</string>
+    <string name="auth_help_staff_description">Contact your administrator to confirm that your staff account and role are active.</string>
+    <string name="auth_help_forgot_password_title">I forgot my password</string>
+    <string name="auth_help_forgot_password_description">Start staff password recovery using your registered email address.</string>
+    <string name="auth_forgot_password_title">Reset Password</string>
+    <string name="auth_forgot_password_description">Enter the email address registered to your staff account.</string>
+    <string name="auth_request_reset_code">Send Verification Code</string>
+    <string name="auth_password_recovery_unavailable">Password recovery is currently unavailable. Please contact your administrator.</string>
     <string name="auth_welcome_back">Welcome back</string>
     <string name="auth_sign_in_subtitle">Sign in to continue</string>
     <string name="auth_phone_login_subtitle">Log in with your phone number</string>
     <string name="auth_send_code">Send Code</string>
+    <string name="auth_sending_code">Sending code…</string>
     <string name="auth_register_link">Don\'t have an account? Register</string>
     <string name="auth_create_account">Create an Account</string>
     <string name="auth_register_subtitle">Enter your details to continue</string>
@@ -70,8 +85,11 @@
     <string name="auth_verify">Verify</string>
     <string name="auth_verifying">Verifying…</string>
     <string name="auth_resend_code">Resend Code</string>
+    <string name="auth_resending_code">Sending a new code…</string>
+    <string name="auth_code_sent_resend_countdown">Code sent. Resend available in %1$d s</string>
     <string name="auth_firebase_otp">Firebase OTP</string>
     <string name="auth_mock_otp">Mock OTP</string>
+    <string name="auth_firebase_otp_unavailable">Firebase OTP is not available yet.</string>
     <string name="auth_phone_prefix">+90 </string>
 
     <string name="error_first_name_empty">First name cannot be empty</string>
@@ -199,9 +217,11 @@
     <string name="error_invalid_credentials">E-posta veya şifre hatalı.</string>
     <string name="error_account_locked">Çok fazla başarısız deneme nedeniyle hesap geçici olarak kilitlendi.</string>
     <string name="error_invalid_otp_backend">Doğrulama kodu geçersiz veya süresi dolmuş.</string>
+    <string name="error_otp_send_failed">Doğrulama kodu gönderilemedi. Lütfen tekrar deneyin.</string>
     <string name="error_phone_exists">Bu telefon numarası zaten kayıtlı.</string>
     <string name="error_email_exists">Bu e-posta adresi zaten kullanılıyor.</string>
     <string name="error_user_not_found">Bu bilgilerle eşleşen bir hesap bulunamadı.</string>
+    <string name="error_subscriber_phone_not_found">Bu telefon numarasıyla kayıtlı bir hesap bulunamadı.</string>
     <string name="error_too_many_requests">Çok fazla istek gönderildi. Lütfen biraz bekleyin.</string>
     <string name="error_network">Ağ bağlantısı kurulamadı. Lütfen bağlantınızı kontrol edin.</string>
     <string name="error_unknown">İşlem tamamlanamadı. Lütfen tekrar deneyin.</string>
@@ -267,6 +287,7 @@
     <string name="admin_staff_created_success">Staff created successfully.</string>
     <string name="admin_role_updated">Role updated to %1$s.</string>
     <string name="admin_staff_create_failed">Staff account could not be created.</string>
+    <string name="admin_staff_email_exists">A staff account with this email already exists.</string>
     <string name="admin_role_update_failed">Role could not be updated.</string>
     <string name="admin_audit_details">Audit Log Details</string>
     <string name="admin_log_id">Log ID</string>

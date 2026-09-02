@@ -155,7 +155,7 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
                     )
                 }
                 is AdminResult.Failure -> _uiState.update {
-                    it.copy(actionError = result.error.toUiText(R.string.admin_staff_create_failed))
+                    it.copy(actionError = result.error.toCreateStaffUiText())
                 }
             }
             loadAuditLogs(reset = true)
@@ -279,6 +279,15 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         message?.takeIf { it.isNotBlank() }
             ?.let(UiText::Dynamic)
             ?: UiText.Resource(fallbackResource)
+
+    private fun ApiError.toCreateStaffUiText(): UiText =
+        UiText.Resource(
+            when (code) {
+                "DUPLICATE_RESOURCE", "EMAIL_ALREADY_EXISTS" ->
+                    R.string.admin_staff_email_exists
+                else -> R.string.admin_staff_create_failed
+            }
+        )
 
     class Factory(private val repository: AdminRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

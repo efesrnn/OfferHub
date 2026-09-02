@@ -1,6 +1,5 @@
 package com.example.offerhub.navigation
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -11,6 +10,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.offerhub.screens.auth.AuthChoiceScreen
+import com.example.offerhub.screens.auth.AuthHelpScreen
+import com.example.offerhub.screens.auth.ForgotPasswordScreen
 import com.example.offerhub.screens.auth.OtpVerificationScreen
 import com.example.offerhub.screens.auth.SplashScreen
 import com.example.offerhub.screens.auth.StaffLoginScreen
@@ -45,7 +46,33 @@ fun NavGraphBuilder.authGraph(
             },
             onStaffClick = {
                 navController.navigate(Routes.STAFF_LOGIN)
+            },
+            onHelpClick = {
+                navController.navigate(Routes.AUTH_HELP)
             }
+        )
+    }
+
+    composable(Routes.AUTH_HELP) {
+        AuthHelpScreen(
+            onBackClick = navController::popBackStack,
+            onSubscriberLoginClick = {
+                navController.navigate(Routes.SUBSCRIBER_LOGIN) {
+                    popUpTo(Routes.AUTH_HELP) { inclusive = true }
+                    launchSingleTop = true
+                }
+            },
+            onForgotPasswordClick = {
+                navController.navigate(Routes.FORGOT_PASSWORD)
+            }
+        )
+    }
+
+    composable(Routes.FORGOT_PASSWORD) {
+        ForgotPasswordScreen(
+            onBackClick = navController::popBackStack,
+            onRequestCodeClick = {},
+            isRequestAvailable = false
         )
     }
 
@@ -73,6 +100,9 @@ fun NavGraphBuilder.authGraph(
                 authViewModel::debugLoginAsSupervisor
             } else {
                 null
+            },
+            onForgotPasswordClick = {
+                navController.navigate(Routes.FORGOT_PASSWORD)
             }
         )
     }
@@ -101,17 +131,18 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Routes.SUBSCRIBER_LOGIN) {
+        val authState by authViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) {
+            authViewModel.clearError()
+        }
         SubscriberLoginScreen(
-            onSendCodeClick = { phone ->
-                authViewModel.setPendingPhone(phone)
-                navController.navigate(
-                    "${Routes.OTP_VERIFICATION}/${Uri.encode(phone)}"
-                )
-            },
+            onSendCodeClick = authViewModel::requestOtpForLogin,
             onRegisterClick = {
                 authViewModel.clearError()
                 navController.navigate(Routes.SUBSCRIBER_REGISTER)
-            }
+            },
+            isLoading = authState.isOtpRequestLoading,
+            backendError = authState.errorMessage?.asString()
         )
     }
 
@@ -148,10 +179,12 @@ fun NavGraphBuilder.authGraph(
             onVerifyClick = { otp, useFirebase ->
                 authViewModel.verifyOtp(phone, otp, useFirebase)
             },
-            onResendClick = {
-                // Backend OTP resend endpoint'i sözleşme kesinleşince bağlanacak.
+            onResendClick = { useFirebase ->
+                authViewModel.resendOtp(phone, useFirebase)
             },
-            isLoading = authState.isLoading,
+            isVerifying = authState.isLoading,
+            isResending = authState.isOtpRequestLoading,
+            resendCooldownSeconds = authState.resendCooldownSeconds,
             backendError = authState.errorMessage?.asString()
         )
     }
