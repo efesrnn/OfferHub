@@ -284,6 +284,8 @@
     <string name="admin_current_role">Current role</string>
     <string name="admin_created_staff_id">Staff ID</string>
     <string name="admin_copy_id">Copy staff ID</string>
+    <string name="admin_created_staff_temp_password">Temporary Password</string>
+    <string name="admin_copy_password">Copy temporary password</string>
     <string name="admin_staff_created_success">Staff created successfully.</string>
     <string name="admin_role_updated">Role updated to %1$s.</string>
     <string name="admin_staff_create_failed">Staff account could not be created.</string>

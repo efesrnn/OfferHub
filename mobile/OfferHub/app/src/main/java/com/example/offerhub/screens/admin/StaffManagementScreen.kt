@@ -60,6 +60,7 @@ fun CreateStaffScreen(
     isSubmitting: Boolean = false,
     successMessage: String? = null,
     createdStaffId: String? = null,
+    createdStaffTempPassword: String? = null,
     errorMessage: String? = null
 ) {
     var firstName by remember { mutableStateOf("") }
@@ -195,6 +196,13 @@ fun CreateStaffScreen(
             }
             createdStaffId?.let { id ->
                 CopyableStaffId(id = id)
+            }
+            createdStaffTempPassword?.let { password ->
+                CopyableValue(
+                    label = stringResource(R.string.admin_created_staff_temp_password),
+                    value = password,
+                    contentDescription = stringResource(R.string.admin_copy_password)
+                )
             }
             errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
@@ -400,6 +408,15 @@ private fun Set<String>.toggle(value: String): Set<String> =
 
 @Composable
 private fun CopyableStaffId(id: String) {
+    CopyableValue(
+        label = stringResource(R.string.admin_created_staff_id),
+        value = id,
+        contentDescription = stringResource(R.string.admin_copy_id)
+    )
+}
+
+@Composable
+private fun CopyableValue(label: String, value: String, contentDescription: String) {
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -408,14 +425,14 @@ private fun CopyableStaffId(id: String) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "${stringResource(R.string.admin_created_staff_id)}: $id",
+            text = "$label: $value",
             modifier = Modifier.weight(1f)
         )
         IconButton(
             onClick = {
                 coroutineScope.launch {
                     clipboard.setClipEntry(
-                        ClipEntry(ClipData.newPlainText("staff id", id))
+                        ClipEntry(ClipData.newPlainText(label, value))
                     )
                 }
             },
@@ -423,7 +440,7 @@ private fun CopyableStaffId(id: String) {
         ) {
             Icon(
                 imageVector = Icons.Default.ContentCopy,
-                contentDescription = stringResource(R.string.admin_copy_id),
+                contentDescription = contentDescription,
                 modifier = Modifier.size(18.dp)
             )
         }
