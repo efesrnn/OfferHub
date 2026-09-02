@@ -47,6 +47,7 @@ Yeni bir hata durumu bulduğunuzda önce bu listeye bakın, burada karşılığ�
 | `OPTIMIZATION_NOTE_REQUIRED` | 400 | `TAMAMLANDI`'ya geçerken optimizasyon notu boş bırakıldı | "Tamamlama için optimizasyon notu zorunludur" |
 | `OFFER_ALREADY_RATED` | 409 | Abone aynı teklife ikinci kez puan vermeye çalıştı (puanlama tek seferlik) | "Bu teklife zaten puan verdiniz" |
 | `OFFER_ALREADY_RESPONDED` | 409 | Abone aynı teklife ikinci kez kabul/ret yanıtı vermeye çalıştı | "Bu teklife zaten yanıt verdiniz" |
+| `OFFER_NOT_FOUND` | 404 | Teklif id'si bu aboneye ait değil veya yok | "Teklif bulunamadı" |
 
 ---
 

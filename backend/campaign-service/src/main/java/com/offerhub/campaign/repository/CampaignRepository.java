@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,6 +18,9 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
 
     /** API paths address campaigns by campaignNo, not by the internal UUID. */
     Optional<Campaign> findByCampaignNo(String campaignNo);
+
+    /** Abonelere teklif olarak gosterilebilecek kampanyalar: yayinda ve suresi dolmamis. */
+    List<Campaign> findByStatusAndValidUntilAfter(CampaignStatus status, Instant now);
 
     /** Both filters are optional; a null one means "any". */
     @Query("""
