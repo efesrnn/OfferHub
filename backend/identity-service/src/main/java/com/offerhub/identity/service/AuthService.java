@@ -48,6 +48,17 @@ public class AuthService {
         return new RegisterResponse(saved.getId().toString(), true);
     }
 
+    public OtpRequestResponse requestOtp(OtpRequestRequest request) {
+        Subscriber subscriber = subscriberRepository.findByPhone(request.getPhone())
+                .orElseThrow(() -> new InvalidOtpException("Telefon numarasi bulunamadi"));
+
+        PhoneVerificationStrategy strategy = resolveStrategy(request.getAuthMode());
+        strategy.initiate(subscriber);
+        subscriberRepository.save(subscriber);
+
+        return new OtpRequestResponse(true);
+    }
+
     private PhoneVerificationStrategy resolveStrategy(AuthMode mode) {
         PhoneVerificationStrategy strategy = verificationStrategies.get(mode.name());
         if (strategy == null) {

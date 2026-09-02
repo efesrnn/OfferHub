@@ -6,6 +6,8 @@ import com.example.offerhub.data.model.auth.AuthData
 import com.example.offerhub.data.model.auth.AuthMode
 import com.example.offerhub.data.model.auth.AuthUser
 import com.example.offerhub.data.model.auth.ChangePasswordRequest
+import com.example.offerhub.data.model.auth.OtpRequestData
+import com.example.offerhub.data.model.auth.OtpRequestRequest
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
@@ -36,6 +38,9 @@ class AuthRepository(
 ) {
     suspend fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String?, authMode: AuthMode) =
         call { api.registerSubscriber(SubscriberRegisterRequest(firstName, lastName, phone, email, authMode)) }
+
+    suspend fun requestOtp(phone: String, authMode: AuthMode = AuthMode.MOCK): AuthResult<OtpRequestData> =
+        call { api.requestOtp(OtpRequestRequest(authMode, phone)) }
 
     suspend fun verifyOtp(authMode: AuthMode, phone: String, credential: String): AuthResult<AuthData> =
         call { api.verifyOtp(OtpVerifyRequest(authMode, phone, credential)) }

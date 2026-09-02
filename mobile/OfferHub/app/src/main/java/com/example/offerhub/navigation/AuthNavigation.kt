@@ -1,6 +1,5 @@
 package com.example.offerhub.navigation
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -101,17 +100,20 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Routes.SUBSCRIBER_LOGIN) {
+        val authState by authViewModel.uiState.collectAsState()
+        LaunchedEffect(Unit) {
+            authViewModel.clearError()
+        }
         SubscriberLoginScreen(
             onSendCodeClick = { phone ->
-                authViewModel.setPendingPhone(phone)
-                navController.navigate(
-                    "${Routes.OTP_VERIFICATION}/${Uri.encode(phone)}"
-                )
+                authViewModel.requestOtpForLogin(phone)
             },
             onRegisterClick = {
                 authViewModel.clearError()
                 navController.navigate(Routes.SUBSCRIBER_REGISTER)
-            }
+            },
+            isLoading = authState.isLoading,
+            backendError = authState.errorMessage?.asString()
         )
     }
 

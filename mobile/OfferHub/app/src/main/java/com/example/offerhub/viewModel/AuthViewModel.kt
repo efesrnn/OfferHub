@@ -72,6 +72,11 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             onSuccess = { _uiState.update { it.copy(pendingPhone = phone, otpReady = true) } }
         )
 
+    fun requestOtpForLogin(phone: String) = execute(
+        operation = { repository.requestOtp(phone, AuthMode.MOCK) },
+        onSuccess = { _uiState.update { it.copy(pendingPhone = phone, otpReady = true) } }
+    )
+
     fun verifyOtp(phone: String, otp: String, useFirebase: Boolean) = execute(
         operation = {
             val mode = if (useFirebase) AuthMode.FIREBASE else AuthMode.MOCK

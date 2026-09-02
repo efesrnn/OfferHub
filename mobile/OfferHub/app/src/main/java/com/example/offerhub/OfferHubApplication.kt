@@ -37,7 +37,7 @@ class OfferHubApplication : Application() {
     }
 
     val subscriberRepository by lazy {
-        MockSubscriberRepository(MockOfferData.offers)
+        realSubscriberRepository
     }
 
     val adminRepository by lazy {

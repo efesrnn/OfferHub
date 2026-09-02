@@ -10,6 +10,8 @@ data class SubscriberRegisterRequest(
 
 data class SubscriberRegisterData(val subscriberId: String? = null, val otpSent: Boolean)
 data class OtpVerifyRequest(val authMode: AuthMode, val phone: String, val credential: String)
+data class OtpRequestRequest(val authMode: AuthMode, val phone: String)
+data class OtpRequestData(val otpSent: Boolean)
 data class StaffLoginRequest(val email: String, val password: String)
 data class ChangePasswordRequest(val newPassword: String, val confirmPassword: String)
 

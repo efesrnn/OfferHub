@@ -23,6 +23,12 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
+    @PostMapping("/otp-request")
+    public ResponseEntity<ApiResponse<OtpRequestResponse>> requestOtp(@RequestBody OtpRequestRequest request) {
+        OtpRequestResponse response = authService.requestOtp(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PostMapping("/otp-verify")
     public ResponseEntity<ApiResponse<AuthDataResponse>> verifyOtp(@RequestBody OtpVerifyRequest request) {
         AuthDataResponse response = authService.verifyOtp(request);

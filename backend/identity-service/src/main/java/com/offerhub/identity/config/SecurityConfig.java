@@ -25,6 +25,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/otp-verify",
+                                "/api/v1/auth/otp-request",
                                 "/api/v1/auth/login"
                         ).permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
