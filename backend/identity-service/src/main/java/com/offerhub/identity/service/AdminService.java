@@ -24,8 +24,9 @@ public class AdminService {
 
     private final StaffUserRepository staffUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
-    public StaffCreateResponse createStaff(StaffCreateRequest request) {
+    public StaffCreateResponse createStaff(StaffCreateRequest request, String ipAddress) {
         if (staffUserRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Bu e-posta adresi zaten kullaniliyor");
         }
@@ -49,7 +50,10 @@ public class AdminService {
         // LogOtpSender ile ayni yaklasim). Ileride gercek maile cevrilebilir.
         log.info("[TEMP PASSWORD] {} icin gecici sifre: {}", saved.getEmail(), tempPassword);
 
-        return new StaffCreateResponse(saved.getId().toString(), true);
+        auditLogService.record(saved.getId().toString(), "STAFF_CREATED", "SUCCESS", ipAddress,
+                saved.getFirstName() + " " + saved.getLastName() + " (" + saved.getRole() + ") olusturuldu");
+
+        return new StaffCreateResponse(saved.getId().toString(), true, tempPassword);
     }
 
     private String generateTempPassword() {

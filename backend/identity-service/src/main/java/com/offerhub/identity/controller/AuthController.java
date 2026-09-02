@@ -36,8 +36,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthDataResponse>> staffLogin(@RequestBody StaffLoginRequest request) {
-        AuthDataResponse response = authService.staffLogin(request);
+    public ResponseEntity<ApiResponse<AuthDataResponse>> staffLogin(@RequestBody StaffLoginRequest request,
+                                                                      jakarta.servlet.http.HttpServletRequest httpRequest) {
+        AuthDataResponse response = authService.staffLogin(
+                request, com.offerhub.identity.security.ClientIpResolver.resolve(httpRequest));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
