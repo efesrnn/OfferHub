@@ -4,6 +4,7 @@ import com.offerhub.gamification.entity.ExpertProfile;
 import com.offerhub.gamification.entity.PointEntry;
 import com.offerhub.gamification.entity.PointReason;
 import com.offerhub.gamification.event.CampaignOptimizedEvent;
+import com.offerhub.gamification.event.OfferRatedEvent;
 import com.offerhub.gamification.event.SlaBreachedEvent;
 import com.offerhub.gamification.repository.ExpertProfileRepository;
 import com.offerhub.gamification.repository.PointEntryRepository;
@@ -74,6 +75,17 @@ public class ScoringService {
             return;
         }
         award(event.expertId(), event.caseId(), PointReason.SLA_BREACH, null);
+    }
+
+    /** Case document 7.1: 1-2 yildizlik "alakasiz teklif" puanlamasi kampanyanin sahibinden -3 goturur. */
+    @Transactional
+    public void score(OfferRatedEvent event) {
+        if (event.expertId() == null || event.rating() == null) {
+            return;
+        }
+        if (event.rating() <= 2) {
+            award(event.expertId(), event.offerId(), PointReason.LOW_RATING, null);
+        }
     }
 
     /**
