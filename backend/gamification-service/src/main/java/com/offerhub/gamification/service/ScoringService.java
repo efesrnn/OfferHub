@@ -25,9 +25,6 @@ public class ScoringService {
     /** Case document 7.1: the bonus is for finishing in under two hours. */
     private static final Duration FAST_OPTIMIZATION_LIMIT = Duration.ofHours(2);
 
-    /** KRITIK cases have a two hour SLA, so the same duration decides both bonuses. */
-    private static final Duration CRITICAL_SLA = Duration.ofHours(2);
-
     /** "Conversion target exceeded" needs a target; ten points of lift is ours. */
     private static final BigDecimal CONVERSION_TARGET = new BigDecimal("0.10");
 
@@ -59,7 +56,7 @@ public class ScoringService {
         if (event.conversionLift() != null && event.conversionLift().compareTo(CONVERSION_TARGET) > 0) {
             award(event.expertId(), event.caseId(), PointReason.CONVERSION_TARGET_EXCEEDED, event.segment());
         }
-        if (CRITICAL_PRIORITY.equals(event.priority()) && took.compareTo(CRITICAL_SLA) < 0) {
+        if (CRITICAL_PRIORITY.equals(event.priority()) && withinSla(event)) {
             award(event.expertId(), event.caseId(), PointReason.CRITICAL_WITHIN_SLA, event.segment());
         }
 
@@ -104,6 +101,17 @@ public class ScoringService {
         log.info("Expert {} {} {} points for {}", expertId,
                 reason.getPoints() >= 0 ? "earned" : "lost", Math.abs(reason.getPoints()), reason);
         return true;
+    }
+
+    /**
+     * The deadline comes from Campaign, which owns the SLA_TIME_UNIT setting. Recomputing
+     * it here from a two hour constant would hand this bonus to a case that actually
+     * breached its SLA as soon as a demo shortens the unit to minutes.
+     * A missing deadline means the case predates SLA tracking - no bonus rather than a
+     * guessed one.
+     */
+    private static boolean withinSla(CampaignOptimizedEvent event) {
+        return event.slaDeadline() != null && event.completedAt().isBefore(event.slaDeadline());
     }
 
     /** First event for an expert creates their profile - no registration step needed. */

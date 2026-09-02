@@ -15,5 +15,12 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
+# Case document 5.4: hours in production, minutes during a demo so an SLA breach
+# can actually be shown.
+sla:
+  time-unit: ${SLA_TIME_UNIT:hours}
+  # How often the breach scan runs. Shorten it alongside time-unit for a demo.
+  scan-interval-ms: ${SLA_SCAN_INTERVAL_MS:30000}
+
 server:
   port: 8080

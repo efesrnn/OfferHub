@@ -21,10 +21,17 @@ public record CampaignOptimizedPayload(
         Priority priority,
         BigDecimal conversionLift,
         Instant createdAt,
-        Instant completedAt
+        Instant completedAt,
+        Instant slaDeadline
 ) {
 
-    /** conversionLift stays null until AI Service can score a campaign before and after. */
+    /**
+     * slaDeadline travels with the event on purpose: Campaign owns SLA_TIME_UNIT, so it
+     * is the only service that can say when this case was due. Gamification comparing
+     * completedAt against a two hour constant of its own would pay the "KRITIK within
+     * SLA" bonus to a breached case every time a demo shortens the unit.
+     * conversionLift stays null until AI Service can score a campaign before and after.
+     */
     public static CampaignOptimizedPayload from(OptimizationCase optimizationCase) {
         Campaign campaign = optimizationCase.getCampaign();
         return new CampaignOptimizedPayload(
@@ -35,6 +42,7 @@ public record CampaignOptimizedPayload(
                 campaign.getPriority(),
                 null,
                 optimizationCase.getCreatedAt(),
-                optimizationCase.getCompletedAt());
+                optimizationCase.getCompletedAt(),
+                optimizationCase.getSlaDeadline());
     }
 }

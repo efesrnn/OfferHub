@@ -17,6 +17,7 @@ public record CampaignOptimizedEvent(
         String priority,
         BigDecimal conversionLift,
         Instant createdAt,
-        Instant completedAt
+        Instant completedAt,
+        Instant slaDeadline
 ) {
 }

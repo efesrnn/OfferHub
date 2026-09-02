@@ -264,13 +264,15 @@ GET /api/v1/cases?assignedTo=me&sort=priority&page=0&size=20
 | `status`       | enum                | Opsiyonel filtre                                   |
 | `page`, `size` | Int                 | Standart sayfalama                                 |
 
-**Bugünkü davranış (JWT ve SLA turları öncesi):**
+**Davranış notları:**
 
-- `assignedTo` şu an yalnızca uzman UUID'si kabul ediyor, `me` değil — token olmadığı için
-  sunucu "ben"in kim olduğunu bilmiyor. `me` gönderilirse `VALIDATION_ERROR` döner.
-- `sort` henüz okunmuyor; liste **her zaman** öncelik sıralı geliyor (`KRITIK` en üstte,
-  eşitlikte en eski vaka önce). Parametreyi göndermek hata vermez, yok sayılır.
-  `sort=sla` SLA turunda gelecek.
+- `assignedTo` hem `me` hem de bir uzman UUID'si kabul eder. Uzman rolü için parametre bir
+  tercih değil kuraldır: ne gönderirse göndersin liste kendi vakalarına sabitlenir.
+  Başka bir değer `VALIDATION_ERROR` döner.
+- `sort` verilmezse `priority`: `KRITIK` en üstte, eşitlikte en eski vaka önce.
+  `sort=sla` en yakın biten SLA'yı en üste alır; `slaDeadline` alanı boş olan vakalar
+  (SLA takibinden önce açılmış olanlar) listenin sonunda kalır.
+- Tanınmayan bir `sort` değeri `VALIDATION_ERROR` döner, sessizce yok sayılmaz.
 
 ### Yanıt — 200
 
@@ -310,8 +312,8 @@ ve detay aynı şekli döner, listede eksik alan yoktur.
   göstermek isterseniz istemci tarafında saniyede bir azaltın, sunucuyu tekrar çağırmayın.
 - `caseId` bir UUID, kampanya numarası gibi okunabilir değil — kullanıcıya göstermeyin,
   `campaignNo` gösterin.
-- **Şu an `slaDeadline` ve `slaRemainingSeconds` `null` geliyor** (SLA turu henüz yapılmadı).
-  Renk kodunu null-safe yazın: değer yoksa normal renk gösterin, ekran çökmesin.
+- SLA takibinden **önce** açılmış vakalarda `slaDeadline` ve `slaRemainingSeconds` `null`
+  gelir. Renk kodunu null-safe yazın: değer yoksa normal renk gösterin, ekran çökmesin.
 
 ---
 
@@ -350,9 +352,10 @@ GET /api/v1/cases/{caseId}
 }
 ```
 
-**Şu an `null` gelen alanlar:** `recommendationScore` (AI Service bağlanınca dolacak),
-`slaDeadline` ve `slaRemainingSeconds` (SLA turunda dolacak). Alanlar yanıtta **var**,
-sadece değerleri yok — data class'ınızı şimdiden bu şekilde yazabilirsiniz, sonra değişmeyecek.
+**Şu an `null` gelen alan:** `recommendationScore` (AI Service bağlanınca dolacak).
+`slaDeadline` ve `slaRemainingSeconds` artık dolu geliyor — yalnızca SLA takibinden önce
+açılmış vakalarda `null` kalırlar. Alanlar yanıtta her hâlükârda **var**, sadece değerleri
+olmayabilir.
 
 ### Hatalar
 
@@ -361,8 +364,8 @@ sadece değerleri yok — data class'ınızı şimdiden bu şekilde yazabilirsin
 | `NOT_FOUND` | 404  | Vaka yok                                       |
 | `FORBIDDEN` | 403  | Başka bir uzmana atanmış vakayı açmaya çalışma |
 
-`FORBIDDEN` **henüz uygulanmıyor** — JWT gelmeden sunucu çağıranın kim olduğunu bilmiyor,
-şu an her vaka herkese açık. Mobil tarafta yine de ele alın, JWT turunda devreye girecek.
+`FORBIDDEN` uygulanıyor: uzman yalnızca kendisine atanmış vakayı açabilir, başkasının
+`caseId`'siyle denerse 403 alır. Süpervizör ve admin tüm vakaları görür.
 
 ### Mobil notu
 
@@ -411,9 +414,11 @@ Yalnızca boşluktan oluşan bir not (`"   "`) boş sayılır ve `OPTIMIZATION_N
 Tabloda olmayan her geçiş reddedilir — kendi durumuna geçiş (`ATANDI` → `ATANDI`) dahil.
 `ARSIVLENDI` son duraktır, çıkışı yoktur.
 
-**Kim yapabilir sütunu henüz uygulanmıyor:** JWT gelmeden rol okunamadığı için sunucu şu an
-geçişin _kuralına_ bakıyor ama _kimin_ yaptığına bakmıyor. Geçiş tablosunun kendisi
-sunucuda zorunlu tutuluyor, o kısım çalışıyor.
+**Kim yapabilir sütunu uygulanıyor.** Tablo dışı bir geçiş 422, tabloda olan ama bu role
+kapalı bir geçiş 403 döner — ikisi ayrı hata, çünkü biri durum hatası diğeri yetki hatası.
+Tablodaki "Sistem" satırlarından `YAYINDA` → `ARSIVLENDI` arka plandaki zamanlayıcıya
+bağlandı (kampanyanın geçerlilik süresi dolunca kendiliğinden olur);
+`TEST_EDILIYOR` → `OPTIMIZE_EDILIYOR` şimdilik süpervizöre açık.
 
 ### Yanıt — 200
 
@@ -447,8 +452,7 @@ Güncellenmiş vaka nesnesi (endpoint 7 ile aynı şekil).
 - `TAMAMLANDI` butonuna basıldığında not alanı boşsa **isteği hiç göndermeyin**, formu uyarın.
 - Bu geçiş başarılı olduğunda arka planda puan ve rozet hesaplanır. Gamification profilini
   hemen çağırmak yerine kullanıcı o ekrana geldiğinde yenileyin — işlem asenkron.
-  (`campaign.optimized` event'i henüz yayınlanmıyor, RabbitMQ turunda gelecek — o ana kadar
-  puan tarafında bir şey değişmez.)
+  (`campaign.optimized` event'i yayınlanıyor, puanlar Gamification'a işliyor.)
 
 ---
 
@@ -478,7 +482,7 @@ işi baştan başlatmaz.
 | Kod                        | HTTP | Ne zaman                                                      |
 | -------------------------- | ---- | ------------------------------------------------------------- |
 | `VALIDATION_ERROR`         | 400  | `expertId` eksik veya UUID değil                              |
-| `FORBIDDEN`                | 403  | Uzman rolüyle çağrılırsa (henüz uygulanmıyor, JWT bekliyor)   |
+| `FORBIDDEN`                | 403  | Uzman rolüyle çağrılırsa — manuel atama yalnızca süpervizörde |
 | `NOT_FOUND`                | 404  | Vaka yok                                                      |
 | `INVALID_STATE_TRANSITION` | 422  | Kapanmış vakaya atama (`TAMAMLANDI`, `YAYINDA`, `ARSIVLENDI`) |
 

@@ -77,6 +77,8 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
+      SLA_TIME_UNIT: ${SLA_TIME_UNIT:-hours}
+      SLA_SCAN_INTERVAL_MS: ${SLA_SCAN_INTERVAL_MS:-30000}
     depends_on:
       campaign-db:
         condition: service_healthy

@@ -5,15 +5,13 @@ import com.offerhub.campaign.entity.CaseStatus;
 import com.offerhub.campaign.entity.OptimizationCase;
 import com.offerhub.campaign.entity.Priority;
 import com.offerhub.campaign.entity.Segment;
+import com.offerhub.campaign.service.SlaPolicy;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Case payload (docs/CAMPAIGN-API.md sections 6-9). Campaign fields are flattened in on
- * purpose: the expert's screen shows one card, not a case wrapping a campaign.
- */
+
 public record CaseResponse(
         UUID caseId,
         String campaignNo,
@@ -32,7 +30,7 @@ public record CaseResponse(
         Instant completedAt
 ) {
 
-    /** recommendationScore and the SLA pair stay null until the AI and SLA rounds. */
+    /** recommendationScore stays null until AI Service is wired in. */
     public static CaseResponse from(OptimizationCase optimizationCase) {
         Campaign campaign = optimizationCase.getCampaign();
         return new CaseResponse(
@@ -45,8 +43,9 @@ public record CaseResponse(
                 optimizationCase.getStatus(),
                 campaign.getConversionProbability(),
                 null,
-                null,
-                null,
+                optimizationCase.getSlaDeadline(),
+                SlaPolicy.remainingSeconds(optimizationCase.getSlaDeadline(),
+                        optimizationCase.getCompletedAt()),
                 optimizationCase.getOptimizationNote(),
                 optimizationCase.getAssignedExpertId(),
                 optimizationCase.getCreatedAt(),

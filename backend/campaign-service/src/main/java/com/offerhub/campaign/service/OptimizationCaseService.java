@@ -10,6 +10,7 @@ import com.offerhub.campaign.entity.CaseStatus;
 import com.offerhub.campaign.entity.OptimizationCase;
 import com.offerhub.campaign.event.CampaignOptimizedPayload;
 import com.offerhub.campaign.event.OutboundEvent;
+import com.offerhub.campaign.event.SlaBreachedPayload;
 import com.offerhub.campaign.exception.ApiException;
 import com.offerhub.campaign.exception.ErrorCode;
 import com.offerhub.campaign.repository.OptimizationCaseRepository;
@@ -17,6 +18,7 @@ import com.offerhub.campaign.security.CallerIdentity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -36,6 +39,7 @@ public class OptimizationCaseService {
 
     private final OptimizationCaseRepository caseRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final SlaPolicy slaPolicy;
 
     /**
      * A null probability means AI Service never answered. The contract puts that campaign
@@ -49,20 +53,29 @@ public class OptimizationCaseService {
             return;
         }
 
+        // The SLA clock starts here, so the deadline is stamped from the same instant the
+        // case is created rather than read back from @CreationTimestamp afterwards.
+        Instant openedAt = Instant.now();
+
         OptimizationCase optimizationCase = caseRepository.save(OptimizationCase.builder()
                 .campaign(campaign)
                 .status(CaseStatus.YENI)
+                .slaDeadline(slaPolicy.deadlineFor(campaign.getPriority(), openedAt))
                 .build());
 
-        log.info("Opened case {} for campaign {} (conversionProbability={})",
-                optimizationCase.getId(), campaign.getCampaignNo(), probability);
+        log.info("Opened case {} for campaign {} (conversionProbability={}, slaDeadline={})",
+                optimizationCase.getId(), campaign.getCampaignNo(), probability,
+                optimizationCase.getSlaDeadline());
     }
 
-    /** Ordered by priority, most urgent first - the repository query owns that rule. */
+    /** Ordering is a repository concern - two queries, one per sort, rather than one with a branch. */
     @Transactional(readOnly = true)
-    public PagedResult<CaseResponse> list(CaseStatus status, UUID assignedExpertId, Pageable pageable) {
-        return PagedResult.from(caseRepository.search(status, assignedExpertId, pageable)
-                .map(CaseResponse::from));
+    public PagedResult<CaseResponse> list(CaseStatus status, UUID assignedExpertId,
+                                          CaseSort sort, Pageable pageable) {
+        Page<OptimizationCase> page = sort == CaseSort.SLA
+                ? caseRepository.searchBySla(status, assignedExpertId, pageable)
+                : caseRepository.search(status, assignedExpertId, pageable);
+        return PagedResult.from(page.map(CaseResponse::from));
     }
 
     @Transactional(readOnly = true)
@@ -128,6 +141,50 @@ public class OptimizationCaseService {
 
         log.info("Case {} assigned to expert {}", caseId, request.expertId());
         return CaseResponse.from(optimizationCase);
+    }
+
+    /**
+     * Called by the scheduler. One transaction for the whole batch: the stamps and the
+     * events commit together, so a crash halfway through cannot leave a case marked as
+     * breached with nobody ever told about it.
+     */
+    @Transactional
+    public int markBreachedCases() {
+        Instant now = Instant.now();
+        List<OptimizationCase> breached = caseRepository.findBreachedBefore(now);
+
+        for (OptimizationCase optimizationCase : breached) {
+            optimizationCase.setSlaBreachedAt(now);
+            eventPublisher.publishEvent(new OutboundEvent(
+                    OutboundEvent.SLA_BREACHED, SlaBreachedPayload.from(optimizationCase)));
+
+            log.warn("Case {} breached its SLA (deadline {})",
+                    optimizationCase.getId(), optimizationCase.getSlaDeadline());
+        }
+        return breached.size();
+    }
+
+    /**
+     * The system half of the YAYINDA -> ARSIVLENDI row in the transition table: a
+     * published campaign retires itself when its validity runs out, nobody clicks it.
+     */
+    @Transactional
+    public int archiveExpiredCases() {
+        List<OptimizationCase> expired = caseRepository.findExpiredPublished(Instant.now());
+
+        for (OptimizationCase optimizationCase : expired) {
+            // Checked against the same table the API path uses: the system may not make a
+            // move the contract does not have either.
+            if (!CaseStateMachine.isAllowed(optimizationCase.getStatus(), CaseStatus.ARSIVLENDI)) {
+                continue;
+            }
+            optimizationCase.setStatus(CaseStatus.ARSIVLENDI);
+            applyToCampaign(optimizationCase.getCampaign(), CaseStatus.ARSIVLENDI);
+
+            log.info("Case {} archived, campaign {} validity expired",
+                    optimizationCase.getId(), optimizationCase.getCampaign().getCampaignNo());
+        }
+        return expired.size();
     }
 
     private OptimizationCase load(UUID caseId) {

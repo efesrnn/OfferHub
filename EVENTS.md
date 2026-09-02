@@ -52,12 +52,20 @@ Zarf formatı sabit (bkz. `docs/API-CONTRACT.md` ve `docs/ORTAK-KARARLAR.md` —
     "priority": "YUKSEK",
     "conversionLift": 0.18,
     "createdAt": "2026-08-17T13:40:02Z",
-    "completedAt": "2026-08-17T14:22:10Z"
+    "completedAt": "2026-08-17T14:22:10Z",
+    "slaDeadline": "2026-08-17T21:40:02Z"
   }
 }
 ```
 
-**Gamification Service tarafında beklenen işlem:** süre hesapla (completedAt - createdAt), +10 puan (temel), +5 (2 saatten kısa sürdüyse), +15 (conversionLift hedefi aştıysa), priority `KRITIK` ve SLA içinde tamamlandıysa ek +15; ardından rozet koşullarını kontrol et, uygunsa `badge.earned` yayınla.
+`slaDeadline` payload'a bilinçli olarak konuldu: SLA süresini belirleyen `SLA_TIME_UNIT`
+ayarının sahibi Campaign Service'tir, dolayısıyla bir vakanın ne zaman gecikmiş sayılacağını
+yalnızca o bilebilir. Gamification'ın bunu kendi tarafında "2 saat" gibi sabit bir süreyle
+yeniden hesaplaması, demo için birim dakikaya indirildiğinde SLA'yı aşmış bir vakaya
+"SLA içinde tamamlandı" bonusu verilmesine yol açardı. Vaka SLA takibinden önce
+oluşturulmuşsa alan `null` gelir; bu durumda bonus verilmez.
+
+**Gamification Service tarafında beklenen işlem:** süre hesapla (completedAt - createdAt), +10 puan (temel), +5 (2 saatten kısa sürdüyse), +15 (conversionLift hedefi aştıysa), priority `KRITIK` ve `completedAt < slaDeadline` ise ek +15; ardından rozet koşullarını kontrol et, uygunsa `badge.earned` yayınla.
 
 ---
 
@@ -111,6 +119,11 @@ Zarf formatı sabit (bkz. `docs/API-CONTRACT.md` ve `docs/ORTAK-KARARLAR.md` —
 **Yayınlayan:** Campaign Service (arka planda çalışan bir zamanlayıcı/scheduler, SLA süresini dolan aktif vakaları tarar)
 **Dinleyen:** Gamification Service (-5 puan kırılımı)
 **Ne zaman tetiklenir:** Bir optimizasyon vakasının SLA süresi, vaka `TAMAMLANDI` durumuna geçmeden dolduğunda
+
+Vaka başına **bir kez** yayınlanır: tarama, aşımı ilk gördüğünde vakaya `slaBreachedAt`
+damgası atar ve sonraki taramalar damgalı vakaları hiç görmez. `expertId`, vaka henüz
+kimseye atanmamışken aşıma girdiyse `null` gelir — aşım yine kaydedilir, sadece kimsenin
+puanı kırılmaz.
 
 ```json
 {

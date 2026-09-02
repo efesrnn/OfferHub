@@ -73,6 +73,21 @@ public class OptimizationCase {
     @UpdateTimestamp
     private Instant updatedAt;
 
-    /** Stamped once, on the move to TAMAMLANDI. Also stops the SLA clock later on. */
+    /** Stamped once, on the move to TAMAMLANDI. Also stops the SLA clock. */
     private Instant completedAt;
+
+    /**
+     * When this case must be finished, from SlaPolicy. Stored because it is a fact about
+     * the case - the countdown derived from it is not, and is computed on every read.
+     */
+    @Column
+    private Instant slaDeadline;
+
+    /**
+     * Stamped the first time the scheduler sees the deadline passed. Its only job is to
+     * make the breach a single event - without it every scan would publish sla.breached
+     * again and Gamification would keep taking points off the same expert.
+     */
+    @Column
+    private Instant slaBreachedAt;
 }

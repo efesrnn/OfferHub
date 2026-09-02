@@ -10,6 +10,7 @@ import com.offerhub.campaign.exception.ApiException;
 import com.offerhub.campaign.exception.ErrorCode;
 import com.offerhub.campaign.security.CallerIdentity;
 import com.offerhub.campaign.security.Role;
+import com.offerhub.campaign.service.CaseSort;
 import com.offerhub.campaign.service.OptimizationCaseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,21 +36,20 @@ public class CaseController {
 
     private final OptimizationCaseService caseService;
 
-    /**
-     * The list is always priority ordered, so no sort parameter yet - sort=sla arrives
-     * with the SLA round.
-     */
+    /** Priority ordered by default; sort=sla puts whatever runs out first on top. */
     @GetMapping
     public ApiResponse<PagedResult<CaseResponse>> list(
             @RequestParam(required = false) CaseStatus status,
             @RequestParam(required = false) String assignedTo,
+            @RequestParam(defaultValue = "priority") String sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             CallerIdentity caller) {
 
         caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
-        return ApiResponse.ok(caseService.list(status, resolveAssignedTo(assignedTo, caller), pageable));
+        return ApiResponse.ok(caseService.list(status, resolveAssignedTo(assignedTo, caller),
+                CaseSort.fromParam(sort), pageable));
     }
 
     @GetMapping("/{caseId}")
