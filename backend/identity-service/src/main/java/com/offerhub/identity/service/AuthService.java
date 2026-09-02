@@ -48,6 +48,17 @@ public class AuthService {
         return new RegisterResponse(saved.getId().toString(), true);
     }
 
+    public OtpRequestResponse requestOtp(OtpRequestRequest request) {
+        Subscriber subscriber = subscriberRepository.findByPhone(request.getPhone())
+                .orElseThrow(() -> new InvalidOtpException("Telefon numarasi bulunamadi"));
+
+        PhoneVerificationStrategy strategy = resolveStrategy(request.getAuthMode());
+        strategy.initiate(subscriber);
+        subscriberRepository.save(subscriber);
+
+        return new OtpRequestResponse(true);
+    }
+
     private PhoneVerificationStrategy resolveStrategy(AuthMode mode) {
         PhoneVerificationStrategy strategy = verificationStrategies.get(mode.name());
         if (strategy == null) {
@@ -67,7 +78,7 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(subscriberId, "SUBSCRIBER");
         String refreshToken = jwtService.generateRefreshToken(subscriberId, "SUBSCRIBER");
 
-        AuthUserResponse user = new AuthUserResponse(subscriberId, "SUBSCRIBER", List.of(), List.of());
+        AuthUserResponse user = new AuthUserResponse(subscriberId, "SUBSCRIBER", List.of(), List.of(), false);
 
         return new AuthDataResponse(accessToken, refreshToken, jwtService.getAccessTokenExpirySeconds(), user);
     }
@@ -93,10 +104,23 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken(staffId, staff.getRole().name());
 
         AuthUserResponse user = new AuthUserResponse(
-                staffId, staff.getRole().name(), staff.getSpecialties(), staff.getRegions()
+                staffId, staff.getRole().name(), staff.getSpecialties(), staff.getRegions(), staff.isMustChangePassword()
         );
 
         return new AuthDataResponse(accessToken, refreshToken, jwtService.getAccessTokenExpirySeconds(), user);
+    }
+
+    public void changePassword(String staffId, ChangePasswordRequest request) {
+        StaffUser staff = staffUserRepository.findById(java.util.UUID.fromString(staffId))
+                .orElseThrow(() -> new InvalidCredentialsException("Kullanici bulunamadi"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), staff.getPassword())) {
+            throw new InvalidCredentialsException("Mevcut sifre hatali");
+        }
+
+        staff.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        staff.setMustChangePassword(false);
+        staffUserRepository.save(staff);
     }
 
     private void registerFailedAttempt(StaffUser staff) {

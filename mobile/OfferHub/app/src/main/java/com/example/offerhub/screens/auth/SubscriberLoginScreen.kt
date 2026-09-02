@@ -34,7 +34,9 @@ import com.example.offerhub.R
 @Composable
 fun SubscriberLoginScreen(
     onSendCodeClick:(String)->Unit,
-    onRegisterClick:()->Unit
+    onRegisterClick:()->Unit,
+    isLoading: Boolean = false,
+    backendError: String? = null
 )
 {
     Surface(
@@ -105,8 +107,17 @@ fun SubscriberLoginScreen(
                 }
             )
             Spacer(modifier=Modifier.height(18.dp))
+            if (backendError != null) {
+                Text(text = backendError, color = MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.height(12.dp))
+            }
             AuthButton(
-                text = stringResource(R.string.auth_send_code),
+                text = if (isLoading) {
+                    stringResource(R.string.auth_registering)
+                } else {
+                    stringResource(R.string.auth_send_code)
+                },
+                enabled = !isLoading,
                 onClick={
                     gsmTouched=true
                     if(!gsmIsInvalid)

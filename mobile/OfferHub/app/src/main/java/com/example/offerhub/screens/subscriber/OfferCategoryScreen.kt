@@ -12,18 +12,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.OfferCard
-import com.example.offerhub.components.OfferHubTopBar
+import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.OfferStatus
+import com.example.offerhub.data.model.OfferType
 import com.example.offerhub.R
+import com.example.offerhub.ui.theme.OfferHubTheme
 
 @Composable
 fun OfferCategoryScreen(
@@ -45,7 +47,10 @@ fun OfferCategoryScreen(
             MaterialTheme.colorScheme.onBackground,
 
         topBar = {
-            OfferHubTopBar()
+            OfferHubDetailTopBar(
+                title = title,
+                onBackClick = onBackClick
+            )
         }
     ) { innerPadding ->
 
@@ -54,25 +59,6 @@ fun OfferCategoryScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TextButton(
-                onClick = onBackClick,
-                modifier =
-                    Modifier.padding(horizontal = 12.dp)
-            ) {
-                Text(text = stringResource(R.string.back))
-            }
-
-            Text(
-                text = title,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color =
-                    MaterialTheme.colorScheme.onBackground,
-
-                modifier =
-                    Modifier.padding(horizontal = 24.dp)
-            )
-
             if (offers.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -126,5 +112,21 @@ fun OfferCategoryScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OfferCategoryScreenPreview() {
+    // TODO: Remove temporary subscriber previews after real backend integration is testable.
+    OfferHubTheme {
+        OfferCategoryScreen(
+            title = "Add-on Packages",
+            offers = MockOfferData.offers.filter {
+                it.type == OfferType.ADD_ON && it.status == OfferStatus.PENDING
+            },
+            onBackClick = {},
+            onOfferClick = {}
+        )
     }
 }

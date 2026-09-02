@@ -38,6 +38,8 @@ import androidx.compose.material3.OutlinedButton
 import com.example.offerhub.components.SeeAllButton
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.R
+import com.example.offerhub.data.mock.MockOfferData
+import com.example.offerhub.ui.theme.OfferHubTheme
 
 @Composable
 fun OffersScreen(
@@ -405,36 +407,18 @@ private fun OfferCategorySection(
 @Preview(showBackground = true)
 @Composable
 private fun OffersScreenPreview() {
-    OffersScreen(
-        offers = listOf(
-            Offer(
-                offerId = "f1a2",
-                campaignNo = "CMP-2026-000123",
-                title = "20 GB Internet",
-                score = 0.83,
-                highlighted = true,
-                status = OfferStatus.PENDING,
-                type = OfferType.ADD_ON
-            ),
-
-            Offer(
-                offerId = "f1a3",
-                campaignNo = "CMP-2026-000124",
-                title = "Social Media Plus",
-                score = 0.76,
-                highlighted = false,
-                status = OfferStatus.ACCEPTED,
-                type = OfferType.ADD_ON
-            )
-        ),
-
-        onRetryClick = {},
-        onOfferClick = {},
-        onHomeClick = {},
-        onOffersClick = {},
-        onProfileClick = {},
-        onRatedOffersClick = {},
-        onAcceptedOffersClick = {},
-        onSeeAllClick = {},
-    )
+    // TODO: Remove temporary subscriber previews after real backend integration is testable.
+    OfferHubTheme {
+        OffersScreen(
+            offers = MockOfferData.offers,
+            onRetryClick = {},
+            onOfferClick = {},
+            onHomeClick = {},
+            onOffersClick = {},
+            onProfileClick = {},
+            onRatedOffersClick = {},
+            onAcceptedOffersClick = {},
+            onSeeAllClick = {},
+        )
+    }
 }

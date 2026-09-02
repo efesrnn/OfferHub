@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,15 +36,8 @@ import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
-import com.example.offerhub.components.PasswordRequirements
 import com.example.offerhub.R
 
-fun isPasswordValid(password: String): Boolean {
-    return password.length >= 8 &&
-            password.any { it.isUpperCase() } &&
-            password.any { it.isDigit() } &&
-            password.any { !it.isLetterOrDigit() }
-}
 @Composable
 fun StaffLoginScreen(
     onLoginClick: (
@@ -52,7 +46,10 @@ fun StaffLoginScreen(
     ) -> Unit,
     isLoading: Boolean = false,
     backendError: String? = null,
-    lockRemainingSeconds: Long = 0
+    lockRemainingSeconds: Long = 0,
+    onMockAdminClick: (() -> Unit)? = null,
+    onMockExpertClick: (() -> Unit)? = null,
+    onMockSupervisorClick: (() -> Unit)? = null
     /*onForgotClick:()->*/
 )
 {
@@ -66,7 +63,7 @@ fun StaffLoginScreen(
         var passwordTouched by remember { mutableStateOf(false) }
         val emailIsInvalid=email.isBlank()||!Patterns.EMAIL_ADDRESS.matcher(email).matches()
         var emailTouched by remember { mutableStateOf(false) }
-       val passwordIsInvalid= password.isBlank()||!isPasswordValid(password)
+       val passwordIsInvalid = password.isBlank()
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -123,16 +120,7 @@ fun StaffLoginScreen(
                 keyboardType= KeyboardType.Password,
                 visualTransformation = PasswordVisualTransformation(),
                 isError = passwordTouched&&passwordIsInvalid,
-                errorMessage = when {
-                    password.isBlank() ->
-                        stringResource(R.string.error_password_empty)
-
-                    !isPasswordValid(password) ->
-                        stringResource(R.string.error_password_requirements)
-
-                    else ->
-                        null
-                },
+                errorMessage = stringResource(R.string.error_password_empty),
                 prefix="",
                 onFocusChanged = { isFocused ->
                     if (!isFocused) {
@@ -176,6 +164,33 @@ fun StaffLoginScreen(
                 onClick={
                     /*onForgotClick*/
             } )
+            if (onMockAdminClick != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onMockAdminClick,
+                    enabled = !isLoading
+                ) {
+                    Text(text = stringResource(R.string.auth_mock_admin_login))
+                }
+            }
+            if (onMockExpertClick != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onMockExpertClick,
+                    enabled = !isLoading
+                ) {
+                    Text(text = stringResource(R.string.auth_mock_expert_login))
+                }
+            }
+            if (onMockSupervisorClick != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onMockSupervisorClick,
+                    enabled = !isLoading
+                ) {
+                    Text(text = stringResource(R.string.auth_mock_supervisor_login))
+                }
+            }
 
         }
     }

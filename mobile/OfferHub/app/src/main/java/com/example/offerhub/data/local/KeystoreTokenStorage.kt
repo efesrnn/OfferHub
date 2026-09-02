@@ -26,6 +26,12 @@ class KeystoreTokenStorage(
             putLong(EXPIRES_AT, tokens.expiresAtEpochSeconds)
             putString(USER_ID, tokens.userId)
             putString(USER_ROLE, tokens.userRole)
+            putBoolean(PASSWORD_CHANGE_REQUIRED, tokens.passwordChangeRequired)
+            if (tokens.phone != null) {
+                putString(USER_PHONE, encrypt(tokens.phone))
+            } else {
+                remove(USER_PHONE)
+            }
             remove(LEGACY_EXPIRES_IN)
         }
         sessionTokenProvider.update(tokens.accessToken)
@@ -39,7 +45,17 @@ class KeystoreTokenStorage(
         val userRole = preferences.getString(USER_ROLE, null) ?: return@withContext null
         if (expiresAt <= 0L) return@withContext null
         runCatching {
-            StoredTokens(decrypt(access), decrypt(refresh), expiresAt, userId, userRole)
+            val phone = preferences.getString(USER_PHONE, null)?.let(::decrypt)
+            val passwordChangeRequired = preferences.getBoolean(PASSWORD_CHANGE_REQUIRED, false)
+            StoredTokens(
+                decrypt(access),
+                decrypt(refresh),
+                expiresAt,
+                userId,
+                userRole,
+                phone,
+                passwordChangeRequired
+            )
         }.getOrNull()?.also { tokens ->
             sessionTokenProvider.update(tokens.accessToken)
         }
@@ -93,6 +109,8 @@ class KeystoreTokenStorage(
         const val LEGACY_EXPIRES_IN = "expires_in"
         const val USER_ID = "user_id"
         const val USER_ROLE = "user_role"
+        const val USER_PHONE = "user_phone"
+        const val PASSWORD_CHANGE_REQUIRED = "password_change_required"
         const val KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "offerhub_auth_tokens"
         const val TRANSFORMATION = "AES/GCM/NoPadding"

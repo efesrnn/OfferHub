@@ -1,5 +1,7 @@
 package com.example.offerhub.navigation
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -13,34 +15,32 @@ import com.example.offerhub.screens.subscriber.OfferCategoryScreen
 import com.example.offerhub.screens.subscriber.OffersScreen
 import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
 import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
-import com.example.offerhub.viewModel.AuthUiState
 import com.example.offerhub.viewModel.AuthViewModel
-import com.example.offerhub.viewModel.SubscriberUiState
 import com.example.offerhub.viewModel.SubscriberViewModel
 import com.example.offerhub.ui.text.asString
 
 fun NavGraphBuilder.subscriberGraph(
     navController: NavHostController,
-    authState: AuthUiState,
-    subscriberState: SubscriberUiState,
     authViewModel: AuthViewModel,
     subscriberViewModel: SubscriberViewModel
 ) {
-    val offers = subscriberState.offers
-    val acceptedOffers = offers.filter { it.status == OfferStatus.ACCEPTED }
-    val ratedOffers = offers.filter { it.rating != null }
-    val latestAcceptedOffer = acceptedOffers.maxByOrNull {
-        it.acceptedAt.orEmpty()
-    }
     val openOfferDetail: (String) -> Unit = subscriberViewModel::selectOffer
 
     composable(Routes.SUBSCRIBER_HOME) {
+        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val offers = subscriberState.offers
+        val latestAcceptedOffer = offers
+            .filter { it.status == OfferStatus.ACCEPTED }
+            .maxByOrNull { it.acceptedAt.orEmpty() }
         SubscriberHomeScreen(
             firstName = "Test",
             recommendedOffers = offers.filter {
                 it.status == OfferStatus.PENDING
             },
             latestAcceptedOffer = latestAcceptedOffer,
+            isLoading = subscriberState.isLoading,
+            errorMessage = subscriberState.loadErrorMessage?.asString(),
+            onRetryClick = subscriberViewModel::loadOffers,
             onOfferClick = openOfferDetail,
             onCategoryClick = { type ->
                 navController.navigate(Routes.offerCategory(type.name)) {
@@ -62,6 +62,8 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.OFFERS) {
+        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val offers = subscriberState.offers
         OffersScreen(
             offers = offers,
             isLoading = subscriberState.isLoading,
@@ -99,6 +101,10 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.ACCEPTED_OFFERS) {
+        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val acceptedOffers = subscriberState.offers.filter {
+            it.status == OfferStatus.ACCEPTED
+        }
         OfferCategoryScreen(
             title = stringResource(R.string.offers_my_accepted),
             offers = acceptedOffers,
@@ -110,6 +116,8 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.RATED_OFFERS) {
+        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val ratedOffers = subscriberState.offers.filter { it.rating != null }
         OfferCategoryScreen(
             title = stringResource(R.string.offers_my_rated),
             offers = ratedOffers,
@@ -123,7 +131,8 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.PROFILE) {
-        val profilePhone = authState.pendingPhone
+        val authState by authViewModel.uiState.collectAsState()
+        val profilePhone = (authState.currentUser?.phone ?: authState.pendingPhone)
             ?.takeIf { it.isNotBlank() }
             ?.let { if (it.startsWith("+")) it else "+90 $it" }
             ?: stringResource(R.string.profile_not_available)
@@ -135,11 +144,11 @@ fun NavGraphBuilder.subscriberGraph(
             email = "test@offerhub.com",
             onRetryClick = {},
             onLogoutClick = {
-                authViewModel.logout()
                 navController.navigate(Routes.AUTH_CHOICE) {
                     popUpTo(Routes.SUBSCRIBER_HOME) { inclusive = true }
                     launchSingleTop = true
                 }
+                authViewModel.logout()
             },
             onHomeClick = {
                 navController.navigate(Routes.SUBSCRIBER_HOME) {
@@ -162,6 +171,8 @@ fun NavGraphBuilder.subscriberGraph(
             navArgument("offerType") { type = NavType.StringType }
         )
     ) { backStackEntry ->
+        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val offers = subscriberState.offers
         val selectedType = backStackEntry.arguments
             ?.getString("offerType")
             ?.let { runCatching { OfferType.valueOf(it) }.getOrNull() }

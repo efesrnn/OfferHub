@@ -124,9 +124,9 @@ fun OtpVerificationScreen(
                 isError = otpTouched && otpIsInvalid,
 
                 errorMessage = when {
-                    otp.isBlank() -> "OTP code cannot be empty"
+                    otp.isBlank() -> stringResource(R.string.error_otp_empty)
 
-                    otp.length < 4 -> "OTP code must be 4 digits"
+                    otp.length < 4 -> stringResource(R.string.error_otp_length)
 
                     else -> null
                 }

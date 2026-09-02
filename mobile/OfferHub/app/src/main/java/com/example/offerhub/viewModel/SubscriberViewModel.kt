@@ -120,6 +120,8 @@ class SubscriberViewModel(
         "NETWORK_ERROR" -> R.string.error_network
         "OFFER_NOT_FOUND" -> R.string.error_offer_not_found
         "OFFER_NOT_ACCEPTED" -> R.string.error_offer_not_accepted
+        "OFFER_ALREADY_RESPONDED" -> R.string.error_offer_already_responded
+        "OFFER_ALREADY_RATED" -> R.string.error_offer_already_rated
         "INVALID_RATING" -> R.string.error_invalid_rating
         else -> R.string.error_unknown
     })

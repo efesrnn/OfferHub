@@ -9,6 +9,7 @@ import com.example.offerhub.data.network.ApiError
 import com.example.offerhub.repository.AuthRepository
 import com.example.offerhub.repository.AuthResult
 import com.example.offerhub.R
+import com.example.offerhub.BuildConfig
 import com.example.offerhub.ui.text.UiText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -25,6 +26,8 @@ data class AuthUiState(
     val errorMessage: UiText? = null,
     val currentUser: AuthUser? = null,
     val pendingNavigationRole: String? = null,
+    val pendingPasswordChangeNavigation: Boolean = false,
+    val passwordChangeCompleted: Boolean = false,
     val pendingPhone: String? = null,
     val otpReady: Boolean = false,
     val lockRemainingSeconds: Long = 0
@@ -41,12 +44,15 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     private fun restoreSession() {
         viewModelScope.launch {
-            val user = repository.restoreLocalSession()
+            val session = repository.restoreLocalSession()
             _uiState.update {
                 it.copy(
                     isSessionChecking = false,
-                    currentUser = user,
-                    pendingNavigationRole = user?.role
+                    currentUser = session?.user,
+                    pendingNavigationRole = session?.user?.role
+                        ?.takeUnless { session.passwordChangeRequired },
+                    pendingPasswordChangeNavigation =
+                        session?.passwordChangeRequired == true
                 )
             }
         }
@@ -66,6 +72,11 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             onSuccess = { _uiState.update { it.copy(pendingPhone = phone, otpReady = true) } }
         )
 
+    fun requestOtpForLogin(phone: String) = execute(
+        operation = { repository.requestOtp(phone, AuthMode.MOCK) },
+        onSuccess = { _uiState.update { it.copy(pendingPhone = phone, otpReady = true) } }
+    )
+
     fun verifyOtp(phone: String, otp: String, useFirebase: Boolean) = execute(
         operation = {
             val mode = if (useFirebase) AuthMode.FIREBASE else AuthMode.MOCK
@@ -75,7 +86,8 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             _uiState.update {
                 it.copy(
                     currentUser = data.user,
-                    pendingNavigationRole = data.user.role
+                    pendingNavigationRole = data.user.role,
+                    pendingPhone = data.user.phone ?: phone
                 )
             }
         }
@@ -88,14 +100,99 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
                 it.copy(
                     currentUser = data.user,
                     pendingNavigationRole = data.user.role
+                        .takeUnless { data.passwordChangeRequired },
+                    pendingPasswordChangeNavigation = data.passwordChangeRequired,
+                    passwordChangeCompleted = false
                 )
             }
         }
     )
 
+    fun changePassword(newPassword: String, confirmPassword: String) = execute(
+        operation = { repository.changePassword(newPassword, confirmPassword) },
+        onSuccess = {
+            _uiState.update {
+                it.copy(
+                    currentUser = null,
+                    pendingNavigationRole = null,
+                    passwordChangeCompleted = true
+                )
+            }
+        }
+    )
+
+    fun debugLoginAsAdmin() {
+        if (!BuildConfig.DEBUG) return
+
+        val debugAdmin = AuthUser(
+            id = "debug-admin",
+            role = "ADMIN"
+        )
+        _uiState.update {
+            it.copy(
+                currentUser = debugAdmin,
+                pendingNavigationRole = debugAdmin.role,
+                errorMessage = null
+            )
+        }
+    }
+
+    fun debugLoginAsExpert() {
+        if (!BuildConfig.DEBUG) return
+
+        val debugExpert = AuthUser(
+            id = "debug-expert",
+            role = "EXPERT",
+            specialties = listOf("CHURN_ONLEME"),
+            regions = listOf("ISTANBUL")
+        )
+        _uiState.update {
+            it.copy(
+                currentUser = debugExpert,
+                pendingNavigationRole = debugExpert.role,
+                errorMessage = null
+            )
+        }
+    }
+
+    fun debugLoginAsSupervisor() {
+        if (!BuildConfig.DEBUG) return
+
+        val debugSupervisor = AuthUser(
+            id = "debug-supervisor",
+            role = "SUPERVISOR",
+            regions = listOf("ISTANBUL", "ANKARA")
+        )
+        _uiState.update {
+            it.copy(
+                currentUser = debugSupervisor,
+                pendingNavigationRole = debugSupervisor.role,
+                errorMessage = null
+            )
+        }
+    }
+
     fun consumeOtpReady() = _uiState.update { it.copy(otpReady = false) }
     fun consumeAuthenticationNavigation() =
         _uiState.update { it.copy(pendingNavigationRole = null) }
+
+    fun consumePasswordChangeNavigation() =
+        _uiState.update { it.copy(pendingPasswordChangeNavigation = false) }
+
+    fun finishPasswordChangeFlow() =
+        _uiState.update {
+            it.copy(
+                passwordChangeCompleted = false,
+                errorMessage = null
+            )
+        }
+
+    fun cancelPasswordChange() {
+        viewModelScope.launch {
+            repository.clearLocalSession()
+            _uiState.value = AuthUiState(isSessionChecking = false)
+        }
+    }
 
     fun handleUnsupportedRole() {
         _uiState.update {
@@ -110,7 +207,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         viewModelScope.launch {
             repository.clearLocalSession()
             lockJob?.cancel()
-            _uiState.value = AuthUiState()
+            _uiState.value = AuthUiState(isSessionChecking = false)
         }
     }
     fun clearError() = _uiState.update { it.copy(errorMessage = null) }
@@ -154,7 +251,10 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         "INVALID_CREDENTIALS" -> R.string.error_invalid_credentials
         "ACCOUNT_LOCKED" -> R.string.error_account_locked
         "INVALID_OTP" -> R.string.error_invalid_otp_backend
-        "PHONE_ALREADY_EXISTS", "SUBSCRIBER_ALREADY_EXISTS" -> R.string.error_phone_exists
+        "WEAK_PASSWORD" -> R.string.error_weak_password
+        "PASSWORD_MISMATCH" -> R.string.error_password_mismatch
+        "DUPLICATE_RESOURCE", "PHONE_ALREADY_EXISTS", "SUBSCRIBER_ALREADY_EXISTS" ->
+            R.string.error_phone_exists
         "EMAIL_ALREADY_EXISTS" -> R.string.error_email_exists
         "USER_NOT_FOUND", "SUBSCRIBER_NOT_FOUND" -> R.string.error_user_not_found
         "RATE_LIMITED", "TOO_MANY_REQUESTS" -> R.string.error_too_many_requests

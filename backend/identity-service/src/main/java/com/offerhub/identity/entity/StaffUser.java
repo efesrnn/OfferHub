@@ -70,6 +70,10 @@ public class StaffUser {
 
     private Instant lockedUntil;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean mustChangePassword = true;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;

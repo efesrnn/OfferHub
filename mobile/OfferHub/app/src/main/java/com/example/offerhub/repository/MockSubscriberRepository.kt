@@ -17,7 +17,7 @@ class MockSubscriberRepository(
         findOffer(offerId)
 
     override suspend fun acceptOffer(offerId: String): SubscriberResult<Offer> =
-        updateOffer(offerId) {
+        respondToOffer(offerId) {
             it.copy(
                 status = OfferStatus.ACCEPTED,
                 acceptedAt = Instant.now().toString()
@@ -25,7 +25,7 @@ class MockSubscriberRepository(
         }
 
     override suspend fun declineOffer(offerId: String): SubscriberResult<Offer> =
-        updateOffer(offerId) { it.copy(status = OfferStatus.DECLINED) }
+        respondToOffer(offerId) { it.copy(status = OfferStatus.DECLINED) }
 
     override suspend fun rateOffer(
         offerId: String,
@@ -39,7 +39,22 @@ class MockSubscriberRepository(
         if (offer.status != OfferStatus.ACCEPTED) {
             return SubscriberResult.Failure(ApiError("OFFER_NOT_ACCEPTED"))
         }
+        if (offer.rating != null) {
+            return SubscriberResult.Failure(ApiError("OFFER_ALREADY_RATED"))
+        }
         return updateOffer(offerId) { it.copy(rating = rating) }
+    }
+
+    private fun respondToOffer(
+        offerId: String,
+        transform: (Offer) -> Offer
+    ): SubscriberResult<Offer> {
+        val offer = offers.firstOrNull { it.offerId == offerId }
+            ?: return SubscriberResult.Failure(ApiError("OFFER_NOT_FOUND"))
+        if (offer.status != OfferStatus.PENDING) {
+            return SubscriberResult.Failure(ApiError("OFFER_ALREADY_RESPONDED"))
+        }
+        return updateOffer(offerId, transform)
     }
 
     private fun findOffer(offerId: String): SubscriberResult<Offer> {

@@ -92,34 +92,45 @@
       {
         "isLeaf": false,
         "featureIndex": 3,
-        "threshold": 197.13999938964844,
+        "threshold": 203.45999908447266,
         "left": 1,
-        "right": 8
+        "right": 10
       },
       {
         "isLeaf": false,
-        "featureIndex": 0,
-        "threshold": 69.0,
+        "featureIndex": 2,
+        "threshold": 231.5,
         "left": 2,
-        "right": 7
+        "right": 3
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "PASIF"
       },
       {
         "isLeaf": false,
-        "featureIndex": 0,
-        "threshold": 28.0,
-        "left": 3,
-        "right": 6
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 0,
-        "threshold": 16.0,
+        "featureIndex": 3,
+        "threshold": 128.12999725341797,
         "left": 4,
         "right": 5
       },
       {
         "isLeaf": true,
         "predictedClass": "PASIF"
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 1,
+        "threshold": 11.880000114440918,
+        "left": 6,
+        "right": 9
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 7,
+        "threshold": -0.2694999873638153,
+        "left": 7,
+        "right": 8
       },
       {
         "isLeaf": true,
@@ -137,33 +148,114 @@
         "isLeaf": false,
         "featureIndex": 6,
         "threshold": 0.5,
-        "left": 9,
-        "right": 20
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 4,
-        "threshold": 2.5,
-        "left": 10,
-        "right": 15
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 1,
-        "threshold": 17.440000534057617,
         "left": 11,
-        "right": 14
+        "right": 24
       },
       {
         "isLeaf": false,
         "featureIndex": 1,
-        "threshold": 11.809999942779541,
+        "threshold": 12.87000036239624,
         "left": 12,
-        "right": 13
+        "right": 17
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 3,
+        "threshold": 267.8300018310547,
+        "left": 13,
+        "right": 14
       },
       {
         "isLeaf": true,
         "predictedClass": "PASIF"
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 7,
+        "threshold": 0.26099999994039536,
+        "left": 15,
+        "right": 16
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "YUKSEK_DEGER"
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "PASIF"
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 7,
+        "threshold": -0.07500000111758709,
+        "left": 18,
+        "right": 21
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 9,
+        "threshold": 0.5,
+        "left": 19,
+        "right": 20
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "YUKSEK_DEGER"
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "RISKLI_KAYIP"
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 1,
+        "threshold": 21.335000038146973,
+        "left": 22,
+        "right": 23
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "YUKSEK_DEGER"
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "YUKSEK_DEGER"
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 1,
+        "threshold": 6.1549999713897705,
+        "left": 25,
+        "right": 28
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 2,
+        "threshold": 330.5,
+        "left": 26,
+        "right": 27
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "PASIF"
+      },
+      {
+        "isLeaf": true,
+        "predictedClass": "PASIF"
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 3,
+        "threshold": 544.2099914550781,
+        "left": 29,
+        "right": 32
+      },
+      {
+        "isLeaf": false,
+        "featureIndex": 0,
+        "threshold": 13.5,
+        "left": 30,
+        "right": 31
       },
       {
         "isLeaf": true,
@@ -171,92 +263,22 @@
       },
       {
         "isLeaf": true,
-        "predictedClass": "YUKSEK_DEGER"
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 1,
-        "threshold": 12.87000036239624,
-        "left": 16,
-        "right": 17
-      },
-      {
-        "isLeaf": true,
-        "predictedClass": "YUKSEK_DEGER"
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 4,
-        "threshold": 3.5,
-        "left": 18,
-        "right": 19
-      },
-      {
-        "isLeaf": true,
-        "predictedClass": "YUKSEK_DEGER"
-      },
-      {
-        "isLeaf": true,
-        "predictedClass": "YUKSEK_DEGER"
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 1,
-        "threshold": 6.930000066757202,
-        "left": 21,
-        "right": 24
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 2,
-        "threshold": 239.0,
-        "left": 22,
-        "right": 23
-      },
-      {
-        "isLeaf": true,
         "predictedClass": "RISKLI_KAYIP"
-      },
-      {
-        "isLeaf": true,
-        "predictedClass": "PASIF"
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 6,
-        "threshold": 1.5,
-        "left": 25,
-        "right": 28
-      },
-      {
-        "isLeaf": false,
-        "featureIndex": 1,
-        "threshold": 22.480000495910645,
-        "left": 26,
-        "right": 27
-      },
-      {
-        "isLeaf": true,
-        "predictedClass": "RISKLI_KAYIP"
-      },
-      {
-        "isLeaf": true,
-        "predictedClass": "YUKSEK_DEGER"
       },
       {
         "isLeaf": false,
         "featureIndex": 3,
-        "threshold": 379.0500030517578,
-        "left": 29,
-        "right": 30
+        "threshold": 582.9349975585938,
+        "left": 33,
+        "right": 34
       },
       {
         "isLeaf": true,
-        "predictedClass": "RISKLI_KAYIP"
+        "predictedClass": "YUKSEK_DEGER"
       },
       {
         "isLeaf": true,
-        "predictedClass": "RISKLI_KAYIP"
+        "predictedClass": "YUKSEK_DEGER"
       }
     ],
     "classes": [
@@ -265,8 +287,8 @@
       "YENI_ABONE",
       "YUKSEK_DEGER"
     ],
-    "trainAccuracy": 0.7557,
-    "testAccuracy": 0.6136
+    "trainAccuracy": 0.7273,
+    "testAccuracy": 0.5682
   },
   "tariffs": [
     "EKONOMIK",

@@ -28,8 +28,9 @@ object ApiClient {
             )
             .build()
 
-    fun createAuthApi(): AuthApi {
+    fun createAuthApi(tokenProvider: AccessTokenProvider): AuthApi {
         val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
             .addInterceptor(loggingInterceptor)
             .build()
         return createRetrofit(client).create(AuthApi::class.java)
@@ -41,5 +42,21 @@ object ApiClient {
             .addInterceptor(loggingInterceptor)
             .build()
         return createRetrofit(client).create(SubscriberApi::class.java)
+    }
+
+    fun createExpertApi(tokenProvider: AccessTokenProvider): ExpertApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(ExpertApi::class.java)
+    }
+
+    fun createGamificationApi(tokenProvider: AccessTokenProvider): GamificationApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(GamificationApi::class.java)
     }
 }

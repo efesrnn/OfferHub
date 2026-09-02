@@ -12,4 +12,5 @@ public class AuthUserResponse {
     private String role;
     private List<String> specialties;
     private List<String> regions;
+    private boolean mustChangePassword;
 }

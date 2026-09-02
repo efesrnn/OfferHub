@@ -18,12 +18,20 @@ import com.example.offerhub.screens.auth.SubscriberRegisterScreen
 import com.example.offerhub.screens.subscriber.OfferDetailBottomSheet
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
+import com.example.offerhub.viewModel.AdminViewModel
+import com.example.offerhub.viewModel.ExpertViewModel
+import com.example.offerhub.viewModel.GamificationViewModel
+import com.example.offerhub.viewModel.SupervisorViewModel
 import com.example.offerhub.ui.text.asString
 
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel,
-    subscriberViewModel: SubscriberViewModel
+    subscriberViewModel: SubscriberViewModel,
+    adminViewModel: AdminViewModel,
+    expertViewModel: ExpertViewModel,
+    gamificationViewModel: GamificationViewModel,
+    supervisorViewModel: SupervisorViewModel
 ) {
     val navController = rememberNavController()
     val authState by authViewModel.uiState.collectAsState()
@@ -52,16 +60,30 @@ fun AppNavigation(
         }
     }
 
+    LaunchedEffect(authState.pendingPasswordChangeNavigation) {
+        if (authState.pendingPasswordChangeNavigation) {
+            navController.navigate(Routes.STAFF_CHANGE_PASSWORD) {
+                launchSingleTop = true
+            }
+            authViewModel.consumePasswordChangeNavigation()
+        }
+    }
+
     NavHost(navController, startDestination = Routes.SPLASH) {
-        authGraph(navController, authState, authViewModel)
+        authGraph(navController, authViewModel)
         subscriberGraph(
             navController,
-            authState,
-            subscriberState,
             authViewModel,
             subscriberViewModel
         )
-        staffRoleGraphs()
+        staffRoleGraphs(
+            navController = navController,
+            authViewModel = authViewModel,
+            adminViewModel = adminViewModel,
+            expertViewModel = expertViewModel,
+            gamificationViewModel = gamificationViewModel,
+            supervisorViewModel = supervisorViewModel
+        )
     }
     subscriberState.selectedOffer?.let { offer ->
         OfferDetailBottomSheet(
@@ -74,11 +96,6 @@ fun AppNavigation(
             onSubmitRating = subscriberViewModel::rateOffer
         )
     }
-}
-
-@Composable
-fun SubscriberHomeRoute() {
-    TODO("Not yet implemented")
 }
 
 private fun String.toHomeRoute(): String? = when (uppercase()) {

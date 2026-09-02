@@ -5,6 +5,9 @@ import com.example.offerhub.data.local.TokenStorage
 import com.example.offerhub.data.model.auth.AuthData
 import com.example.offerhub.data.model.auth.AuthMode
 import com.example.offerhub.data.model.auth.AuthUser
+import com.example.offerhub.data.model.auth.ChangePasswordRequest
+import com.example.offerhub.data.model.auth.OtpRequestData
+import com.example.offerhub.data.model.auth.OtpRequestRequest
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
@@ -23,6 +26,11 @@ sealed interface AuthResult<out T> {
     data class Failure(val error: ApiError) : AuthResult<Nothing>
 }
 
+data class RestoredAuthSession(
+    val user: AuthUser,
+    val passwordChangeRequired: Boolean
+)
+
 class AuthRepository(
     private val api: AuthApi,
     private val tokenStorage: TokenStorage,
@@ -31,8 +39,13 @@ class AuthRepository(
     suspend fun registerSubscriber(firstName: String, lastName: String, phone: String, email: String?, authMode: AuthMode) =
         call { api.registerSubscriber(SubscriberRegisterRequest(firstName, lastName, phone, email, authMode)) }
 
+    suspend fun requestOtp(phone: String, authMode: AuthMode = AuthMode.MOCK): AuthResult<OtpRequestData> =
+        call { api.requestOtp(OtpRequestRequest(authMode, phone)) }
+
     suspend fun verifyOtp(authMode: AuthMode, phone: String, credential: String): AuthResult<AuthData> =
-        call { api.verifyOtp(OtpVerifyRequest(authMode, phone, credential)) }.saveTokensOnSuccess()
+        call { api.verifyOtp(OtpVerifyRequest(authMode, phone, credential)) }
+            .withSubscriberPhone(phone)
+            .saveTokensOnSuccess()
     suspend fun staffLogin(email: String, password: String): AuthResult<AuthData> =
         call { api.staffLogin(StaffLoginRequest(email, password)) }.saveTokensOnSuccess()
 
@@ -45,26 +58,62 @@ class AuthRepository(
                     expiresAtEpochSeconds =
                         Instant.now().epochSecond + value.expiresIn,
                     userId = value.user.id,
-                    userRole = value.user.role
+                    userRole = value.user.role,
+                    phone = value.user.phone,
+                    passwordChangeRequired = value.passwordChangeRequired
                 )
             )
         }
         return this
     }
 
+    private fun AuthResult<AuthData>.withSubscriberPhone(phone: String): AuthResult<AuthData> =
+        when (this) {
+            is AuthResult.Success -> AuthResult.Success(
+                value.copy(user = value.user.copy(phone = phone))
+            )
+            is AuthResult.Failure -> this
+        }
+
     suspend fun clearLocalSession() {
         tokenStorage.clear()
     }
 
-    suspend fun restoreLocalSession(): AuthUser? {
+    suspend fun changePassword(
+        newPassword: String,
+        confirmPassword: String
+    ): AuthResult<Unit> = try {
+        val response = api.changePassword(
+            ChangePasswordRequest(newPassword, confirmPassword)
+        )
+        val envelope = response.body()
+        if (response.isSuccessful && envelope?.success == true) {
+            tokenStorage.clear()
+            AuthResult.Success(Unit)
+        } else {
+            AuthResult.Failure(
+                envelope?.error ?: parseError(response) ?: ApiError("UNKNOWN_ERROR")
+            )
+        }
+    } catch (_: IOException) {
+        AuthResult.Failure(ApiError("NETWORK_ERROR"))
+    } catch (_: Exception) {
+        AuthResult.Failure(ApiError("UNKNOWN_ERROR"))
+    }
+
+    suspend fun restoreLocalSession(): RestoredAuthSession? {
         val tokens = tokenStorage.read() ?: return null
         if (tokens.isAccessTokenExpired(Instant.now().epochSecond)) {
             tokenStorage.clear()
             return null
         }
-        return AuthUser(
-            id = tokens.userId,
-            role = tokens.userRole
+        return RestoredAuthSession(
+            user = AuthUser(
+                id = tokens.userId,
+                role = tokens.userRole,
+                phone = tokens.phone
+            ),
+            passwordChangeRequired = tokens.passwordChangeRequired
         )
     }
 

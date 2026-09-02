@@ -23,6 +23,12 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
+    @PostMapping("/otp-request")
+    public ResponseEntity<ApiResponse<OtpRequestResponse>> requestOtp(@RequestBody OtpRequestRequest request) {
+        OtpRequestResponse response = authService.requestOtp(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PostMapping("/otp-verify")
     public ResponseEntity<ApiResponse<AuthDataResponse>> verifyOtp(@RequestBody OtpVerifyRequest request) {
         AuthDataResponse response = authService.verifyOtp(request);
@@ -33,5 +39,13 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthDataResponse>> staffLogin(@RequestBody StaffLoginRequest request) {
         AuthDataResponse response = authService.staffLogin(request);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @RequestBody ChangePasswordRequest request,
+            java.security.Principal principal) {
+        authService.changePassword(principal.getName(), request);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

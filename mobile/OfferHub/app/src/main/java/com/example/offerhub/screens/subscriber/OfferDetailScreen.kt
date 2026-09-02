@@ -25,13 +25,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.model.OfferType
 import com.example.offerhub.R
 import com.example.offerhub.ui.format.formatOfferTimestamp
+import com.example.offerhub.ui.theme.OfferHubTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +52,9 @@ fun OfferDetailBottomSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            if (!isSubmitting) onDismiss()
+        },
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
@@ -167,7 +172,13 @@ fun OfferDetailBottomSheet(
 
                 OfferStatus.ACCEPTED -> {
                     Text(
-                        text = stringResource(R.string.offer_rate_experience),
+                        text = stringResource(
+                            if (offer.rating == null) {
+                                R.string.offer_rate_experience
+                            } else {
+                                R.string.offer_your_rating
+                            }
+                        ),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -193,9 +204,15 @@ fun OfferDetailBottomSheet(
                                 color =
                                     MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
-                                    .clickable {
-                                        selectedRating = ratingValue
-                                    }
+                                    .then(
+                                        if (offer.rating == null) {
+                                            Modifier.clickable {
+                                                selectedRating = ratingValue
+                                            }
+                                        } else {
+                                            Modifier
+                                        }
+                                    )
                                     .padding(4.dp)
                             )
                         }
@@ -203,36 +220,28 @@ fun OfferDetailBottomSheet(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement =
-                            Arrangement.spacedBy(12.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.weight(1f)
+                    if (offer.rating == null) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(text = stringResource(R.string.offer_rate_later))
-                        }
+                            OutlinedButton(
+                                onClick = onDismiss,
+                                modifier = Modifier.weight(1f),
+                                enabled = !isSubmitting
+                            ) {
+                                Text(text = stringResource(R.string.offer_rate_later))
+                            }
 
-                        Button(
-                            onClick = {
-                                onSubmitRating(
-                                    offer.offerId,
-                                    selectedRating
-                                )
-                            },
-                            enabled = selectedRating in 1..5 && !isSubmitting,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text =
-                                    if (offer.rating == null) {
-                                        stringResource(R.string.offer_submit_rating)
-                                    } else {
-                                        stringResource(R.string.offer_update_rating)
-                                    }
-                            )
+                            Button(
+                                onClick = {
+                                    onSubmitRating(offer.offerId, selectedRating)
+                                },
+                                enabled = selectedRating in 1..5 && !isSubmitting,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(text = stringResource(R.string.offer_submit_rating))
+                            }
                         }
                     }
                 }
@@ -305,5 +314,20 @@ private fun Double.toDisplayNumber(): String {
         toInt().toString()
     } else {
         toString()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OfferDetailBottomSheetPreview() {
+    // TODO: Remove temporary subscriber previews after real backend integration is testable.
+    OfferHubTheme {
+        OfferDetailBottomSheet(
+            offer = MockOfferData.offers.first { it.status == OfferStatus.ACCEPTED },
+            onDismiss = {},
+            onAcceptClick = {},
+            onDeclineClick = {},
+            onSubmitRating = { _, _ -> }
+        )
     }
 }

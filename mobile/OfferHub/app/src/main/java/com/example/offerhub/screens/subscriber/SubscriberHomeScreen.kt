@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,12 +39,17 @@ import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.model.OfferType
 import com.example.offerhub.R
+import com.example.offerhub.data.mock.MockOfferData
+import com.example.offerhub.ui.theme.OfferHubTheme
 
 @Composable
 fun SubscriberHomeScreen(
     firstName: String,
     recommendedOffers: List<Offer>,
     latestAcceptedOffer: Offer?,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onRetryClick: () -> Unit,
     onOfferClick: (String) -> Unit,
     onCategoryClick: (OfferType) -> Unit,
     onHomeClick: () -> Unit,
@@ -98,6 +105,29 @@ fun SubscriberHomeScreen(
             }
 
 
+            if (isLoading && recommendedOffers.isEmpty() && latestAcceptedOffer == null) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (errorMessage != null && recommendedOffers.isEmpty() && latestAcceptedOffer == null) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(errorMessage, color = MaterialTheme.colorScheme.error)
+                        Button(onClick = onRetryClick) {
+                            Text(stringResource(R.string.profile_retry))
+                        }
+                    }
+                }
+            } else {
             // RECOMMENDED OFFERS
             item {
                 Text(
@@ -109,22 +139,30 @@ fun SubscriberHomeScreen(
             }
 
             item {
-                LazyRow(
-                    state = recommendedState,
-                    flingBehavior = recommendedFling,
-                    contentPadding = PaddingValues(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(18.dp)
-                ) {
+                if (recommendedOffers.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.subscriber_no_recommended_offers),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                } else {
+                    LazyRow(
+                        state = recommendedState,
+                        flingBehavior = recommendedFling,
+                        contentPadding = PaddingValues(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(18.dp)
+                    ) {
 
-                    items(recommendedOffers) { offer ->
+                        items(recommendedOffers) { offer ->
 
-                        OfferCard(
-                            offer = offer,
-                            modifier = Modifier.width(300.dp),
-                            onClick = {
-                                onOfferClick(offer.offerId)
-                            }
-                        )
+                            OfferCard(
+                                offer = offer,
+                                modifier = Modifier.width(300.dp),
+                                onClick = {
+                                    onOfferClick(offer.offerId)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -220,6 +258,7 @@ fun SubscriberHomeScreen(
                     }
                 }
             }
+            }
         }
     }
 }
@@ -265,57 +304,22 @@ private fun QuickActionCard(
 @Preview(showBackground = true)
 @Composable
 fun SubscriberHomeScreenPreview() {
-    val offers = listOf(
-        Offer(
-            offerId = "f1a2",
-            campaignNo = "CMP-2026-000123",
-            title = "Summer Extra Package",
-            score = 0.83,
-            highlighted = true,
-            status = OfferStatus.PENDING,
-            type = OfferType.ADD_ON
-        ),
-
-        Offer(
-            offerId = "f1a3",
-            campaignNo = "CMP-2026-000124",
-            title = "Advantage Tariff",
-            score = 0.76,
-            highlighted = true,
-            status = OfferStatus.PENDING,
-            type = OfferType.TARIFF_UPGRADE
-        ),
-
-        Offer(
-            offerId = "f1a4",
-            campaignNo = "CMP-2026-000125",
-            title = "Device Discount",
-            score = 0.68,
-            highlighted = false,
-            status = OfferStatus.PENDING,
-            type = OfferType.DEVICE_OFFER
+    // TODO: Remove temporary subscriber previews after real backend integration is testable.
+    OfferHubTheme {
+        SubscriberHomeScreen(
+            firstName = "Test",
+            recommendedOffers = MockOfferData.offers.filter { it.status == OfferStatus.PENDING },
+            latestAcceptedOffer = MockOfferData.offers
+                .filter { it.status == OfferStatus.ACCEPTED }
+                .maxByOrNull { it.acceptedAt.orEmpty() },
+            isLoading = false,
+            errorMessage = null,
+            onRetryClick = {},
+            onOfferClick = {},
+            onCategoryClick = {},
+            onHomeClick = {},
+            onOffersClick = {},
+            onProfileClick = {}
         )
-    )
-
-    val latestAcceptedOffer =
-        Offer(
-            offerId = "f1a5",
-            campaignNo = "CMP-2026-000126",
-            title = "25 GB Internet",
-            score = 0.91,
-            highlighted = true,
-            status = OfferStatus.ACCEPTED,
-            type = OfferType.ADD_ON
-        )
-
-    SubscriberHomeScreen(
-        firstName = "Test",
-        recommendedOffers = offers,
-        latestAcceptedOffer = latestAcceptedOffer,
-        onOfferClick = {},
-        onCategoryClick = {},
-        onHomeClick = {},
-        onOffersClick = {},
-        onProfileClick = {}
-    )
+    }
 }
