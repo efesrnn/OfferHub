@@ -41,4 +41,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.LOCKED)
                 .body(ApiResponse.error("ACCOUNT_LOCKED", ex.getMessage(), ex.getLockedUntil()));
     }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNotFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleValidation(ValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("VALIDATION_ERROR", ex.getMessage()));
+    }
 }

@@ -3,8 +3,10 @@ package com.offerhub.identity.controller;
 import com.offerhub.identity.dto.ApiResponse;
 import com.offerhub.identity.dto.AuditLogResponse;
 import com.offerhub.identity.dto.PagedResponse;
+import com.offerhub.identity.dto.RoleUpdateRequest;
 import com.offerhub.identity.dto.StaffCreateRequest;
 import com.offerhub.identity.dto.StaffCreateResponse;
+import com.offerhub.identity.dto.StaffResponse;
 import com.offerhub.identity.security.ClientIpResolver;
 import com.offerhub.identity.service.AdminService;
 import com.offerhub.identity.service.AuditLogService;
@@ -13,11 +15,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -32,6 +38,24 @@ public class AdminController {
                                                                           HttpServletRequest httpRequest) {
         StaffCreateResponse response = adminService.createStaff(request, ClientIpResolver.resolve(httpRequest));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+    }
+
+    @GetMapping("/staff")
+    public ResponseEntity<ApiResponse<List<StaffResponse>>> searchStaff(@RequestParam(required = false) String query) {
+        return ResponseEntity.ok(ApiResponse.success(adminService.searchStaff(query)));
+    }
+
+    @GetMapping("/staff/{staffId}")
+    public ResponseEntity<ApiResponse<StaffResponse>> getStaff(@PathVariable String staffId) {
+        return ResponseEntity.ok(ApiResponse.success(adminService.findStaff(staffId)));
+    }
+
+    @PatchMapping("/staff/{staffId}/role")
+    public ResponseEntity<ApiResponse<StaffResponse>> updateRole(@PathVariable String staffId,
+                                                                   @RequestBody RoleUpdateRequest request,
+                                                                   HttpServletRequest httpRequest) {
+        StaffResponse response = adminService.updateRole(staffId, request.getRole(), ClientIpResolver.resolve(httpRequest));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/audit-logs")
