@@ -18,6 +18,17 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        # Retry a few times - a transient database blip deserves another chance.
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 2s
+        # After those attempts, drop the message instead of requeuing it. The default
+        # requeues forever, so one unparseable payload would spin the consumer and block
+        # every event behind it.
+        default-requeue-rejected: false
 
 server:
   port: 8080

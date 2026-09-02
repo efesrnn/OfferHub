@@ -91,6 +91,12 @@ oluşturulmuşsa alan `null` gelir; bu durumda bonus verilmez.
 
 **AI Service tarafında beklenen işlem:** bu kaydı "yanlış sınıflandırma" olarak işaretle, doğruluk oranı hesaplamasında (`doğru / toplam × 100`) payda ve pay güncellensin.
 
+Aynı kampanya birden fazla kez düzeltilebilir, dolayısıyla bu olay aynı `campaignNo` için
+tekrar gelebilir. AI tarafı olayları **saymamalı**, `campaignNo` başına son değeri
+tutmalıdır: doğruluk sorusu "AI kaç kez düzeltildi" değil, "AI'ın ilk kararı sonunda doğru
+muydu" sorusudur. Segmenti aynı değere set eden istek hiç olay doğurmaz — düzeltme
+sayılmaz.
+
 ---
 
 ## offer.responded
@@ -111,6 +117,40 @@ oluşturulmuşsa alan `null` gelir; bu durumda bonus verilmez.
   }
 }
 ```
+
+---
+
+## offer.rated
+
+**Yayınlayan:** Campaign Service
+**Dinleyen:** Gamification Service (düşük puan cezası)
+**Ne zaman tetiklenir:** Abone bir teklifi 1–5 yıldız puanladığında (puanlama tek seferliktir)
+
+```json
+{
+  "eventType": "offer.rated",
+  "timestamp": "2026-08-17T15:30:00Z",
+  "payload": {
+    "offerId": "f1a2...",
+    "subscriberId": "b7e1...",
+    "campaignNo": "CMP-2026-000123",
+    "expertId": "a7f3...",
+    "stars": 2
+  }
+}
+```
+
+Bu olay şemanın ilk halinde yoktu; case 5.6 ("Puan verildiğinde Gamification Service'e event
+gönderilir") ve 7.1'deki −3 kuralı için zorunlu olduğu için eklendi.
+
+**`expertId` neden payload'da:** Gamification'ın kampanya verisi yok, bir kampanyanın
+hangi uzman tarafından optimize edildiğini kendisi bulamaz. Bu bağı yalnızca Campaign
+kurabilir. Kampanya için hiç optimizasyon vakası açılmamışsa alan `null` gelir ve kimsenin
+puanı kırılmaz.
+
+**Gamification Service tarafında beklenen işlem:** `stars` 1 veya 2 ise −3 puan; 3 ve üzeri
+için hiçbir şey yapılmaz — puan tablosunda iyi puanın ödülü yok. İdempotency `offerId` +
+`LOW_RATING` çifti üzerinden sağlanır.
 
 ---
 
@@ -177,7 +217,7 @@ Her tüketici servis (`Gamification`, `AI`) kendi kuyruğunu ilgili routing key'
 
 | Servis | Dinlediği routing key'ler |
 |---|---|
-| Gamification Service | `campaign.optimized`, `sla.breached` |
+| Gamification Service | `campaign.optimized`, `sla.breached`, `offer.rated` |
 | AI Service | `segment.changed`, `offer.responded` |
 
 Mobil, event'leri doğrudan dinlemez (RabbitMQ'ya bağlanmaz) — `badge.earned` gibi kullanıcıya gösterilecek sonuçlar, ilgili REST endpoint'i (`/api/v1/game/profile`) üzerinden okunur.

@@ -10,8 +10,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.IsoFields;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,7 +32,19 @@ public class LeaderboardService {
 
     /** Windows are dated, so a key stops being written to on its own when the day rolls. */
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC);
-    private static final DateTimeFormatter WEEK = DateTimeFormatter.ofPattern("YYYY-'W'ww").withZone(ZoneOffset.UTC);
+
+    /**
+     * Built from the ISO week fields rather than an "ww" pattern. A pattern reads the week
+     * rules from the JVM's default locale, so the same instant would land in different week
+     * numbers on a Turkish laptop and in a container running under the C locale - splitting
+     * one week's leaderboard across two Redis keys.
+     */
+    private static final DateTimeFormatter WEEK = new DateTimeFormatterBuilder()
+            .appendValue(IsoFields.WEEK_BASED_YEAR, 4)
+            .appendLiteral("-W")
+            .appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
+            .toFormatter(Locale.ROOT)
+            .withZone(ZoneOffset.UTC);
 
     /** Kept a little past their window so a late reader still sees yesterday's board. */
     private static final Duration DAILY_TTL = Duration.ofDays(2);

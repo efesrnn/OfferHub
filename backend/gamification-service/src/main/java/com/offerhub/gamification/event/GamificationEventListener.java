@@ -39,6 +39,8 @@ public class GamificationEventListener {
                     scoringService.score(jsonMapper.treeToValue(payload, CampaignOptimizedEvent.class));
             case RabbitConfig.SLA_BREACHED ->
                     scoringService.score(jsonMapper.treeToValue(payload, SlaBreachedEvent.class));
+            case RabbitConfig.OFFER_RATED ->
+                    scoringService.score(jsonMapper.treeToValue(payload, OfferRatedEvent.class));
             default -> log.warn("No handler for routing key {}", routingKey);
         }
     }

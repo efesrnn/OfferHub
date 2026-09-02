@@ -1,0 +1,43 @@
+package com.offerhub.campaign.repository;
+
+import com.offerhub.campaign.entity.Offer;
+import com.offerhub.campaign.entity.OfferStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+public interface OfferRepository extends JpaRepository<Offer, UUID> {
+
+    /**
+     * Highest score first, as the contract promises the client. nulls last keeps unscored
+     * offers below scored ones instead of at the top, which is where a null would land in
+     * a descending sort; newest first breaks the tie while AI is not wired in and every
+     * score is null.
+     */
+    @Query(value = """
+            select o from Offer o
+            join fetch o.campaign
+            where o.subscriberId = :subscriberId
+            order by o.score desc nulls last, o.createdAt desc
+            """,
+            countQuery = "select count(o) from Offer o where o.subscriberId = :subscriberId")
+    Page<Offer> findForSubscriber(@Param("subscriberId") UUID subscriberId, Pageable pageable);
+
+    /** Which campaigns this subscriber already has an offer for - the rest are new. */
+    @Query("select o.campaign.id from Offer o where o.subscriberId = :subscriberId")
+    Set<UUID> findCampaignIdsFor(@Param("subscriberId") UUID subscriberId);
+
+    @Query("select o from Offer o join fetch o.campaign where o.id = :id")
+    Optional<Offer> findByIdWithCampaign(@Param("id") UUID id);
+
+    /** Dashboard: offers the subscriber actually answered, the denominator of conversion. */
+    long countByStatusNot(OfferStatus status);
+
+    long countByStatus(OfferStatus status);
+}

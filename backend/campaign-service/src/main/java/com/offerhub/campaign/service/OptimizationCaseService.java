@@ -165,6 +165,35 @@ public class OptimizationCaseService {
     }
 
     /**
+     * Priority decides the SLA window, so changing the priority has to move the deadline
+     * with it. Recomputed from the case's own creation time, never from now: a case that
+     * has been running for hours must not get a fresh clock because someone re-graded it.
+     */
+    @Transactional
+    public void recalculateSlaDeadline(Campaign campaign) {
+        caseRepository.findByCampaignId(campaign.getId()).ifPresent(optimizationCase -> {
+            // The clock already stopped; a finished case keeps the deadline it was judged by.
+            if (optimizationCase.getCompletedAt() != null) {
+                return;
+            }
+
+            Instant deadline = slaPolicy.deadlineFor(campaign.getPriority(),
+                    optimizationCase.getCreatedAt());
+            optimizationCase.setSlaDeadline(deadline);
+
+            // A wider window can pull an already breached case back inside its SLA. Drop
+            // the stamp so it can breach again on its new terms instead of carrying a
+            // verdict that no longer holds.
+            if (optimizationCase.getSlaBreachedAt() != null && deadline.isAfter(Instant.now())) {
+                optimizationCase.setSlaBreachedAt(null);
+            }
+
+            log.info("Case {} SLA deadline moved to {} after priority became {}",
+                    optimizationCase.getId(), deadline, campaign.getPriority());
+        });
+    }
+
+    /**
      * The system half of the YAYINDA -> ARSIVLENDI row in the transition table: a
      * published campaign retires itself when its validity runs out, nobody clicks it.
      */

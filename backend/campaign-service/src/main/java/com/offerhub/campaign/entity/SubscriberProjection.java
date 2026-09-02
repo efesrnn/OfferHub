@@ -35,6 +35,13 @@ public class SubscriberProjection {
     @Id
     private UUID subscriberId;
 
+    /**
+     * The readable code the seed data carries. Kept so a row can be traced back
+     * to its source the id itself is derived from it, see SubscriberSeeder.
+     */
+    @Column(length = 20)
+    private String externalRef;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private Segment segment;

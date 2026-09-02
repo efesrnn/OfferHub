@@ -22,6 +22,7 @@ public class RabbitConfig {
 
     public static final String CAMPAIGN_OPTIMIZED = "campaign.optimized";
     public static final String SLA_BREACHED = "sla.breached";
+    public static final String OFFER_RATED = "offer.rated";
 
     /**
      * The JSON converter is set on the template only, not registered as a global bean.
@@ -47,7 +48,7 @@ public class RabbitConfig {
     }
 
     /**
-     * Only the two routing keys this service scores on. Campaign publishes more, binding
+     * Only the routing keys this service scores on. Campaign publishes more; binding
      * narrowly means a new event type never wakes this service up by accident.
      */
     @Bean
@@ -58,5 +59,11 @@ public class RabbitConfig {
     @Bean
     public Binding slaBreachedBinding(Queue gamificationEventsQueue, TopicExchange offerhubEventsExchange) {
         return BindingBuilder.bind(gamificationEventsQueue).to(offerhubEventsExchange).with(SLA_BREACHED);
+    }
+
+    /** A subscriber rating an offer badly costs the expert points, case document 7.1. */
+    @Bean
+    public Binding offerRatedBinding(Queue gamificationEventsQueue, TopicExchange offerhubEventsExchange) {
+        return BindingBuilder.bind(gamificationEventsQueue).to(offerhubEventsExchange).with(OFFER_RATED);
     }
 }

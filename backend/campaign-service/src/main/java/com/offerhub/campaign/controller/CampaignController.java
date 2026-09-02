@@ -3,17 +3,21 @@ package com.offerhub.campaign.controller;
 import com.offerhub.campaign.dto.ApiResponse;
 import com.offerhub.campaign.dto.CampaignResponse;
 import com.offerhub.campaign.dto.CreateCampaignRequest;
+import com.offerhub.campaign.dto.DashboardResponse;
 import com.offerhub.campaign.dto.PagedResult;
+import com.offerhub.campaign.dto.SegmentOverrideRequest;
 import com.offerhub.campaign.entity.CampaignStatus;
 import com.offerhub.campaign.entity.Segment;
 import com.offerhub.campaign.security.CallerIdentity;
 import com.offerhub.campaign.security.Role;
 import com.offerhub.campaign.service.CampaignService;
+import com.offerhub.campaign.service.DashboardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +35,7 @@ public class CampaignController {
     private static final int MAX_PAGE_SIZE = 100;
 
     private final CampaignService campaignService;
+    private final DashboardService dashboardService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -50,7 +55,27 @@ public class CampaignController {
 
         caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR, Role.ADMIN);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
-        return ApiResponse.ok(campaignService.list(status, segment, pageable));
+        return ApiResponse.ok(campaignService.list(status, segment, caller, pageable));
+    }
+
+    /**
+     * Declared before /{campaignNo} on purpose is not enough on its own - Spring prefers
+     * the literal path over the variable one, so "dashboard" is never read as a campaign
+     * number. Kept adjacent so the reason stays visible.
+     */
+    @GetMapping("/dashboard")
+    public ApiResponse<DashboardResponse> dashboard(CallerIdentity caller) {
+        caller.requireAnyOf(Role.SUPERVISOR, Role.ADMIN);
+        return ApiResponse.ok(dashboardService.load());
+    }
+
+    /** AI override. Admins are out: the role matrix gives this to the two who do the work. */
+    @PatchMapping("/{campaignNo}/segment")
+    public ApiResponse<CampaignResponse> overrideSegment(@PathVariable String campaignNo,
+                                                         @Valid @RequestBody SegmentOverrideRequest request,
+                                                         CallerIdentity caller) {
+        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
+        return ApiResponse.ok(campaignService.overrideSegment(campaignNo, request, caller));
     }
 
     @GetMapping("/{campaignNo}")

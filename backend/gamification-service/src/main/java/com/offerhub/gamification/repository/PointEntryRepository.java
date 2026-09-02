@@ -22,10 +22,16 @@ public interface PointEntryRepository extends JpaRepository<PointEntry, UUID> {
     /** Backs the Maratoncu badge: how much was done inside a moving 24 hour window. */
     long countByExpertIdAndReasonAndEarnedAtAfter(UUID expertId, PointReason reason, Instant after);
 
-    /** Backs the Uzman badge: the caller takes the largest of these counts. */
+    /**
+     * Backs the Uzman badge: the caller takes the largest of these counts.
+     * BELIRSIZ is excluded because it is the absence of a classification, not a segment
+     * to specialise in. Counting it would hand "Uzman" to whoever closed 50 unclassified
+     * cases - which, until AI Service is wired in, is every case there is.
+     */
     @Query("""
             select count(p) from PointEntry p
-            where p.expertId = :expertId and p.reason = :reason and p.segment is not null
+            where p.expertId = :expertId and p.reason = :reason
+              and p.segment is not null and p.segment <> 'BELIRSIZ'
             group by p.segment
             """)
     List<Long> countsPerSegment(@Param("expertId") UUID expertId, @Param("reason") PointReason reason);

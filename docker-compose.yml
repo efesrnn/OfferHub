@@ -79,6 +79,13 @@ services:
       RABBITMQ_PASSWORD: guest
       SLA_TIME_UNIT: ${SLA_TIME_UNIT:-hours}
       SLA_SCAN_INTERVAL_MS: ${SLA_SCAN_INTERVAL_MS:-30000}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      # Spring Boot needs a moment; without this the first probes fail and burn retries.
+      start_period: 40s
     depends_on:
       campaign-db:
         condition: service_healthy
@@ -165,6 +172,13 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      # Spring Boot needs a moment; without this the first probes fail and burn retries.
+      start_period: 40s
     depends_on:
       gamification-db:
         condition: service_healthy
@@ -186,11 +200,19 @@ services:
       AI_SERVICE_URL: http://ai-service:8080
       GAMIFICATION_SERVICE_URL: http://gamification-service:8080
       JWT_SECRET: ${JWT_SECRET}
+    # service_healthy where a service reports it: the gateway is the single entry point,
+    # and answering 503 because a service is still booting looks like an outage to whoever
+    # is watching the demo. Identity and AI do not expose a health endpoint yet, so they
+    # stay on the default service_started until that is agreed with Backend1.
     depends_on:
-      - identity-service
-      - campaign-service
-      - ai-service
-      - gamification-service
+      identity-service:
+        condition: service_started
+      campaign-service:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+      gamification-service:
+        condition: service_healthy
 
 volumes:
   identity-data:

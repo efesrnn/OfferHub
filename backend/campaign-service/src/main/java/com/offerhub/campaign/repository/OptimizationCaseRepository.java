@@ -91,6 +91,20 @@ public interface OptimizationCaseRepository extends JpaRepository<OptimizationCa
             """)
     List<OptimizationCase> findBreachedBefore(@Param("now") Instant now);
 
+    /** At most one case per campaign - the unique constraint on campaign_id says so. */
+    Optional<OptimizationCase> findByCampaignId(UUID campaignId);
+
+    /** Dashboard: cases the SLA can be judged on at all - the rest have no deadline. */
+    long countBySlaDeadlineIsNotNull();
+
+    long countBySlaBreachedAtIsNotNull();
+
+    /** Breached and still open: the red card on the supervisor's screen. */
+    long countBySlaBreachedAtIsNotNullAndCompletedAtIsNull();
+
+    /** Waiting for someone to pick them up. */
+    long countByStatus(CaseStatus status);
+
     /** Detail reads need the campaign too, so fetch it instead of lazy loading it later. */
     @Query("select oc from OptimizationCase oc join fetch oc.campaign where oc.id = :id")
     Optional<OptimizationCase> findByIdWithCampaign(@Param("id") UUID id);

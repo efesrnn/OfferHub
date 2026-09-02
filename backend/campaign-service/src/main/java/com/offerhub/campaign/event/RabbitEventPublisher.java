@@ -28,8 +28,20 @@ public class RabbitEventPublisher {
     public void publish(OutboundEvent event) {
         EventEnvelope envelope = new EventEnvelope(event.eventType(), Instant.now(), event.payload());
 
-        // Routing key is the eventType itself, so a new consumer binds without us changing anything.
-        rabbitTemplate.convertAndSend(RabbitConfig.EVENTS_EXCHANGE, event.eventType(), envelope);
-        log.info("Published {}", event.eventType());
+        try {
+            // Routing key is the eventType itself, so a new consumer binds without us changing anything.
+            rabbitTemplate.convertAndSend(RabbitConfig.EVENTS_EXCHANGE, event.eventType(), envelope);
+            log.info("Published {}", event.eventType());
+        } catch (RuntimeException ex) {
+            // Swallowed on purpose. An exception thrown from an after-commit callback
+            // propagates out of the commit, so a broker outage would turn a campaign that
+            // was created successfully into a 500 for the caller. The case document
+            // requires the rest of the system to keep working when one service is down,
+            // and the demo tests exactly that by stopping a container.
+            // The cost is a lost announcement, logged loudly: business data stays correct,
+            // only the notification is missed. An outbox table would close that gap.
+            log.error("Could not publish {} - the change is committed, the event is lost",
+                    event.eventType(), ex);
+        }
     }
 }

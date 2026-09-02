@@ -4,6 +4,7 @@ import com.offerhub.gamification.entity.ExpertProfile;
 import com.offerhub.gamification.entity.PointEntry;
 import com.offerhub.gamification.entity.PointReason;
 import com.offerhub.gamification.event.CampaignOptimizedEvent;
+import com.offerhub.gamification.event.OfferRatedEvent;
 import com.offerhub.gamification.event.SlaBreachedEvent;
 import com.offerhub.gamification.repository.ExpertProfileRepository;
 import com.offerhub.gamification.repository.PointEntryRepository;
@@ -29,6 +30,9 @@ public class ScoringService {
     private static final BigDecimal CONVERSION_TARGET = new BigDecimal("0.10");
 
     private static final String CRITICAL_PRIORITY = "KRITIK";
+
+    /** Case document 7.1: one or two stars is a complaint, three and up is not. */
+    private static final int LOW_RATING_MAX_STARS = 2;
 
     private final PointEntryRepository pointEntryRepository;
     private final ExpertProfileRepository profileRepository;
@@ -71,6 +75,25 @@ public class ScoringService {
             return;
         }
         award(event.expertId(), event.caseId(), PointReason.SLA_BREACH, null);
+    }
+
+    /**
+     * Case document 7.1: one or two stars means the offer was irrelevant to the subscriber,
+     * and that costs the expert who worked the campaign three points. Anything above two
+     * is not a complaint, so nothing happens - there is no reward for a good rating in the
+     * scoring table.
+     */
+    @Transactional
+    public void score(OfferRatedEvent event) {
+        if (event.expertId() == null) {
+            log.info("Offer {} rated with no expert behind the campaign, nothing to score",
+                    event.offerId());
+            return;
+        }
+        if (event.stars() == null || event.stars() > LOW_RATING_MAX_STARS) {
+            return;
+        }
+        award(event.expertId(), event.offerId(), PointReason.LOW_RATING, null);
     }
 
     /**
