@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -23,6 +22,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,14 +43,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,13 +61,28 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.annotation.StringRes
+import androidx.compose.ui.graphics.vector.ImageVector
+
+data class BottomBarItem(
+    val id: String,
+    val icon: ImageVector,
+    @StringRes val contentDescriptionRes: Int,
+    val onClick: () -> Unit
+)
 
 @Composable
 fun OfferHubTopBar() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(90.dp)
+            .height(98.dp)
+            .clip(
+                RoundedCornerShape(
+                    bottomStart = 16.dp,
+                    bottomEnd = 16.dp
+                )
+            )
             .background(
                 brush = Brush.horizontalGradient(
                     listOf(Secondary, Primary)
@@ -123,82 +137,87 @@ fun OfferHubDetailTopBar(
 }
 
 @Composable
+fun AuthBackButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    IconButton(onClick = onClick, modifier = modifier) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(R.string.back),
+            tint = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@Composable
 fun OfferHubBottomBar(
+    selectedItem: String,
+    items: List<BottomBarItem>
+) {
+    val itemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        selectedTextColor = MaterialTheme.colorScheme.onSurface,
+        indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+
+    NavigationBar(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(85.dp)
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
+        items.forEach { item ->
+            NavigationBarItem(
+                selected = selectedItem == item.id,
+                onClick = item.onClick,
+                colors = itemColors,
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = stringResource(item.contentDescriptionRes),
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun SubscriberBottomBar(
     selectedItem: String,
     onHomeClick: () -> Unit,
     onOffersClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
-    val itemColors =
-        NavigationBarItemDefaults.colors(
-            selectedIconColor =
-                MaterialTheme.colorScheme.onSecondaryContainer,
-
-            selectedTextColor =
-                MaterialTheme.colorScheme.onSurface,
-
-            indicatorColor =
-                MaterialTheme.colorScheme.secondaryContainer,
-
-            unselectedIconColor =
-                MaterialTheme.colorScheme.onSurfaceVariant,
-
-            unselectedTextColor =
-                MaterialTheme.colorScheme.onSurfaceVariant
+    OfferHubBottomBar(
+        selectedItem = selectedItem,
+        items = listOf(
+            BottomBarItem(
+                id = "home",
+                icon = Icons.Default.Home,
+                contentDescriptionRes = R.string.nav_home,
+                onClick = onHomeClick
+            ),
+            BottomBarItem(
+                id = "offers",
+                icon = Icons.Default.LocalOffer,
+                contentDescriptionRes = R.string.nav_offers,
+                onClick = onOffersClick
+            ),
+            BottomBarItem(
+                id = "profile",
+                icon = Icons.Default.Person,
+                contentDescriptionRes = R.string.nav_profile,
+                onClick = onProfileClick
+            )
         )
-
-    NavigationBar(
-        modifier = Modifier.fillMaxWidth(),
-
-        containerColor =
-            MaterialTheme.colorScheme.surface,
-
-        contentColor =
-            MaterialTheme.colorScheme.onSurface
-    ) {
-        NavigationBarItem(
-            selected = selectedItem == "home",
-            onClick = onHomeClick,
-            colors = itemColors,
-
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = stringResource(R.string.nav_home)
-                )
-            }
-        )
-
-        NavigationBarItem(
-            selected = selectedItem == "offers",
-            onClick = onOffersClick,
-            colors = itemColors,
-
-            icon = {
-                Icon(
-                    imageVector =
-                        Icons.Default.LocalOffer,
-
-                    contentDescription = stringResource(R.string.nav_offers)
-                )
-            }
-        )
-
-        NavigationBarItem(
-            selected = selectedItem == "profile",
-            onClick = onProfileClick,
-            colors = itemColors,
-
-            icon = {
-                Icon(
-                    imageVector =
-                        Icons.Default.Person,
-
-                    contentDescription = stringResource(R.string.nav_profile)
-                )
-            }
-        )
-    }
+    )
 }
 
 @Composable
@@ -235,7 +254,7 @@ fun SeeAllButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Button(
+    OutlinedButton(
         onClick = onClick,
 
         modifier = modifier
@@ -243,44 +262,14 @@ fun SeeAllButton(
             .height(30.dp),
 
         shape = RoundedCornerShape(50.dp),
-
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
-            contentColor = Color.White
-        ),
-
         contentPadding = PaddingValues(0.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.horizontalGradient(
-                        listOf(
-                            Secondary,
-                            Primary
-                        )
-                    ),
-                    shape =
-                        RoundedCornerShape(50.dp)
-                ),
-
-            contentAlignment =
-                Alignment.Center
-        ) {
-            Icon(
-                imageVector =
-                    Icons.AutoMirrored.Filled.ArrowForward,
-
-                contentDescription =
-                    stringResource(R.string.view_all_offers),
-
-                tint = Color.White,
-
-                modifier =
-                    Modifier.size(20.dp)
-            )
-        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = stringResource(R.string.view_all_offers),
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 

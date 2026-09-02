@@ -2,6 +2,7 @@ package com.example.offerhub.screens.auth
 
 import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
+import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.R
@@ -37,6 +39,7 @@ fun StaffLoginScreen(
         email: String,
         password: String
     ) -> Unit,
+    onBackClick: () -> Unit,
     isLoading: Boolean = false,
     backendError: String? = null,
     lockRemainingSeconds: Long = 0,
@@ -57,10 +60,18 @@ fun StaffLoginScreen(
         val emailIsInvalid=email.isBlank()||!Patterns.EMAIL_ADDRESS.matcher(email).matches()
         var emailTouched by remember { mutableStateOf(false) }
        val passwordIsInvalid = password.isBlank()
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .safeDrawingPadding()
+            ) {
+                AuthBackButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.align(Alignment.TopStart)
+                )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(
                         horizontal = 32.dp,
                         vertical = 24.dp
@@ -185,6 +196,7 @@ fun StaffLoginScreen(
             }
 
         }
+        }
     }
 }
 
@@ -192,6 +204,9 @@ fun StaffLoginScreen(
 @Composable
 fun StaffLoginPreview()
 {
-    StaffLoginScreen(onLoginClick = {_,_->})
+    StaffLoginScreen(
+        onLoginClick = {_,_->},
+        onBackClick = {}
+    )
 
 }

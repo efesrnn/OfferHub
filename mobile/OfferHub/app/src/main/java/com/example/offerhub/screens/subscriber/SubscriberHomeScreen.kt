@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.NavigationActionCard
 import com.example.offerhub.components.OfferCard
-import com.example.offerhub.components.OfferHubBottomBar
+import com.example.offerhub.components.SubscriberBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
@@ -73,7 +73,7 @@ fun SubscriberHomeScreen(
         },
 
         bottomBar = {
-            OfferHubBottomBar(
+            SubscriberBottomBar(
                 selectedItem = "home",
                 onHomeClick = onHomeClick,
                 onOffersClick = onOffersClick,

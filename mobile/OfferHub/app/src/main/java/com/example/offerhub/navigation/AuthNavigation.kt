@@ -83,6 +83,7 @@ fun NavGraphBuilder.authGraph(
         }
         StaffLoginScreen(
             onLoginClick = authViewModel::staffLogin,
+            onBackClick = navController::popBackStack,
             isLoading = authState.isLoading,
             backendError = authState.errorMessage?.asString(),
             lockRemainingSeconds = authState.lockRemainingSeconds,
@@ -141,6 +142,7 @@ fun NavGraphBuilder.authGraph(
                 authViewModel.clearError()
                 navController.navigate(Routes.SUBSCRIBER_REGISTER)
             },
+            onBackClick = navController::popBackStack,
             isLoading = authState.isOtpRequestLoading,
             backendError = authState.errorMessage?.asString()
         )
@@ -153,6 +155,12 @@ fun NavGraphBuilder.authGraph(
             onLoginClick = {
                 authViewModel.clearError()
                 navController.popBackStack()
+            },
+            onBackClick = {
+                navController.popBackStack(
+                    route = Routes.AUTH_CHOICE,
+                    inclusive = false
+                )
             },
             isLoading = authState.isLoading,
             backendError = authState.errorMessage?.asString()
@@ -182,6 +190,7 @@ fun NavGraphBuilder.authGraph(
             onResendClick = { useFirebase ->
                 authViewModel.resendOtp(phone, useFirebase)
             },
+            onBackClick = navController::popBackStack,
             isVerifying = authState.isLoading,
             isResending = authState.isOtpRequestLoading,
             resendCooldownSeconds = authState.resendCooldownSeconds,

@@ -2,6 +2,7 @@ package com.example.offerhub.screens.auth
 
 import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
 import com.example.offerhub.components.AuthButton
-import com.example.offerhub.components.ClickableText
+import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.ui.theme.OfferHubTheme
 
@@ -46,10 +47,18 @@ fun ForgotPasswordScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
+        ) {
+            AuthBackButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(horizontal = 32.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -98,11 +107,7 @@ fun ForgotPasswordScreen(
                     if (emailIsValid) onRequestCodeClick(email.trim())
                 }
             )
-            Spacer(Modifier.height(18.dp))
-            ClickableText(
-                text = stringResource(R.string.back),
-                onClick = onBackClick
-            )
+        }
         }
     }
 }

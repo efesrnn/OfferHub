@@ -1,6 +1,7 @@
 package com.example.offerhub.screens.auth
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
+import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.R
@@ -37,6 +39,7 @@ fun OtpVerificationScreen(
     phoneNumber: String,
     onVerifyClick:(otp:String,useFirebase: Boolean)->Unit,
     onResendClick:(useFirebase: Boolean)->Unit,
+    onBackClick:()->Unit,
     isVerifying: Boolean = false,
     isResending: Boolean = false,
     resendCooldownSeconds: Int = 0,
@@ -54,10 +57,18 @@ fun OtpVerificationScreen(
         var useFirebase by remember { mutableStateOf(false) }
         val otpIsInvalid = otp.isBlank() || otp.length != 4
 
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
+        ) {
+            AuthBackButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(
                     horizontal = 32.dp,
                     vertical = 24.dp
@@ -173,6 +184,7 @@ fun OtpVerificationScreen(
                 )
             }
         }
+        }
     }
 }
 
@@ -183,6 +195,7 @@ fun OtpVerificationPreview()
     OtpVerificationScreen(
         phoneNumber="+90 *** *** ** **",
         onVerifyClick = {_,_->},
-        onResendClick = {}
+        onResendClick = {},
+        onBackClick = {}
     )
 }
