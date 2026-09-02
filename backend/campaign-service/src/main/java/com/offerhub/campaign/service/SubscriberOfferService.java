@@ -5,6 +5,7 @@ import com.offerhub.campaign.entity.Campaign;
 import com.offerhub.campaign.entity.CampaignStatus;
 import com.offerhub.campaign.entity.OfferStatus;
 import com.offerhub.campaign.entity.SubscriberOffer;
+import com.offerhub.campaign.event.OfferRatedPayload;
 import com.offerhub.campaign.event.OfferRespondedPayload;
 import com.offerhub.campaign.event.OutboundEvent;
 import com.offerhub.campaign.exception.ApiException;
@@ -83,6 +84,29 @@ public class SubscriberOfferService {
 
         eventPublisher.publishEvent(new OutboundEvent(
                 OutboundEvent.OFFER_RESPONDED, OfferRespondedPayload.from(offer)));
+
+        return OfferResponse.from(offer);
+    }
+
+    @Transactional
+    public OfferResponse rate(UUID subscriberId, UUID offerId, Integer rating) {
+        if (rating == null || rating < 1 || rating > 5) {
+            throw new ApiException(ErrorCode.INVALID_RATING, "Puan 1 ile 5 arasinda olmalidir");
+        }
+
+        SubscriberOffer offer = load(subscriberId, offerId);
+        if (offer.getStatus() != OfferStatus.ACCEPTED) {
+            throw new ApiException(ErrorCode.OFFER_NOT_ACCEPTED, "Sadece kabul edilen tekliflere puan verilebilir");
+        }
+        if (offer.getRating() != null) {
+            throw new ApiException(ErrorCode.OFFER_ALREADY_RATED, "Bu teklife zaten puan verdiniz");
+        }
+
+        offer.setRating(rating);
+        offer.setRatedAt(Instant.now());
+
+        eventPublisher.publishEvent(new OutboundEvent(
+                OutboundEvent.OFFER_RATED, OfferRatedPayload.from(offer)));
 
         return OfferResponse.from(offer);
     }

@@ -3,6 +3,7 @@ package com.offerhub.campaign.controller;
 import com.offerhub.campaign.dto.ApiResponse;
 import com.offerhub.campaign.dto.OfferActionResponse;
 import com.offerhub.campaign.dto.OfferResponse;
+import com.offerhub.campaign.dto.RateRequest;
 import com.offerhub.campaign.security.CallerIdentity;
 import com.offerhub.campaign.security.Role;
 import com.offerhub.campaign.service.SubscriberOfferService;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,5 +47,13 @@ public class SubscriberOfferController {
     public ApiResponse<OfferActionResponse> decline(@PathVariable UUID offerId, CallerIdentity caller) {
         caller.requireAnyOf(Role.SUBSCRIBER);
         return ApiResponse.ok(new OfferActionResponse(offerService.respond(caller.userId(), offerId, false)));
+    }
+
+    @PostMapping("/{offerId}/rating")
+    public ApiResponse<OfferActionResponse> rate(@PathVariable UUID offerId,
+                                                  @RequestBody RateRequest request,
+                                                  CallerIdentity caller) {
+        caller.requireAnyOf(Role.SUBSCRIBER);
+        return ApiResponse.ok(new OfferActionResponse(offerService.rate(caller.userId(), offerId, request.rating())));
     }
 }

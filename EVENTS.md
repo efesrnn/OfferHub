@@ -106,6 +106,29 @@ Zarf formatı sabit (bkz. `docs/API-CONTRACT.md` ve `docs/ORTAK-KARARLAR.md` —
 
 ---
 
+## offer.rated
+
+**Yayınlayan:** Campaign Service
+**Dinleyen:** Gamification Service (henüz dinleyici yazılmadı — 1-2 yıldız için −3 puan, bkz. case Bölüm 7.1; bu event Backend 1 tarafından eklendi, tüketici tarafı Backend 2'nin eklemesi gerekiyor)
+**Ne zaman tetiklenir:** Abone, kabul ettiği bir teklife 1–5 yıldız memnuniyet puanı verdiğinde (tek seferlik)
+
+```json
+{
+  "eventType": "offer.rated",
+  "timestamp": "2026-09-02T15:20:00Z",
+  "payload": {
+    "offerId": "f1a2...",
+    "subscriberId": "b7e1...",
+    "campaignNo": "CMP-2026-000123",
+    "rating": 2
+  }
+}
+```
+
+**Gamification Service tarafında beklenen işlem:** `rating` 1 veya 2 ise −3 puan (case Bölüm 7.1, "Abone düşük puan verdi"); 3-5 için ek işlem yok.
+
+---
+
 ## sla.breached
 
 **Yayınlayan:** Campaign Service (arka planda çalışan bir zamanlayıcı/scheduler, SLA süresini dolan aktif vakaları tarar)
@@ -164,7 +187,7 @@ Her tüketici servis (`Gamification`, `AI`) kendi kuyruğunu ilgili routing key'
 
 | Servis | Dinlediği routing key'ler |
 |---|---|
-| Gamification Service | `campaign.optimized`, `sla.breached` |
+| Gamification Service | `campaign.optimized`, `sla.breached`, `offer.rated` (dinleyici henüz eklenmedi) |
 | AI Service | `segment.changed`, `offer.responded` |
 
 Mobil, event'leri doğrudan dinlemez (RabbitMQ'ya bağlanmaz) — `badge.earned` gibi kullanıcıya gösterilecek sonuçlar, ilgili REST endpoint'i (`/api/v1/game/profile`) üzerinden okunur.

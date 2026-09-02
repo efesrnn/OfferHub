@@ -20,7 +20,9 @@ public enum ErrorCode {
     OPTIMIZATION_NOTE_REQUIRED(HttpStatus.BAD_REQUEST),
     OFFER_ALREADY_RATED(HttpStatus.CONFLICT),
     OFFER_ALREADY_RESPONDED(HttpStatus.CONFLICT),
-    OFFER_NOT_FOUND(HttpStatus.NOT_FOUND);
+    OFFER_NOT_FOUND(HttpStatus.NOT_FOUND),
+    OFFER_NOT_ACCEPTED(HttpStatus.CONFLICT),
+    INVALID_RATING(HttpStatus.BAD_REQUEST);
 
     private final HttpStatus status;
 
