@@ -15,8 +15,9 @@ interface SupervisorRepository {
     suspend fun assignCase(caseId: String, expertId: String): SupervisorResult<SupervisorDashboard>
     suspend fun publishCase(caseId: String): SupervisorResult<SupervisorDashboard>
     suspend fun updateCaseClassification(
-        caseId: String,
+        campaignNo: String,
         segment: Segment,
-        priority: Priority
+        priority: Priority,
+        reason: String
     ): SupervisorResult<SupervisorDashboard>
 }

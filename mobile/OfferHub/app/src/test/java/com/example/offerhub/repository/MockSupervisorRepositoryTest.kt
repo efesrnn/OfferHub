@@ -14,6 +14,7 @@ class MockSupervisorRepositoryTest {
         val result = MockSupervisorRepository().getDashboard() as SupervisorResult.Success
 
         assertTrue(result.value.aiAccuracyPercent in 0.0..100.0)
+        assertTrue(result.value.aiClassifiedCampaignCount > 0)
         assertTrue(result.value.conversionRatePercent in 0.0..100.0)
         assertTrue(result.value.slaCompliancePercent in 0.0..100.0)
         assertTrue(result.value.slaBreachedActiveCaseCount >= 0)
@@ -64,7 +65,8 @@ class MockSupervisorRepositoryTest {
         val result = MockSupervisorRepository().updateCaseClassification(
             "case-105",
             Segment.PASIF,
-            Priority.ORTA
+            Priority.ORTA,
+            "Manual review"
         )
 
         assertTrue(result is SupervisorResult.Failure)
@@ -84,7 +86,8 @@ class MockSupervisorRepositoryTest {
         val result = MockSupervisorRepository().updateCaseClassification(
             "case-102",
             Segment.RISKLI_KAYIP,
-            Priority.DUSUK
+            Priority.DUSUK,
+            "Churn risk review"
         )
 
         assertTrue(result is SupervisorResult.Failure)

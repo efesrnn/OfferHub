@@ -51,6 +51,13 @@ import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.campaign.CaseStatus
 
 enum class SupervisorCaseListMode { PENDING_ASSIGNMENT, ACTIVE, APPROVAL, PUBLISHED }
+private data class PendingClassification(
+    val campaignNo: String,
+    val segment: Segment,
+    val priority: Priority,
+    val reason: String
+)
+
 private enum class ActiveCaseTab(val status: CaseStatus) {
     ASSIGNED(CaseStatus.ATANDI),
     OPTIMIZING(CaseStatus.OPTIMIZE_EDILIYOR),
@@ -71,7 +78,7 @@ fun SupervisorCaseListScreen(
     actionSuccessVersion: Long,
     onAssignCase: (String, String) -> Unit,
     onPublishCase: (String) -> Unit,
-    onUpdateClassification: (String, Segment, Priority) -> Unit,
+    onUpdateClassification: (String, Segment, Priority, String) -> Unit,
     onClearActionError: () -> Unit,
     onRetryClick: () -> Unit,
     onBackClick: () -> Unit
@@ -80,7 +87,7 @@ fun SupervisorCaseListScreen(
     var editingCase by remember { mutableStateOf<SupervisorCaseSummary?>(null) }
     var assignmentCase by remember { mutableStateOf<SupervisorCaseSummary?>(null) }
     var assignmentQuery by remember { mutableStateOf("") }
-    var pendingClassification by remember { mutableStateOf<Triple<String, Segment, Priority>?>(null) }
+    var pendingClassification by remember { mutableStateOf<PendingClassification?>(null) }
     var activeCaseTab by remember { mutableStateOf(ActiveCaseTab.ASSIGNED) }
     var handledActionSuccessVersion by remember { mutableStateOf(actionSuccessVersion) }
     val displayedCases = if (mode == SupervisorCaseListMode.ACTIVE) {
@@ -244,6 +251,8 @@ fun SupervisorCaseListScreen(
     editingCase?.let { item ->
         var selectedSegment by remember(item.caseId, item.segment) { mutableStateOf(item.segment) }
         var selectedPriority by remember(item.caseId, item.priority) { mutableStateOf(item.priority) }
+        var classificationReason by remember(item.caseId) { mutableStateOf("") }
+        val classificationChanged = selectedSegment != item.segment || selectedPriority != item.priority
         ModalBottomSheet(onDismissRequest = {
             if (!isSubmitting) {
                 editingCase = null
@@ -282,15 +291,33 @@ fun SupervisorCaseListScreen(
                         FilterChip(selectedPriority == priority, { selectedPriority = priority }, { Text(priority.displayName()) })
                     }
                 }
+                OutlinedTextField(
+                    value = classificationReason,
+                    onValueChange = { classificationReason = it.take(500) },
+                    label = { Text(stringResource(R.string.supervisor_classification_reason)) },
+                    supportingText = { Text(stringResource(R.string.supervisor_classification_reason_support)) },
+                    minLines = 2,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Button(
                     onClick = {
                             if (item.status == CaseStatus.OPTIMIZE_EDILIYOR) {
-                                pendingClassification = Triple(item.caseId, selectedSegment, selectedPriority)
+                                pendingClassification = PendingClassification(
+                                    item.campaignNo,
+                                    selectedSegment,
+                                    selectedPriority,
+                                    classificationReason.trim()
+                                )
                             } else {
-                                onUpdateClassification(item.caseId, selectedSegment, selectedPriority)
+                                onUpdateClassification(
+                                    item.campaignNo,
+                                    selectedSegment,
+                                    selectedPriority,
+                                    classificationReason.trim()
+                                )
                             }
                     },
-                    enabled = !isSubmitting,
+                    enabled = !isSubmitting && classificationChanged && classificationReason.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text(stringResource(R.string.supervisor_save_changes)) }
                 actionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -341,7 +368,7 @@ fun SupervisorCaseListScreen(
             }
         }
     }
-    pendingClassification?.let { (caseId, segment, priority) ->
+    pendingClassification?.let { pending ->
         AlertDialog(
             onDismissRequest = { pendingClassification = null },
             title = { Text(stringResource(R.string.supervisor_confirm_active_edit_title)) },
@@ -349,7 +376,12 @@ fun SupervisorCaseListScreen(
             confirmButton = {
                 TextButton(onClick = {
                     pendingClassification = null
-                    onUpdateClassification(caseId, segment, priority)
+                    onUpdateClassification(
+                        pending.campaignNo,
+                        pending.segment,
+                        pending.priority,
+                        pending.reason
+                    )
                 }) { Text(stringResource(R.string.supervisor_confirm)) }
             },
             dismissButton = {

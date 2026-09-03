@@ -2,9 +2,10 @@ package com.example.offerhub.data.remote
 
 import com.example.offerhub.data.network.ApiResponse
 import com.example.offerhub.data.network.PagedResult
-import com.example.offerhub.data.remote.dto.AiAccuracyDto
 import com.example.offerhub.data.remote.dto.AssignCaseRequest
 import com.example.offerhub.data.remote.dto.CaseDto
+import com.example.offerhub.data.remote.dto.CampaignDto
+import com.example.offerhub.data.remote.dto.ClassificationRequest
 import com.example.offerhub.data.remote.dto.SupervisorDashboardDto
 import com.example.offerhub.data.remote.dto.StatusChangeRequest
 import retrofit2.Response
@@ -39,6 +40,9 @@ interface SupervisorApi {
         @Body request: StatusChangeRequest
     ): Response<ApiResponse<CaseDto>>
 
-    @GET("api/v1/ai/accuracy")
-    suspend fun getAiAccuracy(): Response<ApiResponse<AiAccuracyDto>>
+    @PATCH("api/v1/campaigns/{campaignNo}/classification")
+    suspend fun updateClassification(
+        @Path("campaignNo") campaignNo: String,
+        @Body request: ClassificationRequest
+    ): Response<ApiResponse<CampaignDto>>
 }

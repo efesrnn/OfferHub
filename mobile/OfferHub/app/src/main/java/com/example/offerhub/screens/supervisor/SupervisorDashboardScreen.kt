@@ -2,8 +2,10 @@ package com.example.offerhub.screens.supervisor
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
@@ -104,19 +106,36 @@ private fun DashboardContent(
             Text(stringResource(R.string.supervisor_dashboard), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         }
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricCard(stringResource(R.string.supervisor_ai_accuracy), "${dashboard.aiAccuracyPercent}%", Modifier.weight(1f))
+            Row(
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MetricCard(
+                    label = stringResource(R.string.supervisor_ai_accuracy),
+                    value = "${dashboard.aiAccuracyPercent}%",
+                    modifier = Modifier.weight(1f),
+                    supportingText = stringResource(
+                        R.string.supervisor_ai_accuracy_sample,
+                        dashboard.aiClassifiedCampaignCount
+                    )
+                )
                 MetricCard(stringResource(R.string.supervisor_sla_compliance), "${dashboard.slaCompliancePercent}%", Modifier.weight(1f))
             }
         }
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 MetricCard(stringResource(R.string.supervisor_active_cases), dashboard.activeCaseCount.toString(), Modifier.weight(1f), onActiveCasesClick)
                 MetricCard(stringResource(R.string.supervisor_pending_assignment), dashboard.pendingAssignmentCount.toString(), Modifier.weight(1f), onPendingAssignmentClick)
             }
         }
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 MetricCard(stringResource(R.string.supervisor_conversion_rate), "${dashboard.conversionRatePercent}%", Modifier.weight(1f))
                 MetricCard(stringResource(R.string.supervisor_sla_breached_cases), dashboard.slaBreachedActiveCaseCount.toString(), Modifier.weight(1f))
             }
@@ -205,14 +224,22 @@ private fun ExpertSummaryCard(expert: ExpertPerformanceSummary) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
         Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(expert.displayName, fontWeight = FontWeight.Bold)
-            Text(
+            val summary = expert.averageConversionIncrease?.let { conversionIncrease ->
                 pluralStringResource(
                     R.plurals.supervisor_expert_summary,
                     expert.completedCases,
                     expert.completedCases,
-                    expert.averageConversionIncrease,
+                    conversionIncrease,
                     expert.averageCompletionHours
-                ),
+                )
+            } ?: pluralStringResource(
+                R.plurals.supervisor_expert_summary_unmeasured,
+                expert.completedCases,
+                expert.completedCases,
+                expert.averageCompletionHours
+            )
+            Text(
+                summary,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -230,24 +257,35 @@ private fun MetricCard(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    supportingText: String? = null
 ) {
     if (onClick == null) {
-        Card(modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-            MetricCardContent(label, value)
+        Card(
+            modifier.fillMaxHeight(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            MetricCardContent(label, value, supportingText)
         }
     } else {
-        Card(onClick = onClick, modifier = modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-            MetricCardContent(label, value)
+        Card(
+            onClick = onClick,
+            modifier = modifier.fillMaxHeight(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            MetricCardContent(label, value, supportingText)
         }
     }
 }
 
 @Composable
-private fun MetricCardContent(label: String, value: String) {
+private fun MetricCardContent(label: String, value: String, supportingText: String?) {
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Text(label, style = MaterialTheme.typography.bodySmall)
+        supportingText?.let {
+            Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
@@ -321,8 +359,11 @@ private fun ConversionLineChart(dashboard: SupervisorDashboard) {
                     coordinates.forEach { drawCircle(lineColor, radius = 8f, center = it) }
                 }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                points.forEach { Text("${it.period}\n${it.conversionPercent}%", style = MaterialTheme.typography.labelSmall) }
+            if (points.isNotEmpty()) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    val labels = if (points.size == 1) points else listOf(points.first(), points.last())
+                    labels.forEach { Text("${it.period}\n${it.conversionPercent}%", style = MaterialTheme.typography.labelSmall) }
+                }
             }
         }
     }

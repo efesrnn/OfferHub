@@ -54,8 +54,13 @@ class SupervisorViewModel(
         repository.publishCase(caseId)
     }
 
-    fun updateCaseClassification(caseId: String, segment: Segment, priority: Priority) = executeAction {
-        repository.updateCaseClassification(caseId, segment, priority)
+    fun updateCaseClassification(
+        campaignNo: String,
+        segment: Segment,
+        priority: Priority,
+        reason: String
+    ) = executeAction {
+        repository.updateCaseClassification(campaignNo, segment, priority, reason)
     }
 
     fun clearActionError() = _uiState.update { it.copy(actionErrorMessage = null) }

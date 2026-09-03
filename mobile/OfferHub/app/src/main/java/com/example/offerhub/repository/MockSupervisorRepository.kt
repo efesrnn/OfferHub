@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 class MockSupervisorRepository : SupervisorRepository {
     private var dashboard = SupervisorDashboard(
         aiAccuracyPercent = 87.4,
+        aiClassifiedCampaignCount = 55,
         conversionRatePercent = 34.0,
         slaCompliancePercent = 92.1,
         slaBreachedActiveCaseCount = 1,
@@ -87,23 +88,27 @@ class MockSupervisorRepository : SupervisorRepository {
     }
 
     override suspend fun updateCaseClassification(
-        caseId: String,
+        campaignNo: String,
         segment: Segment,
-        priority: Priority
+        priority: Priority,
+        reason: String
     ): SupervisorResult<SupervisorDashboard> {
         delay(200)
+        if (reason.isBlank()) {
+            return SupervisorResult.Failure(com.example.offerhub.data.network.ApiError("VALIDATION_ERROR"))
+        }
         if (segment == Segment.RISKLI_KAYIP && priority !in setOf(Priority.YUKSEK, Priority.KRITIK)) {
             return SupervisorResult.Failure(com.example.offerhub.data.network.ApiError("RISK_SEGMENT_PRIORITY_TOO_LOW"))
         }
-        if (dashboard.attentionCases.none { it.caseId == caseId }) {
+        if (dashboard.attentionCases.none { it.campaignNo == campaignNo }) {
             return SupervisorResult.Failure(com.example.offerhub.data.network.ApiError("CASE_NOT_FOUND"))
         }
-        val targetCase = dashboard.attentionCases.first { it.caseId == caseId }
+        val targetCase = dashboard.attentionCases.first { it.campaignNo == campaignNo }
         if (targetCase.status !in setOf(CaseStatus.YENI, CaseStatus.ATANDI, CaseStatus.OPTIMIZE_EDILIYOR)) {
             return SupervisorResult.Failure(com.example.offerhub.data.network.ApiError("CASE_CLASSIFICATION_LOCKED"))
         }
         dashboard = dashboard.copy(attentionCases = dashboard.attentionCases.map {
-            if (it.caseId == caseId) it.copy(segment = segment, priority = priority) else it
+            if (it.campaignNo == campaignNo) it.copy(segment = segment, priority = priority) else it
         })
         return SupervisorResult.Success(dashboard)
     }

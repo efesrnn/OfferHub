@@ -138,6 +138,7 @@
     <string name="role_supervisor">Supervisor</string>
     <string name="supervisor_dashboard">Supervisor Dashboard</string>
     <string name="supervisor_ai_accuracy">AI accuracy</string>
+    <string name="supervisor_ai_accuracy_sample">Based on %1$d classified campaigns</string>
     <string name="supervisor_sla_compliance">SLA compliance</string>
     <string name="supervisor_conversion_rate">Conversion rate</string>
     <string name="supervisor_sla_breached_cases">SLA breached active cases</string>
@@ -153,6 +154,10 @@
     <plurals name="supervisor_expert_summary">
         <item quantity="one">%1$d completed case · +%2$.1f%% · %3$.1f h average</item>
         <item quantity="other">%1$d completed cases · +%2$.1f%% · %3$.1f h average</item>
+    </plurals>
+    <plurals name="supervisor_expert_summary_unmeasured">
+        <item quantity="one">%1$d completed case · conversion not measured · %2$.1f h average</item>
+        <item quantity="other">%1$d completed cases · conversion not measured · %2$.1f h average</item>
     </plurals>
     <string name="supervisor_view_experts">View experts</string>
     <string name="supervisor_operations">Operations</string>
@@ -178,6 +183,8 @@
     <string name="supervisor_average_conversion_increase">Average conversion increase</string>
     <string name="supervisor_average_completion_time">Average completion time</string>
     <string name="supervisor_update_classification">Segment and priority</string>
+    <string name="supervisor_classification_reason">Reason for change</string>
+    <string name="supervisor_classification_reason_support">Required for AI accuracy tracking</string>
     <string name="supervisor_save_changes">Save changes</string>
     <string name="supervisor_assign_expert">Assign expert</string>
     <string name="supervisor_publish_case">Publish case</string>

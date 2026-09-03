@@ -10,8 +10,10 @@ import com.example.offerhub.data.network.ApiError
 import com.example.offerhub.data.network.ApiResponse
 import com.example.offerhub.data.remote.SupervisorApi
 import com.example.offerhub.data.remote.dto.AssignCaseRequest
-import com.example.offerhub.data.remote.dto.CaseDto
+import com.example.offerhub.data.remote.dto.ClassificationRequest
 import com.example.offerhub.data.remote.dto.StatusChangeRequest
+import com.example.offerhub.data.remote.dto.toConversionTrend
+import com.example.offerhub.data.remote.dto.toExpertPerformance
 import com.example.offerhub.data.remote.dto.toSupervisorSummary
 import com.example.offerhub.data.remote.dto.toSegmentDistribution
 import com.google.gson.Gson
@@ -51,18 +53,23 @@ class SupervisorRepositoryImpl(
         }
 
     override suspend fun updateCaseClassification(
-        caseId: String,
+        campaignNo: String,
         segment: Segment,
-        priority: Priority
-    ): SupervisorResult<SupervisorDashboard> = SupervisorResult.Failure(
-        ApiError(
-            code = "ENDPOINT_NOT_AVAILABLE",
-            message = "The backend does not expose a case classification endpoint."
+        priority: Priority,
+        reason: String
+    ): SupervisorResult<SupervisorDashboard> = actionThenReload {
+        api.updateClassification(
+            campaignNo = campaignNo,
+            request = ClassificationRequest(
+                segment = segment.name,
+                priority = priority.name,
+                reason = reason.trim()
+            )
         )
-    )
+    }
 
-    private suspend fun actionThenReload(
-        action: suspend () -> Response<ApiResponse<CaseDto>>
+    private suspend fun <T> actionThenReload(
+        action: suspend () -> Response<ApiResponse<T>>
     ): SupervisorResult<SupervisorDashboard> = try {
         val response = action()
         val envelope = response.body()
@@ -111,13 +118,6 @@ class SupervisorRepositoryImpl(
             return SupervisorResult.Failure(errorFrom(dashboardResponse, dashboardEnvelope?.error))
         }
 
-        val accuracyResponse = api.getAiAccuracy()
-        val accuracyEnvelope = accuracyResponse.body()
-        val accuracy = accuracyEnvelope?.data?.overallAccuracy
-        if (!accuracyResponse.isSuccessful || accuracyEnvelope?.success != true || accuracy == null) {
-            return SupervisorResult.Failure(errorFrom(accuracyResponse, accuracyEnvelope?.error))
-        }
-
         val conversionRate = dashboard.conversionRate
             ?: return SupervisorResult.Failure(ApiError("INVALID_RESPONSE"))
         val slaComplianceRate = dashboard.slaComplianceRate
@@ -126,6 +126,10 @@ class SupervisorRepositoryImpl(
             ?: return SupervisorResult.Failure(ApiError("INVALID_RESPONSE"))
         val pendingQueueCount = dashboard.pendingQueueCount
             ?: return SupervisorResult.Failure(ApiError("INVALID_RESPONSE"))
+        val accuracy = dashboard.aiAccuracyRate
+            ?: return SupervisorResult.Failure(ApiError("INVALID_RESPONSE"))
+        val classifiedCampaigns = dashboard.aiClassifiedCampaigns
+            ?: return SupervisorResult.Failure(ApiError("INVALID_RESPONSE"))
         if (dashboard.segmentDistribution == null) {
             return SupervisorResult.Failure(ApiError("INVALID_RESPONSE"))
         }
@@ -133,22 +137,28 @@ class SupervisorRepositoryImpl(
         return SupervisorResult.Success(
             cases.toDashboard(
                 accuracy = accuracy,
+                classifiedCampaigns = classifiedCampaigns,
                 conversionRate = conversionRate,
                 slaComplianceRate = slaComplianceRate,
                 breachedCases = breachedCases,
                 pendingQueueCount = pendingQueueCount,
-                segmentDistribution = dashboard.toSegmentDistribution()
+                segmentDistribution = dashboard.toSegmentDistribution(),
+                conversionTrend = dashboard.toConversionTrend(),
+                expertPerformance = dashboard.toExpertPerformance()
             )
         )
     }
 
     private fun List<SupervisorCaseSummary>.toDashboard(
         accuracy: Double,
+        classifiedCampaigns: Long,
         conversionRate: Double,
         slaComplianceRate: Double,
         breachedCases: Long,
         pendingQueueCount: Long,
-        segmentDistribution: List<SegmentDistribution>
+        segmentDistribution: List<SegmentDistribution>,
+        conversionTrend: List<com.example.offerhub.data.model.supervisor.ConversionTrendPoint>,
+        expertPerformance: List<com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary>
     ): SupervisorDashboard {
         val activeStatuses = setOf(
             CaseStatus.ATANDI,
@@ -158,15 +168,16 @@ class SupervisorRepositoryImpl(
         val activeCases = filter { it.status in activeStatuses }
         return SupervisorDashboard(
             aiAccuracyPercent = accuracy.toPercent(),
+            aiClassifiedCampaignCount = classifiedCampaigns.coerceAtLeast(0),
             conversionRatePercent = conversionRate.toPercent(),
             slaCompliancePercent = slaComplianceRate.toPercent(),
             slaBreachedActiveCaseCount = breachedCases,
             activeCaseCount = activeCases.size,
             pendingAssignmentCount = pendingQueueCount.coerceIn(0, Int.MAX_VALUE.toLong()).toInt(),
             segmentDistribution = segmentDistribution,
-            conversionTrend = emptyList(),
+            conversionTrend = conversionTrend,
             attentionCases = this,
-            expertPerformance = emptyList()
+            expertPerformance = expertPerformance
         )
     }
 
