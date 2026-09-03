@@ -5,11 +5,13 @@ import com.offerhub.gamification.entity.PointEntry;
 import com.offerhub.gamification.entity.PointReason;
 import com.offerhub.gamification.event.CampaignOptimizedEvent;
 import com.offerhub.gamification.event.OfferRatedEvent;
+import com.offerhub.gamification.event.PointsAwarded;
 import com.offerhub.gamification.event.SlaBreachedEvent;
 import com.offerhub.gamification.repository.ExpertProfileRepository;
 import com.offerhub.gamification.repository.PointEntryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +39,7 @@ public class ScoringService {
     private final PointEntryRepository pointEntryRepository;
     private final ExpertProfileRepository profileRepository;
     private final BadgeService badgeService;
-    private final LeaderboardService leaderboardService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void score(CampaignOptimizedEvent event) {
@@ -118,8 +120,9 @@ public class ScoringService {
         ExpertProfile expertProfile = profile(expertId);
         expertProfile.setTotalPoints(expertProfile.getTotalPoints() + reason.getPoints());
 
-        // Redis holds the ranking only; the entry above is the record that can rebuild it.
-        leaderboardService.addPoints(expertId, reason.getPoints());
+        // Redis holds the ranking only, and it cannot roll back. Raised here, applied
+        // after this transaction commits - see LeaderboardUpdater.
+        eventPublisher.publishEvent(new PointsAwarded(expertId, reason.getPoints()));
 
         log.info("Expert {} {} {} points for {}", expertId,
                 reason.getPoints() >= 0 ? "earned" : "lost", Math.abs(reason.getPoints()), reason);

@@ -55,6 +55,7 @@ public class OptimizationCaseService {
     private final ApplicationEventPublisher eventPublisher;
     private final SlaPolicy slaPolicy;
     private final AiClient aiClient;
+    private final ExpertDirectory expertDirectory;
     private final CampaignAiAdvisor aiAdvisor;
 
     /**
@@ -112,7 +113,17 @@ public class OptimizationCaseService {
         }
 
         AiAssignment proposal = assignment.get();
-        optimizationCase.setAssignedExpertId(ExternalIds.toUuid(proposal.expertId()));
+
+        // An unmapped code resolves to a placeholder nobody can sign in as, and a case
+        // parked on a placeholder is worse than an unassigned one: the supervisor sees it
+        // as handled while no real expert can open it. Leave it in the manual queue.
+        if (!expertDirectory.isMapped(proposal.expertId())) {
+            log.info("Case {} stays in the manual queue, {} has no staff account mapped",
+                    optimizationCase.getId(), proposal.expertId());
+            return;
+        }
+
+        optimizationCase.setAssignedExpertId(expertDirectory.resolve(proposal.expertId()));
         optimizationCase.setStatus(CaseStatus.ATANDI);
 
         log.info("Case {} auto-assigned to expert {} (matchScore={})",
@@ -233,12 +244,12 @@ public class OptimizationCaseService {
                     optimizationCase.getCreatedAt());
             optimizationCase.setSlaDeadline(deadline);
 
-            // A wider window can pull an already breached case back inside its SLA. Drop
-            // the stamp so it can breach again on its new terms instead of carrying a
-            // verdict that no longer holds.
-            if (optimizationCase.getSlaBreachedAt() != null && deadline.isAfter(Instant.now())) {
-                optimizationCase.setSlaBreachedAt(null);
-            }
+            // slaBreachedAt is deliberately left alone. A breach is something that already
+            // happened: the deadline passed while the case was open, and Gamification has
+            // already taken the points off. Clearing the stamp here would erase the record
+            // while leaving the penalty in place, and re-breaching later would not charge
+            // again anyway - the ledger is keyed on (caseId, SLA_BREACH). Lowering a
+            // priority buys more time from now on; it does not rewrite what happened.
 
             log.info("Case {} SLA deadline moved to {} after priority became {}",
                     optimizationCase.getId(), deadline, campaign.getPriority());

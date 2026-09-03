@@ -81,6 +81,7 @@ services:
       SLA_SCAN_INTERVAL_MS: ${SLA_SCAN_INTERVAL_MS:-30000}
       AI_SERVICE_URL: http://ai-service:8080
       AI_AUTO_ASSIGN: ${AI_AUTO_ASSIGN:-true}
+      AI_EXPERT_MAPPING: ${AI_EXPERT_MAPPING:-}
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
       interval: 10s

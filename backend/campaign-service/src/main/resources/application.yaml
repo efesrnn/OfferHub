@@ -21,9 +21,13 @@ ai:
   service:
     url: ${AI_SERVICE_URL:http://localhost:8083}
   auto-assign:
-    # See OptimizationCaseService: AI names experts EXP-001, Identity issues UUIDs.
     # Off leaves every new case for a supervisor to assign by hand.
     enabled: ${AI_AUTO_ASSIGN:true}
+  # AI names experts EXP-001 while Identity issues UUIDs. Map them here and automatic
+  # assignment lands on real staff accounts; leave it empty and AI's proposals are logged
+  # and ignored, so cases wait for a supervisor instead of parking on a placeholder.
+  # Format: EXP-001=<uuid>,EXP-002=<uuid>
+  expert-mapping: ${AI_EXPERT_MAPPING:}
 
 # Case document 5.4: hours in production, minutes during a demo so an SLA breach
 # can actually be shown.

@@ -58,6 +58,7 @@ public class DashboardService {
         long answeredOffers = offerRepository.countByStatusNot(OfferStatus.PENDING);
         long acceptedOffers = offerRepository.countByStatus(OfferStatus.ACCEPTED);
 
+        long classified = campaignRepository.countClassified();
         long casesWithDeadline = caseRepository.countBySlaDeadlineIsNotNull();
         long breachedCases = caseRepository.countBySlaBreachedAtIsNotNull();
 
@@ -69,7 +70,8 @@ public class DashboardService {
                 ratio(casesWithDeadline - breachedCases, casesWithDeadline),
                 caseRepository.countBySlaBreachedAtIsNotNullAndCompletedAtIsNull(),
                 caseRepository.countByStatus(CaseStatus.YENI),
-                ratio(campaignRepository.countClassifiedCorrectly(), campaignRepository.countClassified()),
+                ratio(classified > 0 ? campaignRepository.countClassifiedCorrectly() : 0, classified),
+                classified,
                 conversionTrend(),
                 expertPerformance());
     }

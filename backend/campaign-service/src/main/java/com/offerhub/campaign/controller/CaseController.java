@@ -36,7 +36,11 @@ public class CaseController {
 
     private final OptimizationCaseService caseService;
 
-    /** Priority ordered by default; sort=sla puts whatever runs out first on top. */
+    /**
+     * Priority ordered by default; sort=sla puts whatever runs out first on top.
+     * Admin is included because the role matrix grants them every record, and the detail
+     * endpoint already did - being able to open a case but not list them made no sense.
+     */
     @GetMapping
     public ApiResponse<PagedResult<CaseResponse>> list(
             @RequestParam(required = false) CaseStatus status,
@@ -46,7 +50,7 @@ public class CaseController {
             @RequestParam(defaultValue = "20") int size,
             CallerIdentity caller) {
 
-        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
+        caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR, Role.ADMIN);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
         return ApiResponse.ok(caseService.list(status, resolveAssignedTo(assignedTo, caller),
                 CaseSort.fromParam(sort), pageable));
