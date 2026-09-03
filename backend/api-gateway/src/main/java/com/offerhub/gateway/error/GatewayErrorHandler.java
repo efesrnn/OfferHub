@@ -1,5 +1,7 @@
 package com.offerhub.gateway.error;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -12,7 +14,11 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
 
+import java.net.ConnectException;
+import java.net.UnknownHostException;
+import java.nio.channels.UnresolvedAddressException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Puts the gateway's own errors into the envelope every service already answers with.
@@ -29,9 +35,16 @@ import java.nio.charset.StandardCharsets;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GatewayErrorHandler implements WebExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GatewayErrorHandler.class);
+
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, Throwable error) {
         ServerHttpResponse response = exchange.getResponse();
+
+        // Logged here because this is the last place the cause still exists. The envelope
+        // deliberately tells the client nothing about it, which would otherwise leave a
+        // gateway failure with no trace anywhere.
+        log.warn("Gateway error on {}: {}", exchange.getRequest().getPath(), error.toString());
 
         // Something already started writing - the status is on its way out and the body
         // is no longer ours to replace.
@@ -52,15 +65,38 @@ public class GatewayErrorHandler implements WebExceptionHandler {
     }
 
     /**
-     * An unmatched route and a rejected rate limit both arrive as ResponseStatusException;
-     * anything else is a genuine fault and reported as one.
+     * An unmatched route and a rejected rate limit both arrive as ResponseStatusException.
+     * A service that is simply not running does not: it surfaces as a connection failure
+     * deep in a cause chain, and reporting that as 500 would tell the client the system is
+     * broken when one component is merely down. The whole point of the resilience
+     * requirement is that those two are different answers.
      */
     private static HttpStatus statusOf(Throwable error) {
         if (error instanceof ResponseStatusException statusException) {
             HttpStatus resolved = HttpStatus.resolve(statusException.getStatusCode().value());
             return resolved == null ? HttpStatus.INTERNAL_SERVER_ERROR : resolved;
         }
+        if (isUnreachable(error)) {
+            return HttpStatus.SERVICE_UNAVAILABLE;
+        }
         return HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+
+    /**
+     * Walks the cause chain rather than matching one exception type: the reactive client
+     * wraps a refused connection several layers deep, and the wrapper differs between a
+     * stopped container (connection refused) and a removed one (name no longer resolves).
+     */
+    private static boolean isUnreachable(Throwable error) {
+        for (Throwable cause = error; cause != null && cause != cause.getCause(); cause = cause.getCause()) {
+            if (cause instanceof ConnectException
+                    || cause instanceof UnknownHostException
+                    || cause instanceof UnresolvedAddressException
+                    || cause instanceof TimeoutException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The catalog in docs/ERROR-CODES.md, so the gateway speaks the same vocabulary. */
