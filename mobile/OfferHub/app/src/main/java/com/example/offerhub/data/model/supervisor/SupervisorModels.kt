@@ -6,7 +6,9 @@ import com.example.offerhub.data.model.campaign.CaseStatus
 
 data class SupervisorDashboard(
     val aiAccuracyPercent: Double,
+    val conversionRatePercent: Double,
     val slaCompliancePercent: Double,
+    val slaBreachedActiveCaseCount: Long,
     val activeCaseCount: Int,
     val pendingAssignmentCount: Int,
     val segmentDistribution: List<SegmentDistribution>,

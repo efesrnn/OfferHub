@@ -16,6 +16,8 @@ import com.example.offerhub.repository.MockGamificationRepository
 import com.example.offerhub.repository.GamificationRepositoryImpl
 import com.example.offerhub.repository.GamificationRepository
 import com.example.offerhub.repository.MockSupervisorRepository
+import com.example.offerhub.repository.SupervisorRepository
+import com.example.offerhub.repository.SupervisorRepositoryImpl
 
 class OfferHubApplication : Application() {
     private val sessionTokenProvider = SessionTokenProvider()
@@ -64,7 +66,13 @@ class OfferHubApplication : Application() {
         }
     }
 
-    val supervisorRepository by lazy {
-        MockSupervisorRepository()
+    val supervisorRepository: SupervisorRepository by lazy {
+        if (BuildConfig.USE_MOCK_SUPERVISOR) {
+            MockSupervisorRepository()
+        } else {
+            SupervisorRepositoryImpl(
+                ApiClient.createSupervisorApi(sessionTokenProvider)
+            )
+        }
     }
 }

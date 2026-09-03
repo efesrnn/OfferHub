@@ -20,6 +20,7 @@ android {
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
         buildConfigField("boolean", "USE_MOCK_EXPERT", "false")
         buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "false")
+        buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "true")
     }
 
     buildTypes {

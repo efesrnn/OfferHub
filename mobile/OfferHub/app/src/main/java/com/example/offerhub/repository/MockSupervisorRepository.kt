@@ -13,7 +13,9 @@ import kotlinx.coroutines.delay
 class MockSupervisorRepository : SupervisorRepository {
     private var dashboard = SupervisorDashboard(
         aiAccuracyPercent = 87.4,
+        conversionRatePercent = 34.0,
         slaCompliancePercent = 92.1,
+        slaBreachedActiveCaseCount = 1,
         activeCaseCount = 3,
         pendingAssignmentCount = 2,
         segmentDistribution = listOf(

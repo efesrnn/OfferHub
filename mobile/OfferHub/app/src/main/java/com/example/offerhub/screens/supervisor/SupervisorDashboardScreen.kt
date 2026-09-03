@@ -115,13 +115,21 @@ private fun DashboardContent(
                 MetricCard(stringResource(R.string.supervisor_pending_assignment), dashboard.pendingAssignmentCount.toString(), Modifier.weight(1f), onPendingAssignmentClick)
             }
         }
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                MetricCard(stringResource(R.string.supervisor_conversion_rate), "${dashboard.conversionRatePercent}%", Modifier.weight(1f))
+                MetricCard(stringResource(R.string.supervisor_sla_breached_cases), dashboard.slaBreachedActiveCaseCount.toString(), Modifier.weight(1f))
+            }
+        }
         item { SectionTitle(stringResource(R.string.supervisor_segment_distribution)) }
         item {
             SegmentBarChart(dashboard)
         }
-        item { SectionTitle(stringResource(R.string.supervisor_conversion_trend)) }
-        item {
-            ConversionLineChart(dashboard)
+        if (dashboard.conversionTrend.isNotEmpty()) {
+            item { SectionTitle(stringResource(R.string.supervisor_conversion_trend)) }
+            item {
+                ConversionLineChart(dashboard)
+            }
         }
         item { SectionTitle(stringResource(R.string.supervisor_attention_cases)) }
         if (attentionCases.isEmpty()) {

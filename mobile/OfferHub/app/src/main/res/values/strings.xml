@@ -139,6 +139,8 @@
     <string name="supervisor_dashboard">Supervisor Dashboard</string>
     <string name="supervisor_ai_accuracy">AI accuracy</string>
     <string name="supervisor_sla_compliance">SLA compliance</string>
+    <string name="supervisor_conversion_rate">Conversion rate</string>
+    <string name="supervisor_sla_breached_cases">SLA breached active cases</string>
     <string name="supervisor_active_cases">Active cases</string>
     <string name="supervisor_pending_assignment">Pending assignment</string>
     <string name="supervisor_segment_distribution">Segment distribution</string>

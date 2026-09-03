@@ -14,7 +14,9 @@ class MockSupervisorRepositoryTest {
         val result = MockSupervisorRepository().getDashboard() as SupervisorResult.Success
 
         assertTrue(result.value.aiAccuracyPercent in 0.0..100.0)
+        assertTrue(result.value.conversionRatePercent in 0.0..100.0)
         assertTrue(result.value.slaCompliancePercent in 0.0..100.0)
+        assertTrue(result.value.slaBreachedActiveCaseCount >= 0)
         assertTrue(result.value.segmentDistribution.isNotEmpty())
         assertTrue(result.value.conversionTrend.isNotEmpty())
         assertTrue(result.value.expertPerformance.isNotEmpty())
