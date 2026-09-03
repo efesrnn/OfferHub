@@ -54,6 +54,25 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
             """)
     List<Campaign> findOfferable(@Param("segment") Segment segment, @Param("now") Instant now);
 
+    /**
+     * Case document 6.4, AI accuracy: a classification counts as correct while nobody has
+     * corrected it, so accuracy is how many campaigns still carry the segment AI gave them.
+     * BELIRSIZ is excluded from both sides - a campaign AI never managed to classify is not
+     * evidence for or against its accuracy.
+     */
+    @Query("""
+            select count(c) from Campaign c
+            where c.aiSegment <> com.offerhub.campaign.entity.Segment.BELIRSIZ
+            """)
+    long countClassified();
+
+    @Query("""
+            select count(c) from Campaign c
+            where c.aiSegment <> com.offerhub.campaign.entity.Segment.BELIRSIZ
+              and c.segment = c.aiSegment
+            """)
+    long countClassifiedCorrectly();
+
     /** Dashboard: how campaigns are spread across segments. One row per segment in use. */
     @Query("select c.segment, count(c) from Campaign c group by c.segment")
     List<Object[]> countPerSegment();

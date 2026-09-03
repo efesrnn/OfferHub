@@ -21,6 +21,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -82,6 +83,14 @@ public class OptimizationCase {
      */
     @Column
     private Instant slaDeadline;
+
+    /**
+     * How much the optimization moved the conversion estimate, measured on completion.
+     * Positive means the expert's correction helped. Null when AI could not be reached at
+     * that moment, which is not the same as zero - zero is a measured no-op.
+     */
+    @Column(precision = 5, scale = 4)
+    private BigDecimal conversionLift;
 
     /**
      * Stamped the first time the scheduler sees the deadline passed. Its only job is to

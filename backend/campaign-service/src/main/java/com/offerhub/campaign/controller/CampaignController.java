@@ -5,7 +5,7 @@ import com.offerhub.campaign.dto.CampaignResponse;
 import com.offerhub.campaign.dto.CreateCampaignRequest;
 import com.offerhub.campaign.dto.DashboardResponse;
 import com.offerhub.campaign.dto.PagedResult;
-import com.offerhub.campaign.dto.SegmentOverrideRequest;
+import com.offerhub.campaign.dto.ClassificationRequest;
 import com.offerhub.campaign.entity.CampaignStatus;
 import com.offerhub.campaign.entity.Segment;
 import com.offerhub.campaign.security.CallerIdentity;
@@ -69,13 +69,17 @@ public class CampaignController {
         return ApiResponse.ok(dashboardService.load());
     }
 
-    /** AI override. Admins are out: the role matrix gives this to the two who do the work. */
-    @PatchMapping("/{campaignNo}/segment")
-    public ApiResponse<CampaignResponse> overrideSegment(@PathVariable String campaignNo,
-                                                         @Valid @RequestBody SegmentOverrideRequest request,
-                                                         CallerIdentity caller) {
+    /**
+     * AI override - segment, type or priority. Admins are out: the role matrix gives this
+     * to the two who do the work. Priority is narrowed to supervisors inside the service,
+     * because that rule depends on the body rather than on the endpoint.
+     */
+    @PatchMapping("/{campaignNo}/classification")
+    public ApiResponse<CampaignResponse> reclassify(@PathVariable String campaignNo,
+                                                    @Valid @RequestBody ClassificationRequest request,
+                                                    CallerIdentity caller) {
         caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
-        return ApiResponse.ok(campaignService.overrideSegment(campaignNo, request, caller));
+        return ApiResponse.ok(campaignService.reclassify(campaignNo, request, caller));
     }
 
     @GetMapping("/{campaignNo}")

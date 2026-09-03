@@ -30,7 +30,8 @@ public record CampaignOptimizedPayload(
      * is the only service that can say when this case was due. Gamification comparing
      * completedAt against a two hour constant of its own would pay the "KRITIK within
      * SLA" bonus to a breached case every time a demo shortens the unit.
-     * conversionLift stays null until AI Service can score a campaign before and after.
+     * conversionLift is measured on completion by re-scoring the campaign as it now
+     * stands; null means AI could not be reached at that moment.
      */
     public static CampaignOptimizedPayload from(OptimizationCase optimizationCase) {
         Campaign campaign = optimizationCase.getCampaign();
@@ -40,7 +41,7 @@ public record CampaignOptimizedPayload(
                 optimizationCase.getAssignedExpertId(),
                 campaign.getSegment(),
                 campaign.getPriority(),
-                null,
+                optimizationCase.getConversionLift(),
                 optimizationCase.getCreatedAt(),
                 optimizationCase.getCompletedAt(),
                 optimizationCase.getSlaDeadline());

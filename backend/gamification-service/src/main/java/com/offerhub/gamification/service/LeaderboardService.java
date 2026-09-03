@@ -1,6 +1,7 @@
 package com.offerhub.gamification.service;
 
 import com.offerhub.gamification.dto.LeaderboardEntry;
+import com.offerhub.gamification.repository.PointEntryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -51,6 +52,7 @@ public class LeaderboardService {
     private static final Duration WEEKLY_TTL = Duration.ofDays(14);
 
     private final StringRedisTemplate redis;
+    private final PointEntryRepository pointEntryRepository;
 
     /** Called on every scored entry; negative points work the same way. */
     public void addPoints(UUID expertId, int points) {
@@ -80,6 +82,55 @@ public class LeaderboardService {
     public Long rankOf(Period period, UUID expertId) {
         Long zeroBased = redis.opsForZSet().reverseRank(key(period, Instant.now()), expertId.toString());
         return zeroBased == null ? null : zeroBased + 1;
+    }
+
+    /**
+     * Rebuilds both windows from the ledger.
+     *
+     * Redis is a derived store here: it holds the ranking, Postgres holds the reason for
+     * every point in it. That is what makes a flushed or restarted Redis an inconvenience
+     * rather than lost work - and it is also the repair for the drift that came from the
+     * leaderboard being wired up after the scoring engine, so older entries were never
+     * counted into any key.
+     *
+     * The keys are deleted first rather than incremented into: rebuilding on top of
+     * existing scores would double every point that survived.
+     */
+    public int rebuild() {
+        Instant now = Instant.now();
+        int restored = 0;
+
+        restored += rebuildWindow(Period.DAILY, startOfDay(now), now, DAILY_TTL);
+        restored += rebuildWindow(Period.WEEKLY, startOfWeek(now), now, WEEKLY_TTL);
+        return restored;
+    }
+
+    private int rebuildWindow(Period period, Instant since, Instant now, Duration ttl) {
+        String key = key(period, now);
+        redis.delete(key);
+
+        List<Object[]> totals = pointEntryRepository.totalsSince(since);
+        for (Object[] row : totals) {
+            UUID expertId = (UUID) row[0];
+            long points = ((Number) row[1]).longValue();
+            redis.opsForZSet().add(key, expertId.toString(), points);
+        }
+
+        if (!totals.isEmpty()) {
+            redis.expire(key, ttl);
+        }
+        return totals.size();
+    }
+
+    /** Windows are UTC, matching the keys they are written under. */
+    private static Instant startOfDay(Instant at) {
+        return at.atZone(ZoneOffset.UTC).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+    }
+
+    private static Instant startOfWeek(Instant at) {
+        return at.atZone(ZoneOffset.UTC).toLocalDate()
+                .with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+                .atStartOfDay(ZoneOffset.UTC).toInstant();
     }
 
     private void increment(String key, UUID expertId, int points, Duration ttl) {

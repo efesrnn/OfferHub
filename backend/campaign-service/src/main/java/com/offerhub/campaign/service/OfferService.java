@@ -1,5 +1,7 @@
 package com.offerhub.campaign.service;
 
+import com.offerhub.campaign.client.AiClient;
+import com.offerhub.campaign.client.AiRecommendation;
 import com.offerhub.campaign.dto.OfferRateRequest;
 import com.offerhub.campaign.dto.OfferRespondRequest;
 import com.offerhub.campaign.dto.OfferResponse;
@@ -26,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -38,10 +41,14 @@ public class OfferService {
 
     private static final int LOW_RATING_MAX_STARS = 2;
 
+    /** Case document 6.1: below this the campaign is not worth the subscriber's attention. */
+    private static final BigDecimal MIN_VISIBLE_SCORE = new BigDecimal("0.60");
+
     private final OfferRepository offerRepository;
     private final CampaignRepository campaignRepository;
     private final OptimizationCaseRepository caseRepository;
     private final SubscriberProjectionRepository projectionRepository;
+    private final AiClient aiClient;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -111,12 +118,14 @@ public class OfferService {
      * (subscriber, campaign) is the real guard; this check only avoids provoking it.
      */
     private void materialise(UUID subscriberId) {
-        Segment segment = segmentOf(subscriberId);
+        SubscriberProjection subscriber = projectionOf(subscriberId);
+        Segment segment = knownSegment(subscriber);
         Set<UUID> alreadyOffered = offerRepository.findCampaignIdsFor(subscriberId);
 
         List<Offer> fresh = campaignRepository.findOfferable(segment, Instant.now()).stream()
                 .filter(campaign -> !alreadyOffered.contains(campaign.getId()))
-                .map(campaign -> newOffer(subscriberId, campaign))
+                .map(campaign -> newOffer(subscriber, campaign))
+                .filter(OfferService::worthShowing)
                 .toList();
 
         if (!fresh.isEmpty()) {
@@ -125,13 +134,44 @@ public class OfferService {
         }
     }
 
-    private static Offer newOffer(UUID subscriberId, Campaign campaign) {
+    /**
+     * Scores the campaign for this particular subscriber, which is what AI is actually for -
+     * the campaign level score computed at creation is an average over a segment, this is
+     * the individual one the offer list is ranked by.
+     */
+    private Offer newOffer(SubscriberProjection subscriber, Campaign campaign) {
         return Offer.builder()
-                .subscriberId(subscriberId)
+                .subscriberId(subscriber.getSubscriberId())
                 .campaign(campaign)
-                // score stays null until AI Service can rank a campaign for a subscriber
+                .score(scoreFor(subscriber, campaign))
                 .status(OfferStatus.PENDING)
                 .build();
+    }
+
+    /**
+     * Null when we cannot honestly produce a number: AI is down, or this subscriber is not
+     * one AI knows.
+     *
+     * The second case is deliberate. AI answers for an unknown id by synthesising a profile
+     * from the id itself, and a fabricated score would then decide which real campaigns a
+     * real subscriber never gets to see. Better no score than an invented one.
+     */
+    private BigDecimal scoreFor(SubscriberProjection subscriber, Campaign campaign) {
+        String reference = subscriber.getExternalRef();
+        if (reference == null || reference.isBlank()) {
+            return null;
+        }
+        return aiClient.recommend(reference, campaign.getType())
+                .map(AiRecommendation::score)
+                .orElse(null);
+    }
+
+    /**
+     * Case document 6.1: a campaign scoring under 0.60 is not shown. An unscored offer is
+     * kept - the threshold filters campaigns we judged poorly, not ones we could not judge.
+     */
+    private static boolean worthShowing(Offer offer) {
+        return offer.getScore() == null || offer.getScore().compareTo(MIN_VISIBLE_SCORE) >= 0;
     }
 
     /**
@@ -140,14 +180,17 @@ public class OfferService {
      * contract already defines for an unclassified subscriber, and it is turned into null
      * here so that no campaign gets filtered out for them.
      */
-    private Segment segmentOf(UUID subscriberId) {
-        SubscriberProjection projection = projectionRepository.findById(subscriberId)
+    private SubscriberProjection projectionOf(UUID subscriberId) {
+        return projectionRepository.findById(subscriberId)
                 .orElseGet(() -> projectionRepository.save(SubscriberProjection.builder()
                         .subscriberId(subscriberId)
                         .segment(Segment.BELIRSIZ)
                         .syncedAt(Instant.now())
                         .build()));
+    }
 
+    /** BELIRSIZ becomes null so that nothing is filtered out for a subscriber we cannot place. */
+    private static Segment knownSegment(SubscriberProjection projection) {
         return projection.getSegment() == Segment.BELIRSIZ ? null : projection.getSegment();
     }
 

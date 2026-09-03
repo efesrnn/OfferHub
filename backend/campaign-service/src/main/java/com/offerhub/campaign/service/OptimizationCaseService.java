@@ -55,6 +55,7 @@ public class OptimizationCaseService {
     private final ApplicationEventPublisher eventPublisher;
     private final SlaPolicy slaPolicy;
     private final AiClient aiClient;
+    private final CampaignAiAdvisor aiAdvisor;
 
     /**
      * A null probability means AI Service never answered. The contract puts that campaign
@@ -152,6 +153,7 @@ public class OptimizationCaseService {
         if (target == CaseStatus.TAMAMLANDI) {
             requireOptimizationNote(request.optimizationNote());
             optimizationCase.setCompletedAt(Instant.now());
+            measureConversionLift(optimizationCase);
         }
         if (StringUtils.hasText(request.optimizationNote())) {
             optimizationCase.setOptimizationNote(request.optimizationNote().trim());
@@ -264,6 +266,39 @@ public class OptimizationCaseService {
                     optimizationCase.getId(), optimizationCase.getCampaign().getCampaignNo());
         }
         return expired.size();
+    }
+
+    /**
+     * Case document 7.1 pays a bonus when an optimization beats the conversion target, so
+     * the improvement has to be a measured number rather than a claim in the note.
+     *
+     * It is measured by asking AI to score the campaign as it now stands and comparing that
+     * with the estimate it was created with. The one thing an expert can change that AI
+     * actually scores on is the segment, so a corrected segment produces real lift and an
+     * optimization that changed nothing measurable produces zero - which is the honest
+     * answer, and means no bonus.
+     */
+    private void measureConversionLift(OptimizationCase optimizationCase) {
+        Campaign campaign = optimizationCase.getCampaign();
+        BigDecimal baseline = campaign.getConversionProbability();
+
+        // Nothing to compare against: the campaign was created while AI was unreachable.
+        if (baseline == null) {
+            return;
+        }
+
+        CampaignScoring rescored = aiAdvisor.scoreFor(campaign.getSegment(), campaign.getType());
+        if (rescored.conversionProbability() == null) {
+            log.info("Case {} completed without a lift measurement, AI unavailable",
+                    optimizationCase.getId());
+            return;
+        }
+
+        BigDecimal lift = rescored.conversionProbability().subtract(baseline);
+        optimizationCase.setConversionLift(lift);
+
+        log.info("Case {} conversion moved {} -> {} (lift {})", optimizationCase.getId(),
+                baseline, rescored.conversionProbability(), lift);
     }
 
     private OptimizationCase load(UUID caseId) {

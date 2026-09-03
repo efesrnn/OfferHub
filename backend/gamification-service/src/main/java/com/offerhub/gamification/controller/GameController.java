@@ -10,6 +10,7 @@ import com.offerhub.gamification.service.Period;
 import com.offerhub.gamification.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +38,16 @@ public class GameController {
 
         caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR);
         return ApiResponse.ok(profileService.leaderboard(Period.fromParam(period)));
+    }
+
+    /**
+     * Redis is derived from point_entries, so it can always be rebuilt. Kept behind
+     * supervisor and admin: it is a repair action, not something a client calls routinely.
+     */
+    @PostMapping("/leaderboard/rebuild")
+    public ApiResponse<Integer> rebuildLeaderboard(CallerIdentity caller) {
+        caller.requireAnyOf(Role.SUPERVISOR, Role.ADMIN);
+        return ApiResponse.ok(profileService.rebuildLeaderboard());
     }
 
     @GetMapping("/badges")

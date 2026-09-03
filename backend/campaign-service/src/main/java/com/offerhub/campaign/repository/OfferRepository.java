@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -35,6 +37,10 @@ public interface OfferRepository extends JpaRepository<Offer, UUID> {
 
     @Query("select o from Offer o join fetch o.campaign where o.id = :id")
     Optional<Offer> findByIdWithCampaign(@Param("id") UUID id);
+
+    /** Answered offers since a date, for the conversion trend. Small set, grouped in Java. */
+    @Query("select o from Offer o where o.respondedAt is not null and o.respondedAt >= :since")
+    List<Offer> findAnsweredSince(@Param("since") Instant since);
 
     /** Dashboard: offers the subscriber actually answered, the denominator of conversion. */
     long countByStatusNot(OfferStatus status);

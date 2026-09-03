@@ -5,7 +5,7 @@
 | 1   | `POST`  | `/api/v1/campaigns`                      | Uzman, Süpervizör        | Çalışıyor  |
 | 2   | `GET`   | `/api/v1/campaigns`                      | Uzman, Süpervizör, Admin | Çalışıyor  |
 | 3   | `GET`   | `/api/v1/campaigns/{campaignNo}`         | Uzman, Süpervizör, Admin | Çalışıyor  |
-| 4   | `PATCH` | `/api/v1/campaigns/{campaignNo}/segment` | Uzman, Süpervizör        | Tasarlandı |
+| 4   | `PATCH` | `/api/v1/campaigns/{campaignNo}/classification` | Uzman, Süpervizör        | Tasarlandı |
 | 5   | `GET`   | `/api/v1/campaigns/dashboard`            | Süpervizör, Admin        | Tasarlandı |
 | 6   | `GET`   | `/api/v1/cases`                          | Uzman, Süpervizör        | Çalışıyor  |
 | 7   | `GET`   | `/api/v1/cases/{caseId}`                 | Uzman, Süpervizör, Admin | Çalışıyor  |
@@ -167,32 +167,51 @@ Endpoint 1'in döndürdüğü kampanya nesnesinin aynısı.
 
 ---
 
-## 4. Segment Override
+## 4. Sınıflandırma Düzeltme (AI override)
 
 ```
-PATCH /api/v1/campaigns/{campaignNo}/segment
+PATCH /api/v1/campaigns/{campaignNo}/classification
 ```
 
-**Ne için:** AI'ın atadığı segmenti uzmanın düzeltmesi.
-**Yetki:** Uzman, Süpervizör.
+**Ne için:** AI'ın atadığı segmenti, türü veya önceliği düzeltmek.
+**Yetki:** Uzman, Süpervizör. **`priority` yalnızca süpervizör** (case 5.3) — uzman
+gönderirse `403 FORBIDDEN`.
+
+Rol matrisi "segment/tür değiştirme"yi tek bir yetki sayıyor, bu yüzden ikisi aynı
+endpoint'te. Öncelik farklı bir yetki olduğu için gövdeye bakılarak ayrıca kontrol edilir.
 
 ### İstek
 
 ```json
 {
 	"segment": "PASIF",
+	"type": "CIHAZ_FIRSATI",
+	"priority": "KRITIK",
 	"reason": "Kullanım verisi güncel değildi"
 }
 ```
 
-| Alan      | Tip    | Kural                          |
-| --------- | ------ | ------------------------------ |
-| `segment` | enum   | Zorunlu — yeni segment         |
-| `reason`  | String | Zorunlu — neden değiştirildiği |
+| Alan       | Tip    | Kural                                                    |
+| ---------- | ------ | -------------------------------------------------------- |
+| `segment`  | enum   | Opsiyonel                                                |
+| `type`     | enum   | Opsiyonel                                                |
+| `priority` | enum   | Opsiyonel, yalnızca süpervizör                           |
+| `reason`   | String | **Zorunlu** — neden değiştirildiği                       |
+
+Üçü de boş bırakılırsa `400 VALIDATION_ERROR`. Yalnızca gönderilen alanlar uygulanır;
+değiştirmediğiniz alanı tekrar göndermeniz gerekmez.
 
 ### Yanıt — 200
 
 Güncellenmiş kampanya nesnesi. **`aiSegment` değişmez**, sadece `segment` değişir.
+
+**Yan etkiler:**
+
+- `segment` `RISKLI_KAYIP` yapılırsa öncelik en az `YUKSEK`'e çekilir (case 5.3).
+- Öncelik değişirse vakanın SLA deadline'ı yeniden hesaplanır — vakanın **doğuş anından**
+  itibaren, yani yeniden sınıflandırma çalışan saati sıfırlamaz.
+- Segment gerçekten değiştiyse `segment.changed` olayı yayınlanır. Aynı değere set eden
+  istek hiçbir olay doğurmaz.
 
 ### Mobil notu
 

@@ -102,6 +102,14 @@ public interface OptimizationCaseRepository extends JpaRepository<OptimizationCa
     /** Breached and still open: the red card on the supervisor's screen. */
     long countBySlaBreachedAtIsNotNullAndCompletedAtIsNull();
 
+    /** Completed work with an owner - the basis of every expert performance number. */
+    @Query("select oc from OptimizationCase oc where oc.assignedExpertId is not null and oc.completedAt is not null")
+    List<OptimizationCase> findCompletedWithExpert();
+
+    /** Still open and owned: what each expert is carrying right now. */
+    @Query("select oc from OptimizationCase oc where oc.assignedExpertId is not null and oc.completedAt is null")
+    List<OptimizationCase> findOpenWithExpert();
+
     /** Waiting for someone to pick them up. */
     long countByStatus(CaseStatus status);
 

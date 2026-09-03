@@ -57,6 +57,11 @@ public class ProfileService {
                 averagePoints(profile));
     }
 
+    /** Supervisors repair the ranking without a deploy; the ledger is the source. */
+    public int rebuildLeaderboard() {
+        return leaderboardService.rebuild();
+    }
+
     @Transactional(readOnly = true)
     public LeaderboardResponse leaderboard(Period period) {
         return new LeaderboardResponse(period.getParam(),

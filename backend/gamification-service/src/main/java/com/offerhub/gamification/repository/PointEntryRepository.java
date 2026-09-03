@@ -23,6 +23,18 @@ public interface PointEntryRepository extends JpaRepository<PointEntry, UUID> {
     long countByExpertIdAndReasonAndEarnedAtAfter(UUID expertId, PointReason reason, Instant after);
 
     /**
+     * Points per expert since a moment in time - everything a leaderboard window needs.
+     * Postgres holds the ledger and Redis only holds the ranking derived from it, so this
+     * is what makes losing Redis recoverable rather than losing points.
+     */
+    @Query("""
+            select p.expertId, sum(p.points) from PointEntry p
+            where p.earnedAt >= :since
+            group by p.expertId
+            """)
+    List<Object[]> totalsSince(@Param("since") Instant since);
+
+    /**
      * Backs the Uzman badge: the caller takes the largest of these counts.
      * BELIRSIZ is excluded because it is the absence of a classification, not a segment
      * to specialise in. Counting it would hand "Uzman" to whoever closed 50 unclassified

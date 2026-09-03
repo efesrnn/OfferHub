@@ -3,7 +3,7 @@ package com.offerhub.campaign.service;
 import com.offerhub.campaign.dto.CampaignResponse;
 import com.offerhub.campaign.dto.CreateCampaignRequest;
 import com.offerhub.campaign.dto.PagedResult;
-import com.offerhub.campaign.dto.SegmentOverrideRequest;
+import com.offerhub.campaign.dto.ClassificationRequest;
 import com.offerhub.campaign.entity.Campaign;
 import com.offerhub.campaign.entity.CampaignStatus;
 import com.offerhub.campaign.entity.Priority;
@@ -15,6 +15,7 @@ import com.offerhub.campaign.exception.ApiException;
 import com.offerhub.campaign.exception.ErrorCode;
 import com.offerhub.campaign.repository.CampaignRepository;
 import com.offerhub.campaign.security.CallerIdentity;
+import com.offerhub.campaign.security.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -97,20 +98,41 @@ public class CampaignService {
     }
 
     /**
-     * An expert correcting what AI decided. aiSegment is deliberately left alone: it is
-     * the baseline AI's accuracy is measured against, so overwriting it would erase the
-     * very mistake this endpoint exists to record.
+     * Correcting AI's classification. aiSegment is deliberately left alone: it is the
+     * baseline AI's accuracy is measured against, so overwriting it would erase the very
+     * mistake this endpoint exists to record.
      */
     @Transactional
-    public CampaignResponse overrideSegment(String campaignNo, SegmentOverrideRequest request,
-                                            CallerIdentity caller) {
+    public CampaignResponse reclassify(String campaignNo, ClassificationRequest request,
+                                       CallerIdentity caller) {
+        if (request.isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "at least one of segment, type or priority must be given");
+        }
+        // Case document 5.3 gives priority to the supervisor alone; segment and type are
+        // one permission shared with the expert, which the controller already checked.
+        if (request.priority() != null) {
+            caller.requireAnyOf(Role.SUPERVISOR);
+        }
+
         Campaign campaign = load(campaignNo);
         Segment original = campaign.getSegment();
 
-        // Setting the segment it already has corrects nothing, so it announces nothing.
-        // PATCH is expected to be repeatable; a retry must not look like a second mistake.
-        if (original == request.segment()) {
-            return CampaignResponse.from(campaign);
+        applyType(campaign, request, caller);
+        applyPriority(campaign, request, caller);
+        applySegment(campaign, request, caller, original);
+
+        return CampaignResponse.from(campaign);
+    }
+
+    /**
+     * Setting a value it already has corrects nothing, so it announces nothing. PATCH is
+     * expected to be repeatable; a retry must not look like a second mistake to AI.
+     */
+    private void applySegment(Campaign campaign, ClassificationRequest request,
+                              CallerIdentity caller, Segment original) {
+        if (request.segment() == null || request.segment() == original) {
+            return;
         }
 
         campaign.setSegment(request.segment());
@@ -121,9 +143,34 @@ public class CampaignService {
                         original, request.segment())));
 
         log.info("Campaign {} segment corrected {} -> {} by {} ({}), reason: {}",
-                campaignNo, original, request.segment(), caller.userId(), caller.role(), request.reason());
+                campaign.getCampaignNo(), original, request.segment(),
+                caller.userId(), caller.role(), request.reason());
+    }
 
-        return CampaignResponse.from(campaign);
+    private void applyType(Campaign campaign, ClassificationRequest request, CallerIdentity caller) {
+        if (request.type() == null || request.type() == campaign.getType()) {
+            return;
+        }
+        log.info("Campaign {} type corrected {} -> {} by {}, reason: {}", campaign.getCampaignNo(),
+                campaign.getType(), request.type(), caller.userId(), request.reason());
+        campaign.setType(request.type());
+    }
+
+    /**
+     * A manual priority overrides what AI derived, and the SLA window follows it - the
+     * deadline is a function of priority, so leaving it behind would let a case be judged
+     * against an urgency it no longer has.
+     */
+    private void applyPriority(Campaign campaign, ClassificationRequest request, CallerIdentity caller) {
+        if (request.priority() == null || request.priority() == campaign.getPriority()) {
+            return;
+        }
+        log.info("Campaign {} priority set {} -> {} by supervisor {}, reason: {}",
+                campaign.getCampaignNo(), campaign.getPriority(), request.priority(),
+                caller.userId(), request.reason());
+
+        campaign.setPriority(request.priority());
+        caseService.recalculateSlaDeadline(campaign);
     }
 
     private void applyChurnPriorityFloor(Campaign campaign) {
