@@ -2,6 +2,7 @@ package com.example.offerhub.screens.auth
 
 import android.util.Patterns
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
+import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.R
@@ -42,6 +44,7 @@ fun SubscriberRegisterScreen(
         email: String
     ) -> Unit,
     onLoginClick: () -> Unit,
+    onBackClick: () -> Unit,
     isLoading: Boolean = false,
     backendError: String? = null
 ){
@@ -64,10 +67,18 @@ fun SubscriberRegisterScreen(
                 !Patterns.EMAIL_ADDRESS.matcher(email).matches()
         val formIsValid=
             !firstNameIsInvalid && !lastNameIsInvalid&& !gsmIsInvalid&& !emailIsInvalid
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
+        ) {
+            AuthBackButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(
                     horizontal = 32.dp,
                     vertical = 24.dp
@@ -198,6 +209,7 @@ fun SubscriberRegisterScreen(
                 onClick=onLoginClick
             )
         }
+        }
 
     }
 }
@@ -208,6 +220,7 @@ fun SubscriberRegisterPreview()
 {
     SubscriberRegisterScreen(
         onRegisterClick = { _, _, _, _ -> },
-        onLoginClick = {}
+        onLoginClick = {},
+        onBackClick = {}
     )
 }

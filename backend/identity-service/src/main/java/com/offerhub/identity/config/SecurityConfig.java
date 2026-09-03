@@ -1,5 +1,7 @@
 package com.offerhub.identity.config;
 
+import com.offerhub.identity.security.AuditingAccessDeniedHandler;
+import com.offerhub.identity.security.AuditingAuthenticationEntryPoint;
 import com.offerhub.identity.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuditingAccessDeniedHandler auditingAccessDeniedHandler;
+    private final AuditingAuthenticationEntryPoint auditingAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,6 +35,10 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(auditingAccessDeniedHandler)
+                        .authenticationEntryPoint(auditingAuthenticationEntryPoint)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

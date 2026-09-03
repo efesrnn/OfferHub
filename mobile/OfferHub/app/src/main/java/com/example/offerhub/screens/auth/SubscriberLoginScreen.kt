@@ -2,6 +2,7 @@ package com.example.offerhub.screens.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
+import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.R
@@ -35,6 +37,7 @@ import com.example.offerhub.R
 fun SubscriberLoginScreen(
     onSendCodeClick:(String)->Unit,
     onRegisterClick:()->Unit,
+    onBackClick:()->Unit,
     isLoading: Boolean = false,
     backendError: String? = null
 )
@@ -51,10 +54,18 @@ fun SubscriberLoginScreen(
         var gsmTouched by remember {
             mutableStateOf(false)
         }
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
+        ) {
+            AuthBackButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(
                     horizontal = 32.dp,
                     vertical = 24.dp
@@ -108,12 +119,15 @@ fun SubscriberLoginScreen(
             )
             Spacer(modifier=Modifier.height(18.dp))
             if (backendError != null) {
-                Text(text = backendError, color = MaterialTheme.colorScheme.error)
+                Text(
+                    text = backendError,
+                    color = MaterialTheme.colorScheme.error
+                )
                 Spacer(modifier = Modifier.height(12.dp))
             }
             AuthButton(
                 text = if (isLoading) {
-                    stringResource(R.string.auth_registering)
+                    stringResource(R.string.auth_sending_code)
                 } else {
                     stringResource(R.string.auth_send_code)
                 },
@@ -132,6 +146,7 @@ fun SubscriberLoginScreen(
                 onClick=onRegisterClick
             )
         }
+        }
     }
 }
 
@@ -141,7 +156,9 @@ fun SubscriberLoginScreenPreview()
 {
     SubscriberLoginScreen(
         onSendCodeClick = {gsm->},
-        onRegisterClick = {}
+        onRegisterClick = {},
+        onBackClick = {},
+        isLoading = false
     )
 }
 

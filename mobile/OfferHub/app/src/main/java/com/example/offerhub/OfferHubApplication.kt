@@ -8,6 +8,8 @@ import com.example.offerhub.data.remote.ApiClient
 import com.example.offerhub.repository.AuthRepository
 import com.example.offerhub.repository.MockSubscriberRepository
 import com.example.offerhub.repository.SubscriberRepositoryImpl
+import com.example.offerhub.repository.AdminRepository
+import com.example.offerhub.repository.AdminRepositoryImpl
 import com.example.offerhub.repository.MockAdminRepository
 import com.example.offerhub.repository.MockExpertRepository
 import com.example.offerhub.repository.ExpertRepository
@@ -40,8 +42,14 @@ class OfferHubApplication : Application() {
         realSubscriberRepository
     }
 
-    val adminRepository by lazy {
-        MockAdminRepository()
+    val adminRepository: AdminRepository by lazy {
+        if (BuildConfig.USE_MOCK_ADMIN) {
+            MockAdminRepository()
+        } else {
+            AdminRepositoryImpl(
+                ApiClient.createAdminApi(sessionTokenProvider)
+            )
+        }
     }
 
     val expertRepository: ExpertRepository by lazy {

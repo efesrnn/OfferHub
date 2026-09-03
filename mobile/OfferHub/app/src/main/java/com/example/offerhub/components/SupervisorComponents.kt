@@ -4,13 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import com.example.offerhub.R
 
 @Composable
@@ -20,16 +14,12 @@ fun SupervisorBottomBar(
     onOperationsClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
-    val colors = NavigationBarItemDefaults.colors(
-        selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        selectedTextColor = MaterialTheme.colorScheme.onSurface,
-        indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    OfferHubBottomBar(
+        selectedItem = selectedItem,
+        items = listOf(
+            BottomBarItem("home", Icons.Default.Home, R.string.expert_home, onHomeClick),
+            BottomBarItem("operations", Icons.Default.Work, R.string.supervisor_operations, onOperationsClick),
+            BottomBarItem("profile", Icons.Default.Person, R.string.nav_profile, onProfileClick)
+        )
     )
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-        NavigationBarItem(selected = selectedItem == "home", onClick = onHomeClick, icon = { Icon(Icons.Default.Home, stringResource(R.string.expert_home)) }, colors = colors)
-        NavigationBarItem(selected = selectedItem == "operations", onClick = onOperationsClick, icon = { Icon(Icons.Default.Work, stringResource(R.string.supervisor_operations)) }, colors = colors)
-        NavigationBarItem(selected = selectedItem == "profile", onClick = onProfileClick, icon = { Icon(Icons.Default.Person, stringResource(R.string.nav_profile)) }, colors = colors)
-    }
 }

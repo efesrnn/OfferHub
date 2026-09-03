@@ -7,7 +7,8 @@ data class AdminStaff(
     val email: String,
     val role: String,
     val specialties: List<String>,
-    val regions: List<String>
+    val regions: List<String>,
+    val tempPassword: String? = null
 )
 
 data class AuditLog(
