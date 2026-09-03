@@ -77,6 +77,17 @@ public class ScoringService {
         award(event.expertId(), event.caseId(), PointReason.SLA_BREACH, null);
     }
 
+    /** Case document 7.1: 1-2 yildizlik "alakasiz teklif" puanlamasi kampanyanin sahibinden -3 goturur. */
+    @Transactional
+    public void score(OfferRatedEvent event) {
+        if (event.expertId() == null || event.rating() == null) {
+            return;
+        }
+        if (event.rating() <= 2) {
+            award(event.expertId(), event.offerId(), PointReason.LOW_RATING, null);
+        }
+    }
+
     /**
      * Case document 7.1: one or two stars means the offer was irrelevant to the subscriber,
      * and that costs the expert who worked the campaign three points. Anything above two

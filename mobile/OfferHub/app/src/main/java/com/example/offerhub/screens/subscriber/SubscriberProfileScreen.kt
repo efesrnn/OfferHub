@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.offerhub.components.OfferHubBottomBar
+import com.example.offerhub.components.SubscriberBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.R
 import com.example.offerhub.ui.theme.OfferHubTheme
@@ -51,7 +51,7 @@ fun SubscriberProfileScreen(
             OfferHubTopBar()
         },
         bottomBar = {
-            OfferHubBottomBar(
+            SubscriberBottomBar(
                 selectedItem = "profile",
                 onHomeClick = onHomeClick,
                 onOffersClick = onOffersClick,

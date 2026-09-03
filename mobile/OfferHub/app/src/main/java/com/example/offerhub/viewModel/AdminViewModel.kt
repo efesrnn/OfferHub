@@ -35,6 +35,7 @@ data class AdminUiState(
     val actionMessage: UiText? = null,
     val actionError: UiText? = null,
     val createdStaffId: String? = null,
+    val createdStaffTempPassword: String? = null,
     val selectedStaff: AdminStaff? = null,
     val staffSearchQuery: String = "",
     val staffSearchResults: List<AdminStaff> = emptyList(),
@@ -151,11 +152,12 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
                 is AdminResult.Success -> _uiState.update {
                     it.copy(
                         actionMessage = UiText.Resource(R.string.admin_staff_created_success),
-                        createdStaffId = result.value.id
+                        createdStaffId = result.value.id,
+                        createdStaffTempPassword = result.value.tempPassword
                     )
                 }
                 is AdminResult.Failure -> _uiState.update {
-                    it.copy(actionError = result.error.toUiText(R.string.admin_staff_create_failed))
+                    it.copy(actionError = result.error.toCreateStaffUiText())
                 }
             }
             loadAuditLogs(reset = true)
@@ -261,7 +263,14 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
     }
 
     fun clearActionFeedback() {
-        _uiState.update { it.copy(actionMessage = null, actionError = null, createdStaffId = null) }
+        _uiState.update {
+            it.copy(
+                actionMessage = null,
+                actionError = null,
+                createdStaffId = null,
+                createdStaffTempPassword = null
+            )
+        }
     }
 
     private fun beginSubmission() = _uiState.update {
@@ -269,7 +278,8 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
             isSubmitting = true,
             actionMessage = null,
             actionError = null,
-            createdStaffId = null
+            createdStaffId = null,
+            createdStaffTempPassword = null
         )
     }
 
@@ -279,6 +289,15 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         message?.takeIf { it.isNotBlank() }
             ?.let(UiText::Dynamic)
             ?: UiText.Resource(fallbackResource)
+
+    private fun ApiError.toCreateStaffUiText(): UiText =
+        UiText.Resource(
+            when (code) {
+                "DUPLICATE_RESOURCE", "EMAIL_ALREADY_EXISTS" ->
+                    R.string.admin_staff_email_exists
+                else -> R.string.admin_staff_create_failed
+            }
+        )
 
     class Factory(private val repository: AdminRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

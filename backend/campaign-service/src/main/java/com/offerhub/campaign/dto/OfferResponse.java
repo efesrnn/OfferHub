@@ -1,44 +1,45 @@
 package com.offerhub.campaign.dto;
 
 import com.offerhub.campaign.entity.Campaign;
-import com.offerhub.campaign.entity.CampaignType;
-import com.offerhub.campaign.entity.Offer;
 import com.offerhub.campaign.entity.OfferStatus;
+import com.offerhub.campaign.entity.SubscriberOffer;
 
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 
-/** Offer payload */
 public record OfferResponse(
-        UUID offerId,
+        String offerId,
         String campaignNo,
         String title,
-        CampaignType type,
+        String description,
         Integer discountRate,
         Instant validUntil,
-        BigDecimal score,
+        double score,
         boolean highlighted,
-        OfferStatus status,
-        Integer stars
+        String status,
+        String type,
+        Instant acceptedAt,
+        Integer rating
 ) {
-
-    private static final BigDecimal HIGHLIGHT_THRESHOLD = new BigDecimal("0.80");
-
-    public static OfferResponse from(Offer offer) {
+    /** conversionProbability henuz AI entegrasyonu kurulmadigi icin genelde null - notr 0.5 varsayilir. */
+    public static OfferResponse from(SubscriberOffer offer) {
         Campaign campaign = offer.getCampaign();
-        BigDecimal score = offer.getScore();
+        double score = campaign.getConversionProbability() != null
+                ? campaign.getConversionProbability().doubleValue()
+                : 0.5;
 
         return new OfferResponse(
-                offer.getId(),
+                offer.getId().toString(),
                 campaign.getCampaignNo(),
                 campaign.getTitle(),
-                campaign.getType(),
+                null,
                 campaign.getDiscountRate(),
                 campaign.getValidUntil(),
                 score,
-                score != null && score.compareTo(HIGHLIGHT_THRESHOLD) > 0,
-                offer.getStatus(),
-                offer.getStars());
+                score > 0.80,
+                offer.getStatus().name(),
+                campaign.getType().name(),
+                offer.getStatus() == OfferStatus.ACCEPTED ? offer.getRespondedAt() : null,
+                offer.getRating()
+        );
     }
 }

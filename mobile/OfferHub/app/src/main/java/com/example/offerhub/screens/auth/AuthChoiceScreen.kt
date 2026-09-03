@@ -38,7 +38,8 @@ import com.example.offerhub.components.OfferHubLogoStyle
 @Composable
 fun AuthChoiceScreen(
     onSubscriberClick:()->Unit,
-    onStaffClick:()->Unit
+    onStaffClick:()->Unit,
+    onHelpClick:()->Unit
 )
 {
     Surface(
@@ -94,9 +95,7 @@ fun AuthChoiceScreen(
             Spacer(modifier= Modifier.height(18.dp))     //Kaldırılabilir
             ClickableText(
                 text = stringResource(R.string.auth_help),
-                onClick = {
-                    //
-                }
+                onClick = onHelpClick
             )
         }
     }
@@ -108,6 +107,7 @@ fun AuthChoicePreview()
 {
     AuthChoiceScreen(
         onSubscriberClick={},
-        onStaffClick={}
+        onStaffClick={},
+        onHelpClick={}
     )
 }

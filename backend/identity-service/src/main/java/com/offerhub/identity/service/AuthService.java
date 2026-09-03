@@ -28,6 +28,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final StaffUserRepository staffUserRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     public RegisterResponse register(RegisterRequest request) {
         if (subscriberRepository.findByPhone(request.getPhone()).isPresent()) {
@@ -82,22 +83,34 @@ public class AuthService {
 
         return new AuthDataResponse(accessToken, refreshToken, jwtService.getAccessTokenExpirySeconds(), user);
     }
-    public AuthDataResponse staffLogin(StaffLoginRequest request) {
-        StaffUser staff = staffUserRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new InvalidCredentialsException("E-posta veya sifre hatali"));
+    public AuthDataResponse staffLogin(StaffLoginRequest request, String ipAddress) {
+        var staffOpt = staffUserRepository.findByEmail(request.getEmail());
+        if (staffOpt.isEmpty()) {
+            auditLogService.record(request.getEmail(), "LOGIN_FAILED", "FAILED", ipAddress, "Personel bulunamadi");
+            throw new InvalidCredentialsException("E-posta veya sifre hatali");
+        }
+        StaffUser staff = staffOpt.get();
 
         if (staff.getLockedUntil() != null && staff.getLockedUntil().isAfter(java.time.Instant.now())) {
+            auditLogService.record(staff.getId().toString(), "LOGIN_FAILED", "FAILED", ipAddress, "Hesap kilitli");
             throw new AccountLockedException("Hesap gecici olarak kilitli", staff.getLockedUntil());
         }
 
         if (!passwordEncoder.matches(request.getPassword(), staff.getPassword())) {
-            registerFailedAttempt(staff);
+            boolean justLocked = registerFailedAttempt(staff);
+            auditLogService.record(staff.getId().toString(), "LOGIN_FAILED", "FAILED", ipAddress, "Sifre hatali");
+            if (justLocked) {
+                auditLogService.record(staff.getId().toString(), "ACCOUNT_LOCKED", "FAILED", ipAddress,
+                        "5 basarisiz denemeden sonra hesap kilitlendi");
+            }
             throw new InvalidCredentialsException("E-posta veya sifre hatali");
         }
 
         staff.setFailedLoginAttempts(0);
         staff.setLockedUntil(null);
         staffUserRepository.save(staff);
+
+        auditLogService.record(staff.getId().toString(), "LOGIN_SUCCESS", "SUCCESS", ipAddress, null);
 
         String staffId = staff.getId().toString();
         String accessToken = jwtService.generateAccessToken(staffId, staff.getRole().name());
@@ -123,12 +136,15 @@ public class AuthService {
         staffUserRepository.save(staff);
     }
 
-    private void registerFailedAttempt(StaffUser staff) {
+    private boolean registerFailedAttempt(StaffUser staff) {
         int attempts = staff.getFailedLoginAttempts() + 1;
         staff.setFailedLoginAttempts(attempts);
+        boolean justLocked = false;
         if (attempts >= MAX_FAILED_ATTEMPTS) {
             staff.setLockedUntil(java.time.Instant.now().plus(LOCK_DURATION_MINUTES, java.time.temporal.ChronoUnit.MINUTES));
+            justLocked = true;
         }
         staffUserRepository.save(staff);
+        return justLocked;
     }
 }

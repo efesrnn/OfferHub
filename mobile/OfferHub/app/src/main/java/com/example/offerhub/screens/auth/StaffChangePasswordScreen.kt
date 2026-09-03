@@ -1,6 +1,7 @@
 package com.example.offerhub.screens.auth
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.R
 import com.example.offerhub.components.AuthButton
-import com.example.offerhub.components.ClickableText
+import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.PasswordRequirements
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.data.model.auth.PasswordPolicy
@@ -46,10 +47,20 @@ fun StaffChangePasswordScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
+        ) {
+            if (!isCompleted) {
+                AuthBackButton(
+                    onClick = onBackToLogin,
+                    modifier = Modifier.align(Alignment.TopStart)
+                )
+            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 32.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -130,11 +141,7 @@ fun StaffChangePasswordScreen(
                     }
                 }
             )
-            Spacer(Modifier.height(18.dp))
-            ClickableText(
-                text = stringResource(R.string.auth_back_to_login),
-                onClick = onBackToLogin
-            )
+        }
         }
     }
 }
