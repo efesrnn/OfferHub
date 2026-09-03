@@ -63,6 +63,34 @@ public class OfferService {
                 .map(OfferResponse::from));
     }
 
+    /**
+     * The same list, as Offer rows rather than as our response shape - the mobile facing
+     * controller maps them into the shape its client declared.
+     */
+    @Transactional
+    public List<Offer> offersOf(UUID subscriberId, Pageable pageable) {
+        materialise(subscriberId);
+        return offerRepository.findForSubscriber(subscriberId, pageable).getContent();
+    }
+
+    @Transactional(readOnly = true)
+    public Offer offerOf(UUID offerId, UUID subscriberId) {
+        return load(offerId, subscriberId);
+    }
+
+    /** Both offer endpoints answer with the row itself; only the mapping differs. */
+    @Transactional
+    public Offer respondReturningOffer(UUID offerId, OfferStatus response, UUID subscriberId) {
+        respond(offerId, new OfferRespondRequest(response), subscriberId);
+        return load(offerId, subscriberId);
+    }
+
+    @Transactional
+    public Offer rateReturningOffer(UUID offerId, int stars, UUID subscriberId) {
+        rate(offerId, new OfferRateRequest(stars), subscriberId);
+        return load(offerId, subscriberId);
+    }
+
     @Transactional
     public OfferResponse respond(UUID offerId, OfferRespondRequest request, UUID subscriberId) {
         if (request.response() == OfferStatus.PENDING) {
@@ -79,8 +107,8 @@ public class OfferService {
         offer.setStatus(request.response());
         offer.setRespondedAt(Instant.now());
 
-        eventPublisher.publishEvent(new OutboundEvent(
-                OutboundEvent.OFFER_RESPONDED, OfferRespondedPayload.from(offer)));
+        eventPublisher.publishEvent(new OutboundEvent(OutboundEvent.OFFER_RESPONDED,
+                OfferRespondedPayload.from(offer, referenceOf(subscriberId))));
 
         log.info("Offer {} answered {}", offerId, request.response());
         return OfferResponse.from(offer);
@@ -192,6 +220,13 @@ public class OfferService {
     /** BELIRSIZ becomes null so that nothing is filtered out for a subscriber we cannot place. */
     private static Segment knownSegment(SubscriberProjection projection) {
         return projection.getSegment() == Segment.BELIRSIZ ? null : projection.getSegment();
+    }
+
+    /** The code AI knows this subscriber by, null when they are not from the seed set. */
+    private String referenceOf(UUID subscriberId) {
+        return projectionRepository.findById(subscriberId)
+                .map(SubscriberProjection::getExternalRef)
+                .orElse(null);
     }
 
     private Offer load(UUID offerId, UUID subscriberId) {

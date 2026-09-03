@@ -14,6 +14,15 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 2s
+        # Drop rather than requeue: the default requeues forever, so one unparseable
+        # payload would spin the consumer and block every event behind it.
+        default-requeue-rejected: false
 
 server:
   port: 8080

@@ -12,14 +12,22 @@ import java.util.UUID;
 public record OfferRespondedPayload(
         UUID offerId,
         UUID subscriberId,
+        String subscriberRef,
         String campaignNo,
         OfferStatus response
 ) {
 
-    public static OfferRespondedPayload from(Offer offer) {
+    /**
+     * Carries both identifiers on purpose. subscriberId is the UUID our services agreed on;
+     * subscriberRef is the readable code AI keys its profiles by, and without it AI cannot
+     * tell which profile just declined an offer. Null when this subscriber did not come
+     * from the seed set, and AI then has nothing to update - which is the honest outcome.
+     */
+    public static OfferRespondedPayload from(Offer offer, String subscriberRef) {
         return new OfferRespondedPayload(
                 offer.getId(),
                 offer.getSubscriberId(),
+                subscriberRef,
                 offer.getCampaign().getCampaignNo(),
                 offer.getStatus());
     }

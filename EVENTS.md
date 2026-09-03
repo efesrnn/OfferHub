@@ -112,11 +112,22 @@ sayılmaz.
   "payload": {
     "offerId": "f1a2...",
     "subscriberId": "b7e1...",
+    "subscriberRef": "SUB-0001",
     "campaignNo": "CMP-2026-000123",
     "response": "DECLINED"
   }
 }
 ```
+
+**`subscriberRef` neden var:** servisler aboneyi UUID ile tanıyor (bkz. `ORTAK-KARARLAR` C2),
+AI Service ise profillerini eğitim verisindeki okunabilir kodla (`SUB-0001`) saklıyor. İkisi
+farklı olduğu için olay **her iki tanımlayıcıyı birden** taşır: `subscriberId` sistemin
+ortak kimliği, `subscriberRef` AI'ın profili bulabilmesi için. Abone seed kümesinden
+gelmiyorsa `subscriberRef` `null` olur ve AI güncelleyecek bir profil bulamaz.
+
+**AI Service tarafında beklenen işlem:** aboneni profilindeki `pastAcceptedOffers` /
+`pastDeclinedOffers` sayacını artır. Bu iki alan modelin gerçek feature'ları olduğu için
+ret cevabı sonraki tahminleri gerçekten aşağı çeker — case 5.5'in istediği davranış budur.
 
 ---
 
@@ -218,6 +229,6 @@ Her tüketici servis (`Gamification`, `AI`) kendi kuyruğunu ilgili routing key'
 | Servis | Dinlediği routing key'ler |
 |---|---|
 | Gamification Service | `campaign.optimized`, `sla.breached`, `offer.rated` |
-| AI Service | `segment.changed`, `offer.responded` |
+| AI Service | `segment.changed`, `offer.responded` (kuyruk: `ai.events`) |
 
 Mobil, event'leri doğrudan dinlemez (RabbitMQ'ya bağlanmaz) — `badge.earned` gibi kullanıcıya gösterilecek sonuçlar, ilgili REST endpoint'i (`/api/v1/game/profile`) üzerinden okunur.

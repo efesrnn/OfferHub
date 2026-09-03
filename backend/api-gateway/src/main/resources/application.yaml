@@ -13,7 +13,7 @@ spring:
             - id: campaign-service
               uri: ${CAMPAIGN_SERVICE_URL:http://localhost:8082}
               predicates:
-                - Path=/api/v1/campaigns/**,/api/v1/cases/**,/api/v1/offers/**
+                - Path=/api/v1/campaigns/**,/api/v1/cases/**,/api/v1/offers/**,/api/v1/subscribers/**
             - id: ai-service
               uri: ${AI_SERVICE_URL:http://localhost:8083}
               predicates:
@@ -22,6 +22,18 @@ spring:
               uri: ${GAMIFICATION_SERVICE_URL:http://localhost:8084}
               predicates:
                 - Path=/api/v1/game/**
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+# Brute force defence, case document section 11. Counted per client IP on the paths that
+# can be reached without a token; see RateLimitFilter.
+ratelimit:
+  paths: /api/v1/auth/
+  requests: ${AUTH_RATE_LIMIT:10}
+  window-seconds: ${AUTH_RATE_WINDOW:10}
 
 jwt:
   # Must be the exact value identity-service signs with, otherwise every token fails.

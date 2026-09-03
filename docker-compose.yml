@@ -204,6 +204,11 @@ services:
       AI_SERVICE_URL: http://ai-service:8080
       GAMIFICATION_SERVICE_URL: http://gamification-service:8080
       JWT_SECRET: ${JWT_SECRET}
+      # The rate limiter keeps its counters in Redis, shared with Gamification's instance.
+      REDIS_HOST: gamification-redis
+      REDIS_PORT: 6379
+      AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-10}
+      AUTH_RATE_WINDOW: ${AUTH_RATE_WINDOW:-10}
     # service_healthy where a service reports it: the gateway is the single entry point,
     # and answering 503 because a service is still booting looks like an outage to whoever
     # is watching the demo. Identity and AI do not expose a health endpoint yet, so they
@@ -216,6 +221,8 @@ services:
       ai-service:
         condition: service_started
       gamification-service:
+        condition: service_healthy
+      gamification-redis:
         condition: service_healthy
 
 volumes:
