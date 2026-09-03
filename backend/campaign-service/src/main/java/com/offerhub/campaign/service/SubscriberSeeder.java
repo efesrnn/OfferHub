@@ -77,18 +77,25 @@ public class SubscriberSeeder implements ApplicationRunner {
                 if (line.isBlank()) {
                     continue;
                 }
-                String[] values = line.trim().split(",");
-                String externalRef = values[refIndex];
+                // Per row, not per file: one short line or one unknown segment name should
+                // cost that subscriber, not all 220. Losing the whole seed silently is far
+                // worse - every campaign would then be created unscored with no obvious cause.
+                try {
+                    String[] values = line.trim().split(",");
+                    String externalRef = values[refIndex];
 
-                rows.add(SubscriberProjection.builder()
-                        .subscriberId(ExternalIds.toUuid(externalRef))
-                        .externalRef(externalRef)
-                        .segment(Segment.valueOf(values[segmentIndex]))
-                        .syncedAt(now)
-                        .build());
+                    rows.add(SubscriberProjection.builder()
+                            .subscriberId(ExternalIds.toUuid(externalRef))
+                            .externalRef(externalRef)
+                            .segment(Segment.valueOf(values[segmentIndex]))
+                            .syncedAt(now)
+                            .build());
+                } catch (RuntimeException ex) {
+                    log.warn("Skipping malformed seed row: {}", line);
+                }
             }
         } catch (Exception ex) {
-            // A broken fixture must not stop the service from serving traffic.
+            // The file itself is unreadable; the service still has to serve traffic.
             log.error("Could not read {}, projection left empty", CSV, ex);
             return List.of();
         }

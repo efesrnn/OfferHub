@@ -42,7 +42,7 @@ public class OfferService {
     private static final int LOW_RATING_MAX_STARS = 2;
 
     /** Case document 6.1: below this the campaign is not worth the subscriber's attention. */
-    private static final BigDecimal MIN_VISIBLE_SCORE = new BigDecimal("0.60");
+    public static final BigDecimal MIN_VISIBLE_SCORE = new BigDecimal("0.60");
 
     private final OfferRepository offerRepository;
     private final CampaignRepository campaignRepository;
@@ -55,22 +55,27 @@ public class OfferService {
      * The subscriber's offer list. Offers are materialised here rather than pushed out
      * when a campaign is created: a subscriber who registers tomorrow still sees today's
      * campaigns, and no row is written for a campaign nobody ever opens.
+     *
+     * Deliberately not @Transactional. Materialising asks AI to score every new campaign,
+     * and an HTTP call inside an open transaction holds a database connection for as long
+     * as the other service takes to answer. Each repository call gets its own short
+     * transaction instead; the batch needs no atomicity because the unique constraint on
+     * (subscriber, campaign) is what actually prevents duplicates.
      */
-    @Transactional
     public PagedResult<OfferResponse> listFor(UUID subscriberId, Pageable pageable) {
         materialise(subscriberId);
-        return PagedResult.from(offerRepository.findForSubscriber(subscriberId, pageable)
+        return PagedResult.from(offerRepository.findForSubscriber(subscriberId, MIN_VISIBLE_SCORE, pageable)
                 .map(OfferResponse::from));
     }
 
     /**
      * The same list, as Offer rows rather than as our response shape - the mobile facing
-     * controller maps them into the shape its client declared.
+     * controller maps them into the shape its client declared. Not transactional for the
+     * same reason as listFor; the query fetches the campaign, so nothing is lazy afterwards.
      */
-    @Transactional
     public List<Offer> offersOf(UUID subscriberId, Pageable pageable) {
         materialise(subscriberId);
-        return offerRepository.findForSubscriber(subscriberId, pageable).getContent();
+        return offerRepository.findForSubscriber(subscriberId, MIN_VISIBLE_SCORE, pageable).getContent();
     }
 
     @Transactional(readOnly = true)
@@ -150,10 +155,13 @@ public class OfferService {
         Segment segment = knownSegment(subscriber);
         Set<UUID> alreadyOffered = offerRepository.findCampaignIdsFor(subscriberId);
 
+        // Every candidate is stored, including the ones that score too low to show. The
+        // 0.60 rule is applied when the list is read instead, so each campaign costs one
+        // AI call per subscriber ever. Dropping the low scorers here would leave them out
+        // of alreadyOffered and have them re-scored on every single page load.
         List<Offer> fresh = campaignRepository.findOfferable(segment, Instant.now()).stream()
                 .filter(campaign -> !alreadyOffered.contains(campaign.getId()))
                 .map(campaign -> newOffer(subscriber, campaign))
-                .filter(OfferService::worthShowing)
                 .toList();
 
         if (!fresh.isEmpty()) {
@@ -192,14 +200,6 @@ public class OfferService {
         return aiClient.recommend(reference, campaign.getType())
                 .map(AiRecommendation::score)
                 .orElse(null);
-    }
-
-    /**
-     * Case document 6.1: a campaign scoring under 0.60 is not shown. An unscored offer is
-     * kept - the threshold filters campaigns we judged poorly, not ones we could not judge.
-     */
-    private static boolean worthShowing(Offer offer) {
-        return offer.getScore() == null || offer.getScore().compareTo(MIN_VISIBLE_SCORE) >= 0;
     }
 
     /**

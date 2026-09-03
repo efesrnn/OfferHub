@@ -76,9 +76,19 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 return reject(exchange, "TOKEN_INVALID", "Refresh token cannot be used for API calls");
             }
 
+            String userId = claims.getSubject();
+            String role = claims.get("role", String.class);
+
+            // A correct signature is not the same as a usable token. Both claims are
+            // required downstream, and building a header from a null would fail inside
+            // this filter - which would answer a malformed token with 500 instead of 401.
+            if (userId == null || role == null) {
+                return reject(exchange, "TOKEN_INVALID", "Token is missing the subject or role claim");
+            }
+
             ServerHttpRequest authenticated = request.mutate()
-                    .header(USER_ID_HEADER, claims.getSubject())
-                    .header(USER_ROLE_HEADER, claims.get("role", String.class))
+                    .header(USER_ID_HEADER, userId)
+                    .header(USER_ROLE_HEADER, role)
                     .build();
 
             return chain.filter(exchange.mutate().request(authenticated).build());
