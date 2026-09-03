@@ -21,6 +21,7 @@ public record CampaignResponse(
         CampaignStatus status,
         Priority priority,
         BigDecimal conversionProbability,
+        BigDecimal recommendationScore,
         Instant createdAt
 ) {
 
@@ -37,6 +38,7 @@ public record CampaignResponse(
                 campaign.getStatus(),
                 campaign.getPriority(),
                 campaign.getConversionProbability(),
+                campaign.getRecommendationScore(),
                 campaign.getCreatedAt());
     }
 }

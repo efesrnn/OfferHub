@@ -81,9 +81,13 @@ public class Campaign {
     @Column(nullable = false, length = 10)
     private Priority priority;
 
-    /** AI prediction 0.000-1.000; null until AI Service is wired in. */
+    /** AI prediction 0.000-1.000; null when AI could not be reached. */
     @Column(precision = 4, scale = 3)
     private BigDecimal conversionProbability;
+
+    /** How well AI thinks this campaign suits the segment it targets, 0.000-1.000. */
+    @Column(precision = 4, scale = 3)
+    private BigDecimal recommendationScore;
 
     /** Staff user from Identity - soft reference, no FK across service databases. */
     @Column

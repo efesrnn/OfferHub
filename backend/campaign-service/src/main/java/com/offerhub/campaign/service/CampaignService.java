@@ -32,25 +32,36 @@ public class CampaignService {
     private final CampaignRepository campaignRepository;
     private final CampaignNumberGenerator numberGenerator;
     private final OptimizationCaseService caseService;
+    private final CampaignAiAdvisor aiAdvisor;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * AI Service is not wired in yet, so every campaign takes the fallback path the
-     * contract already defines: segment BELIRSIZ, priority ORTA, still created.
+     * Case document 5.1: targeting a segment sends the campaign to AI for a conversion
+     * estimate, a classification and a priority. If AI cannot be reached the campaign is
+     * still created - it simply arrives unscored and lands in the manual queue.
+     *
+     * The AI call happens before the transaction does any writing, so a slow answer costs
+     * time but never holds a row lock.
      */
     @Transactional
     public CampaignResponse create(CreateCampaignRequest request, CallerIdentity caller) {
+        CampaignScoring scoring = aiAdvisor.scoreFor(request.targetSegment(), request.type());
+
         Campaign campaign = Campaign.builder()
                 .campaignNo(numberGenerator.next())
                 .title(request.title())
                 .type(request.type())
                 .targetSegment(request.targetSegment())
-                .aiSegment(Segment.BELIRSIZ)
-                .segment(Segment.BELIRSIZ)
+                // aiSegment and segment start equal; only segment moves on an override,
+                // which is what makes the pair a record of AI being corrected.
+                .aiSegment(scoring.segment())
+                .segment(scoring.segment())
                 .discountRate(request.discountRate())
                 .validUntil(request.validUntil())
                 .status(CampaignStatus.YENI)
-                .priority(Priority.ORTA)
+                .priority(scoring.priority())
+                .conversionProbability(scoring.conversionProbability())
+                .recommendationScore(scoring.recommendationScore())
                 .createdBy(caller.userId())
                 .build();
 

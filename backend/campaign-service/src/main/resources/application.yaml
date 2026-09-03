@@ -15,6 +15,16 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
+# Campaign calls AI when a campaign is created. Unreachable is a supported state, not
+# an error - see AiClient.
+ai:
+  service:
+    url: ${AI_SERVICE_URL:http://localhost:8083}
+  auto-assign:
+    # See OptimizationCaseService: AI names experts EXP-001, Identity issues UUIDs.
+    # Off leaves every new case for a supervisor to assign by hand.
+    enabled: ${AI_AUTO_ASSIGN:true}
+
 # Case document 5.4: hours in production, minutes during a demo so an SLA breach
 # can actually be shown.
 sla:

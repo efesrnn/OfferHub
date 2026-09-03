@@ -39,16 +39,6 @@ public class SubscriberSeeder implements ApplicationRunner {
     @Value("${seed.enabled:true}")
     private boolean enabled;
 
-    /**
-     * The CSV identifies subscribers as SUB-0001; the system speaks UUID. Hashing the code
-     * into a UUID keeps it deterministic - the same code always yields the same id, so
-     * re-seeding is stable and any other service applying the same rule lands on the same
-     * subscriber. A random id per run would break both.
-     */
-    public static UUID idOf(String externalRef) {
-        return UUID.nameUUIDFromBytes(externalRef.getBytes(StandardCharsets.UTF_8));
-    }
-
     @Override
     public void run(ApplicationArguments args) {
         if (!enabled) {
@@ -91,7 +81,7 @@ public class SubscriberSeeder implements ApplicationRunner {
                 String externalRef = values[refIndex];
 
                 rows.add(SubscriberProjection.builder()
-                        .subscriberId(idOf(externalRef))
+                        .subscriberId(ExternalIds.toUuid(externalRef))
                         .externalRef(externalRef)
                         .segment(Segment.valueOf(values[segmentIndex]))
                         .syncedAt(now)

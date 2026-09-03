@@ -30,7 +30,7 @@ public record CaseResponse(
         Instant completedAt
 ) {
 
-    /** recommendationScore stays null until AI Service is wired in. */
+    /** Every field is filled from the case and its campaign; nulls mean AI had no answer. */
     public static CaseResponse from(OptimizationCase optimizationCase) {
         Campaign campaign = optimizationCase.getCampaign();
         return new CaseResponse(
@@ -42,7 +42,7 @@ public record CaseResponse(
                 campaign.getPriority(),
                 optimizationCase.getStatus(),
                 campaign.getConversionProbability(),
-                null,
+                campaign.getRecommendationScore(),
                 optimizationCase.getSlaDeadline(),
                 SlaPolicy.remainingSeconds(optimizationCase.getSlaDeadline(),
                         optimizationCase.getCompletedAt()),

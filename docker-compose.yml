@@ -79,6 +79,8 @@ services:
       RABBITMQ_PASSWORD: guest
       SLA_TIME_UNIT: ${SLA_TIME_UNIT:-hours}
       SLA_SCAN_INTERVAL_MS: ${SLA_SCAN_INTERVAL_MS:-30000}
+      AI_SERVICE_URL: http://ai-service:8080
+      AI_AUTO_ASSIGN: ${AI_AUTO_ASSIGN:-true}
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
       interval: 10s
@@ -91,6 +93,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    # Deliberately NOT depending on ai-service: campaign creation is specified to work
+    # while AI is down, so making startup wait on it would contradict the design.
 
   # ---------------------------------------------------------------------
   # AI Service + kendi veritabanı

@@ -4,6 +4,8 @@ import com.offerhub.campaign.dto.AssignRequest;
 import com.offerhub.campaign.dto.CaseResponse;
 import com.offerhub.campaign.dto.PagedResult;
 import com.offerhub.campaign.dto.StatusChangeRequest;
+import com.offerhub.campaign.client.AiAssignment;
+import com.offerhub.campaign.client.AiClient;
 import com.offerhub.campaign.entity.Campaign;
 import com.offerhub.campaign.entity.CampaignStatus;
 import com.offerhub.campaign.entity.CaseStatus;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,6 +30,7 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -37,9 +41,20 @@ public class OptimizationCaseService {
     /** Below this predicted conversion a campaign is worth an expert's time. */
     private static final BigDecimal LOW_CONVERSION_THRESHOLD = new BigDecimal("0.60");
 
+    /**
+     * Automatic assignment can be switched off. AI identifies experts by its own codes
+     * (EXP-001), which do not correspond to the staff accounts Identity issues, so until
+     * the three services share one identifier an automatic assignment points at a
+     * placeholder. Turning this off leaves every case for the supervisor to assign, which
+     * is the safer setting for a live demo.
+     */
+    @Value("${ai.auto-assign.enabled:true}")
+    private boolean autoAssignEnabled;
+
     private final OptimizationCaseRepository caseRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final SlaPolicy slaPolicy;
+    private final AiClient aiClient;
 
     /**
      * A null probability means AI Service never answered. The contract puts that campaign
@@ -66,6 +81,41 @@ public class OptimizationCaseService {
         log.info("Opened case {} for campaign {} (conversionProbability={}, slaDeadline={})",
                 optimizationCase.getId(), campaign.getCampaignNo(), probability,
                 optimizationCase.getSlaDeadline());
+
+        autoAssign(optimizationCase, campaign);
+    }
+
+    /**
+     * The "Sistem (AI)" half of the YENI -> ATANDI row in the transition table. A case
+     * nobody is assigned to is a case nobody is working on, so the contract has AI pick
+     * someone the moment it is opened.
+     *
+     * Everything here is best effort. AI being down, every expert being at capacity, or
+     * the move not being allowed all leave the case in YENI - which is exactly the manual
+     * optimization queue a supervisor picks from.
+     */
+    private void autoAssign(OptimizationCase optimizationCase, Campaign campaign) {
+        if (!autoAssignEnabled) {
+            return;
+        }
+        if (!CaseStateMachine.isAllowed(optimizationCase.getStatus(), CaseStatus.ATANDI)) {
+            return;
+        }
+
+        Optional<AiAssignment> assignment = aiClient.assignExpert(
+                optimizationCase.getId().toString(), campaign.getSegment().name());
+
+        if (assignment.isEmpty()) {
+            log.info("Case {} stays in the manual queue, AI proposed nobody", optimizationCase.getId());
+            return;
+        }
+
+        AiAssignment proposal = assignment.get();
+        optimizationCase.setAssignedExpertId(ExternalIds.toUuid(proposal.expertId()));
+        optimizationCase.setStatus(CaseStatus.ATANDI);
+
+        log.info("Case {} auto-assigned to expert {} (matchScore={})",
+                optimizationCase.getId(), proposal.expertId(), proposal.matchScore());
     }
 
     /** Ordering is a repository concern - two queries, one per sort, rather than one with a branch. */
