@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.offerhub.R
+import com.example.offerhub.data.model.admin.AdminStaff
 import com.example.offerhub.data.model.supervisor.SupervisorDashboard
 import com.example.offerhub.repository.SupervisorRepository
 import com.example.offerhub.repository.SupervisorResult
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 
 data class SupervisorUiState(
     val dashboard: SupervisorDashboard? = null,
+    val experts: List<AdminStaff> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: UiText? = null,
     val isSubmittingAction: Boolean = false,
@@ -42,6 +44,16 @@ class SupervisorViewModel(
                 is SupervisorResult.Failure -> _uiState.update {
                     it.copy(isLoading = false, errorMessage = UiText.Resource(R.string.error_supervisor_dashboard))
                 }
+            }
+        }
+        loadExperts()
+    }
+
+    fun loadExperts() {
+        viewModelScope.launch {
+            when (val result = repository.getExperts()) {
+                is SupervisorResult.Success -> _uiState.update { it.copy(experts = result.value) }
+                is SupervisorResult.Failure -> Unit
             }
         }
     }

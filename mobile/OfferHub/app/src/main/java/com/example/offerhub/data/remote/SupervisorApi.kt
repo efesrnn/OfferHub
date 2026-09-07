@@ -8,6 +8,7 @@ import com.example.offerhub.data.remote.dto.CampaignDto
 import com.example.offerhub.data.remote.dto.ClassificationRequest
 import com.example.offerhub.data.remote.dto.SupervisorDashboardDto
 import com.example.offerhub.data.remote.dto.StatusChangeRequest
+import com.example.offerhub.data.remote.dto.StaffDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -45,4 +46,9 @@ interface SupervisorApi {
         @Path("campaignNo") campaignNo: String,
         @Body request: ClassificationRequest
     ): Response<ApiResponse<CampaignDto>>
+
+    @GET("api/v1/users/staff")
+    suspend fun getExperts(
+        @Query("role") role: String = "EXPERT"
+    ): Response<ApiResponse<List<StaffDto>>>
 }

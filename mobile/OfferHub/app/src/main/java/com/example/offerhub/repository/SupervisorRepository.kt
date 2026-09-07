@@ -1,5 +1,6 @@
 package com.example.offerhub.repository
 
+import com.example.offerhub.data.model.admin.AdminStaff
 import com.example.offerhub.data.model.supervisor.SupervisorDashboard
 import com.example.offerhub.data.network.ApiError
 import com.example.offerhub.data.model.campaign.Priority
@@ -20,4 +21,5 @@ interface SupervisorRepository {
         priority: Priority,
         reason: String
     ): SupervisorResult<SupervisorDashboard>
+    suspend fun getExperts(): SupervisorResult<List<AdminStaff>>
 }

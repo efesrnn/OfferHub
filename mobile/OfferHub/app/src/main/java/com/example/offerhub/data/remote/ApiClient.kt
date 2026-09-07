@@ -68,14 +68,6 @@ object ApiClient {
         return createRetrofit(client).create(GamificationApi::class.java)
     }
 
-    fun createAdminApi(tokenProvider: AccessTokenProvider): AdminApi {
-        val client = OkHttpClient.Builder()
-            .addInterceptor(AuthorizationInterceptor(tokenProvider))
-            .addInterceptor(loggingInterceptor)
-            .build()
-        return createRetrofit(client).create(AdminApi::class.java)
-    }
-
     fun createSupervisorApi(tokenProvider: AccessTokenProvider): SupervisorApi {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(tokenProvider))

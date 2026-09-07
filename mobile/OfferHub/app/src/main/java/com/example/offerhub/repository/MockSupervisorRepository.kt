@@ -1,5 +1,6 @@
 package com.example.offerhub.repository
 
+import com.example.offerhub.data.model.admin.AdminStaff
 import com.example.offerhub.data.model.campaign.Priority
 import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.campaign.CaseStatus
@@ -111,5 +112,16 @@ class MockSupervisorRepository : SupervisorRepository {
             if (it.campaignNo == campaignNo) it.copy(segment = segment, priority = priority) else it
         })
         return SupervisorResult.Success(dashboard)
+    }
+
+    override suspend fun getExperts(): SupervisorResult<List<AdminStaff>> {
+        delay(150)
+        return SupervisorResult.Success(
+            listOf(
+                AdminStaff("expert-1", "Ayse", "Yilmaz", "ayse@offerhub.com", "EXPERT", emptyList(), emptyList()),
+                AdminStaff("expert-2", "Can", "Demir", "can@offerhub.com", "EXPERT", emptyList(), emptyList()),
+                AdminStaff("expert-3", "Ece", "Kaya", "ece@offerhub.com", "EXPERT", emptyList(), emptyList())
+            )
+        )
     }
 }

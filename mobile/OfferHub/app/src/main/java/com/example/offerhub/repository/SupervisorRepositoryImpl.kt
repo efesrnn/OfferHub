@@ -1,5 +1,6 @@
 package com.example.offerhub.repository
 
+import com.example.offerhub.data.model.admin.AdminStaff
 import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.Priority
 import com.example.offerhub.data.model.campaign.Segment
@@ -13,6 +14,7 @@ import com.example.offerhub.data.remote.dto.AssignCaseRequest
 import com.example.offerhub.data.remote.dto.ClassificationRequest
 import com.example.offerhub.data.remote.dto.StatusChangeRequest
 import com.example.offerhub.data.remote.dto.toConversionTrend
+import com.example.offerhub.data.remote.dto.toDomain
 import com.example.offerhub.data.remote.dto.toExpertPerformance
 import com.example.offerhub.data.remote.dto.toSupervisorSummary
 import com.example.offerhub.data.remote.dto.toSegmentDistribution
@@ -66,6 +68,21 @@ class SupervisorRepositoryImpl(
                 reason = reason.trim()
             )
         )
+    }
+
+    override suspend fun getExperts(): SupervisorResult<List<AdminStaff>> = try {
+        val response = api.getExperts()
+        val envelope = response.body()
+        val data = envelope?.data
+        if (response.isSuccessful && envelope?.success == true && data != null) {
+            SupervisorResult.Success(data.mapNotNull { it.toDomain() })
+        } else {
+            SupervisorResult.Failure(errorFrom(response, envelope?.error))
+        }
+    } catch (_: IOException) {
+        SupervisorResult.Failure(ApiError("NETWORK_ERROR"))
+    } catch (_: Exception) {
+        SupervisorResult.Failure(ApiError("UNKNOWN_ERROR"))
     }
 
     private suspend fun <T> actionThenReload(

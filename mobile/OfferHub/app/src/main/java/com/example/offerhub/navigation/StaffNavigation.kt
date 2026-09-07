@@ -39,6 +39,27 @@ import com.example.offerhub.viewModel.GamificationViewModel
 import com.example.offerhub.viewModel.SupervisorViewModel
 import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.Segment
+import com.example.offerhub.data.model.admin.AdminStaff
+import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
+
+private fun mergeExperts(
+    directory: List<AdminStaff>,
+    performance: List<ExpertPerformanceSummary>
+): List<ExpertPerformanceSummary> {
+    val perfById = performance.associateBy { it.expertId }
+    return directory.map { staff ->
+        val perf = perfById[staff.id]
+        ExpertPerformanceSummary(
+            expertId = staff.id,
+            displayName = "${staff.firstName} ${staff.lastName}",
+            completedCases = perf?.completedCases ?: 0,
+            averageConversionIncrease = perf?.averageConversionIncrease,
+            averageCompletionHours = perf?.averageCompletionHours ?: 0.0,
+            activeCaseCount = perf?.activeCaseCount ?: 0,
+            maximumCaseCapacity = perf?.maximumCaseCapacity ?: 10
+        )
+    }
+}
 
 fun NavGraphBuilder.staffRoleGraphs(
     navController: NavHostController,
@@ -275,7 +296,7 @@ fun NavGraphBuilder.staffRoleGraphs(
                     it.assignedExpertId == null
             },
             mode = SupervisorCaseListMode.PENDING_ASSIGNMENT,
-            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            experts = mergeExperts(supervisorState.experts, supervisorState.dashboard?.expertPerformance.orEmpty()),
             isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
             loadError = supervisorState.errorMessage?.asString(),
             isSubmitting = supervisorState.isSubmittingAction,
@@ -305,7 +326,7 @@ fun NavGraphBuilder.staffRoleGraphs(
                 )
             },
             mode = SupervisorCaseListMode.ACTIVE,
-            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            experts = mergeExperts(supervisorState.experts, supervisorState.dashboard?.expertPerformance.orEmpty()),
             isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
             loadError = supervisorState.errorMessage?.asString(),
             isSubmitting = supervisorState.isSubmittingAction,
@@ -331,7 +352,7 @@ fun NavGraphBuilder.staffRoleGraphs(
                 it.status == CaseStatus.TAMAMLANDI
             },
             mode = SupervisorCaseListMode.APPROVAL,
-            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            experts = mergeExperts(supervisorState.experts, supervisorState.dashboard?.expertPerformance.orEmpty()),
             isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
             loadError = supervisorState.errorMessage?.asString(),
             isSubmitting = supervisorState.isSubmittingAction,
@@ -355,7 +376,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             title = stringResource(R.string.supervisor_published_cases),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter { it.status == CaseStatus.YAYINDA },
             mode = SupervisorCaseListMode.PUBLISHED,
-            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            experts = mergeExperts(supervisorState.experts, supervisorState.dashboard?.expertPerformance.orEmpty()),
             isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
             loadError = supervisorState.errorMessage?.asString(),
             isSubmitting = supervisorState.isSubmittingAction,
@@ -373,7 +394,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
         SupervisorExpertPerformanceScreen(
-            experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
+            experts = mergeExperts(supervisorState.experts, supervisorState.dashboard?.expertPerformance.orEmpty()),
             isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
             errorMessage = supervisorState.errorMessage?.asString(),
             onRetryClick = supervisorViewModel::loadDashboard,

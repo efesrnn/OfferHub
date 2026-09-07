@@ -1,12 +1,5 @@
 package com.example.offerhub.data.remote
 
-import com.example.offerhub.data.model.admin.AdminStaff
-import com.example.offerhub.data.model.admin.AuditLog
-import com.example.offerhub.data.network.ApiResponse
-import com.example.offerhub.data.network.PagedResult
-import com.example.offerhub.data.remote.dto.AdminCreateStaffRequest
-import com.example.offerhub.data.remote.dto.AdminCreateStaffResponse
-import com.example.offerhub.data.remote.dto.AdminRoleUpdateRequest
 import com.example.offerhub.data.network.ApiResponse
 import com.example.offerhub.data.remote.dto.AdminPagedResponseDto
 import com.example.offerhub.data.remote.dto.AuditLogDto
@@ -41,8 +34,8 @@ interface AdminApi {
     @PATCH("api/v1/admin/staff/{staffId}/role")
     suspend fun updateRole(
         @Path("staffId") staffId: String,
-        @Body request: AdminRoleUpdateRequest
-    ): Response<ApiResponse<AdminStaff>>
+        @Body request: RoleUpdateRequest
+    ): Response<ApiResponse<StaffDto>>
 
     @GET("api/v1/admin/audit-logs")
     suspend fun getAuditLogs(
@@ -53,5 +46,5 @@ interface AdminApi {
         @Query("toDate") toDate: String?,
         @Query("page") page: Int,
         @Query("size") size: Int
-    ): Response<ApiResponse<PagedResult<AuditLog>>>
+    ): Response<ApiResponse<AdminPagedResponseDto<AuditLogDto>>>
 }
