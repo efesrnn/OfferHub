@@ -1,7 +1,8 @@
 package com.example.offerhub.navigation
 
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -27,7 +28,7 @@ fun NavGraphBuilder.subscriberGraph(
     val openOfferDetail: (String) -> Unit = subscriberViewModel::selectOffer
 
     composable(Routes.SUBSCRIBER_HOME) {
-        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val offers = subscriberState.offers
         val latestAcceptedOffer = offers
             .filter { it.status == OfferStatus.ACCEPTED }
@@ -62,7 +63,7 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.OFFERS) {
-        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val offers = subscriberState.offers
         OffersScreen(
             offers = offers,
@@ -101,7 +102,7 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.ACCEPTED_OFFERS) {
-        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val acceptedOffers = subscriberState.offers.filter {
             it.status == OfferStatus.ACCEPTED
         }
@@ -116,7 +117,7 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.RATED_OFFERS) {
-        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val ratedOffers = subscriberState.offers.filter { it.rating != null }
         OfferCategoryScreen(
             title = stringResource(R.string.offers_my_rated),
@@ -131,8 +132,11 @@ fun NavGraphBuilder.subscriberGraph(
     }
 
     composable(Routes.PROFILE) {
-        val authState by authViewModel.uiState.collectAsState()
-        val profilePhone = (authState.currentUser?.phone ?: authState.pendingPhone)
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+        val profileUser = remember { authState.currentUser }
+        val profilePhone = remember {
+            profileUser?.phone ?: authState.pendingPhone
+        }
             ?.takeIf { it.isNotBlank() }
             ?.let { if (it.startsWith("+")) it else "+90 $it" }
             ?: stringResource(R.string.profile_not_available)
@@ -144,11 +148,12 @@ fun NavGraphBuilder.subscriberGraph(
             email = "test@offerhub.com",
             onRetryClick = {},
             onLogoutClick = {
-                navController.navigate(Routes.AUTH_CHOICE) {
-                    popUpTo(Routes.SUBSCRIBER_HOME) { inclusive = true }
-                    launchSingleTop = true
+                authViewModel.logout {
+                    navController.navigate(Routes.AUTH_CHOICE) {
+                        popUpTo(Routes.SUBSCRIBER_HOME) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
-                authViewModel.logout()
             },
             onHomeClick = {
                 navController.navigate(Routes.SUBSCRIBER_HOME) {
@@ -171,7 +176,7 @@ fun NavGraphBuilder.subscriberGraph(
             navArgument("offerType") { type = NavType.StringType }
         )
     ) { backStackEntry ->
-        val subscriberState by subscriberViewModel.uiState.collectAsState()
+        val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val offers = subscriberState.offers
         val selectedType = backStackEntry.arguments
             ?.getString("offerType")

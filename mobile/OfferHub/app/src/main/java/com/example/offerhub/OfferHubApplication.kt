@@ -11,6 +11,8 @@ import com.example.offerhub.repository.SubscriberRepositoryImpl
 import com.example.offerhub.repository.AdminRepository
 import com.example.offerhub.repository.AdminRepositoryImpl
 import com.example.offerhub.repository.MockAdminRepository
+import com.example.offerhub.repository.AdminRepository
+import com.example.offerhub.repository.AdminRepositoryImpl
 import com.example.offerhub.repository.MockExpertRepository
 import com.example.offerhub.repository.ExpertRepository
 import com.example.offerhub.repository.ExpertRepositoryImpl
@@ -41,7 +43,11 @@ class OfferHubApplication : Application() {
     }
 
     val subscriberRepository by lazy {
-        realSubscriberRepository
+        if (BuildConfig.USE_MOCK_SUBSCRIBER) {
+            MockSubscriberRepository(MockOfferData.offers)
+        } else {
+            realSubscriberRepository
+        }
     }
 
     val adminRepository: AdminRepository by lazy {

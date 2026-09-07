@@ -1,9 +1,9 @@
 package com.example.offerhub.navigation
 
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -49,7 +49,7 @@ fun NavGraphBuilder.staffRoleGraphs(
     supervisorViewModel: SupervisorViewModel
 ) {
     composable(Routes.EXPERT_HOME) {
-        val expertState by expertViewModel.uiState.collectAsState()
+        val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             if (expertState.caseStatusFilter != null) {
                 expertViewModel.loadCases(reset = true, status = null)
@@ -78,7 +78,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.EXPERT_CASES) {
-        val expertState by expertViewModel.uiState.collectAsState()
+        val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
         ExpertCaseListScreen(
             cases = expertState.cases,
             isLoading = expertState.isLoading,
@@ -97,7 +97,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.EXPERT_CRITICAL_CASES) {
-        val expertState by expertViewModel.uiState.collectAsState()
+        val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
         ExpertCaseListScreen(
             cases = expertState.cases,
             isLoading = expertState.isLoading,
@@ -114,7 +114,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.EXPERT_PROFILE) {
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         val profileUser = remember { authState.currentUser }
         ExpertProfileScreen(
             userId = profileUser?.id.orEmpty(),
@@ -123,19 +123,20 @@ fun NavGraphBuilder.staffRoleGraphs(
             regions = profileUser?.regions.orEmpty(),
             onProgressClick = { navController.navigate(Routes.EXPERT_PROGRESS) },
             onLogoutClick = {
-                navController.navigate(Routes.AUTH_CHOICE) {
-                    popUpTo(Routes.EXPERT_HOME) { inclusive = true }
-                    launchSingleTop = true
+                authViewModel.logout {
+                    navController.navigate(Routes.AUTH_CHOICE) {
+                        popUpTo(Routes.EXPERT_HOME) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
-                authViewModel.logout()
             },
             onHomeClick = { navController.navigateExpertTopLevel(Routes.EXPERT_HOME) },
             onOperationsClick = { navController.navigateExpertTopLevel(Routes.EXPERT_OPERATIONS) }
         )
     }
     composable(Routes.EXPERT_PROGRESS) {
-        val authState by authViewModel.uiState.collectAsState()
-        val gamificationState by gamificationViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+        val gamificationState by gamificationViewModel.uiState.collectAsStateWithLifecycle()
         val expertId = authState.currentUser?.id.orEmpty()
 
         LaunchedEffect(expertId) {
@@ -155,7 +156,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.EXPERT_CAMPAIGNS) {
-        val expertState by expertViewModel.uiState.collectAsState()
+        val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { expertViewModel.loadCampaigns() }
         ExpertCampaignListScreen(
             campaigns = expertState.campaigns,
@@ -178,7 +179,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.EXPERT_CREATE_CAMPAIGN) {
-        val expertState by expertViewModel.uiState.collectAsState()
+        val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { expertViewModel.clearCampaignFeedback() }
         CreateCampaignScreen(
             isSubmitting = expertState.isCreatingCampaign,
@@ -193,7 +194,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         arguments = listOf(navArgument("campaignNo") { type = NavType.StringType })
     ) { backStackEntry ->
         val campaignNo = backStackEntry.arguments?.getString("campaignNo").orEmpty()
-        val expertState by expertViewModel.uiState.collectAsState()
+        val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(campaignNo) {
             if (campaignNo.isNotBlank()) expertViewModel.loadCampaignDetail(campaignNo)
         }
@@ -210,7 +211,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         arguments = listOf(navArgument("caseId") { type = NavType.StringType })
     ) { backStackEntry ->
         val caseId = backStackEntry.arguments?.getString("caseId").orEmpty()
-        val expertState by expertViewModel.uiState.collectAsState()
+        val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
 
         LaunchedEffect(caseId) {
             if (caseId.isNotBlank()) expertViewModel.loadCaseDetail(caseId)
@@ -236,7 +237,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.SUPERVISOR_HOME) {
-        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
         SupervisorDashboardScreen(
             dashboard = supervisorState.dashboard,
@@ -262,7 +263,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.SUPERVISOR_PENDING_CASES) {
-        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
@@ -289,7 +290,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.SUPERVISOR_ACTIVE_CASES) {
-        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
@@ -319,7 +320,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.SUPERVISOR_APPROVAL_CASES) {
-        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
@@ -345,7 +346,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.SUPERVISOR_PUBLISHED_CASES) {
-        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
@@ -369,7 +370,7 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.SUPERVISOR_EXPERT_PERFORMANCE) {
-        val supervisorState by supervisorViewModel.uiState.collectAsState()
+        val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
         SupervisorExpertPerformanceScreen(
             experts = supervisorState.dashboard?.expertPerformance.orEmpty(),
@@ -380,18 +381,19 @@ fun NavGraphBuilder.staffRoleGraphs(
         )
     }
     composable(Routes.SUPERVISOR_PROFILE) {
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         val profileUser = remember { authState.currentUser }
         SupervisorProfileScreen(
             userId = profileUser?.id.orEmpty(),
             onHomeClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_HOME) },
             onCasesClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_OPERATIONS) },
             onLogoutClick = {
-                navController.navigate(Routes.AUTH_CHOICE) {
-                    popUpTo(Routes.SUPERVISOR_HOME) { inclusive = true }
-                    launchSingleTop = true
+                authViewModel.logout {
+                    navController.navigate(Routes.AUTH_CHOICE) {
+                        popUpTo(Routes.SUPERVISOR_HOME) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
-                authViewModel.logout()
             }
         )
     }
@@ -413,7 +415,7 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
 
     composable(Routes.ADMIN_CREATE_STAFF) {
-        val adminState by adminViewModel.uiState.collectAsState()
+        val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { adminViewModel.clearActionFeedback() }
         CreateStaffScreen(
             onBackClick = navController::popBackStack,
@@ -428,7 +430,7 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
 
     composable(Routes.ADMIN_UPDATE_ROLE) {
-        val adminState by adminViewModel.uiState.collectAsState()
+        val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             adminViewModel.clearActionFeedback()
             adminViewModel.loadStaff()
@@ -452,7 +454,7 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
 
     composable(Routes.ADMIN_AUDIT_LOGS) {
-        val adminState by adminViewModel.uiState.collectAsState()
+        val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { adminViewModel.loadAuditLogs(reset = true) }
         AuditLogsScreen(
             logs = adminState.auditLogs,
@@ -477,18 +479,19 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
 
     composable(Routes.ADMIN_PROFILE) {
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         val profileUser = remember { authState.currentUser }
 
         AdminProfileScreen(
             userId = profileUser?.id.orEmpty(),
             role = profileUser?.role ?: "ADMIN",
             onLogoutClick = {
-                navController.navigate(Routes.AUTH_CHOICE) {
-                    popUpTo(Routes.ADMIN_HOME) { inclusive = true }
-                    launchSingleTop = true
+                authViewModel.logout {
+                    navController.navigate(Routes.AUTH_CHOICE) {
+                        popUpTo(Routes.ADMIN_HOME) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
-                authViewModel.logout()
             },
             onHomeClick = {
                 navController.navigateAdminTopLevel(Routes.ADMIN_HOME)

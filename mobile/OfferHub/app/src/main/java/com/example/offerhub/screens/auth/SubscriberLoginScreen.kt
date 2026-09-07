@@ -31,6 +31,7 @@ import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
+import com.example.offerhub.components.MockLoginButton
 import com.example.offerhub.R
 
 @Composable
@@ -39,7 +40,8 @@ fun SubscriberLoginScreen(
     onRegisterClick:()->Unit,
     onBackClick:()->Unit,
     isLoading: Boolean = false,
-    backendError: String? = null
+    backendError: String? = null,
+    onMockSubscriberClick: (() -> Unit)? = null
 )
 {
     Surface(
@@ -145,6 +147,14 @@ fun SubscriberLoginScreen(
                 text = stringResource(R.string.auth_register_link),
                 onClick=onRegisterClick
             )
+            if (onMockSubscriberClick != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                MockLoginButton(
+                    text = stringResource(R.string.auth_mock_subscriber_login),
+                    onClick = onMockSubscriberClick,
+                    enabled = !isLoading
+                )
+            }
         }
         }
     }

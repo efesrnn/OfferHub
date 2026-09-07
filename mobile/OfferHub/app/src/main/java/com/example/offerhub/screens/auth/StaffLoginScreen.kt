@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,14 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.AuthBackButton
+import com.example.offerhub.components.PasswordFieldComponent
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
+import com.example.offerhub.components.MockLoginButton
 import com.example.offerhub.R
 
 @Composable
@@ -115,17 +115,14 @@ fun StaffLoginScreen(
                 },
             )
             Spacer(modifier=Modifier.height(3.dp))
-            TextFieldComponent(
+            PasswordFieldComponent(
                 value=password,
                 onValueChange={
                     password=it
                 },
                 label = stringResource(R.string.auth_password),
-                keyboardType= KeyboardType.Password,
-                visualTransformation = PasswordVisualTransformation(),
                 isError = passwordTouched&&passwordIsInvalid,
                 errorMessage = stringResource(R.string.error_password_empty),
-                prefix="",
                 onFocusChanged = { isFocused ->
                     if (!isFocused) {
                         passwordTouched = true
@@ -169,30 +166,27 @@ fun StaffLoginScreen(
             )
             if (onMockAdminClick != null) {
                 Spacer(modifier = Modifier.height(12.dp))
-                OutlinedButton(
+                MockLoginButton(
+                    text = stringResource(R.string.auth_mock_admin_login),
                     onClick = onMockAdminClick,
                     enabled = !isLoading
-                ) {
-                    Text(text = stringResource(R.string.auth_mock_admin_login))
-                }
+                )
             }
             if (onMockExpertClick != null) {
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
+                MockLoginButton(
+                    text = stringResource(R.string.auth_mock_expert_login),
                     onClick = onMockExpertClick,
                     enabled = !isLoading
-                ) {
-                    Text(text = stringResource(R.string.auth_mock_expert_login))
-                }
+                )
             }
             if (onMockSupervisorClick != null) {
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
+                MockLoginButton(
+                    text = stringResource(R.string.auth_mock_supervisor_login),
                     onClick = onMockSupervisorClick,
                     enabled = !isLoading
-                ) {
-                    Text(text = stringResource(R.string.auth_mock_supervisor_login))
-                }
+                )
             }
 
         }

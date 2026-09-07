@@ -25,10 +25,40 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "USE_MOCK_SUBSCRIBER", "true")
+            buildConfigField("boolean", "USE_MOCK_ADMIN", "true")
+            buildConfigField("boolean", "USE_MOCK_EXPERT", "true")
+            buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "true")
+            buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "true")
+        }
+
         release {
+            buildConfigField("boolean", "USE_MOCK_SUBSCRIBER", "false")
+            buildConfigField("boolean", "USE_MOCK_ADMIN", "false")
+            buildConfigField("boolean", "USE_MOCK_EXPERT", "false")
+            buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "false")
+            buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "false")
+
             optimization {
                 enable = false
             }
+        }
+        create("staging") {
+            initWith(getByName("release"))
+
+            isDebuggable = true
+
+            signingConfig =
+                signingConfigs.getByName("debug")
+
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+
+            matchingFallbacks += listOf(
+                "release",
+                "debug"
+            )
         }
     }
     compileOptions {
@@ -50,6 +80,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

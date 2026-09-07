@@ -7,6 +7,13 @@ import com.example.offerhub.data.network.PagedResult
 import com.example.offerhub.data.remote.dto.AdminCreateStaffRequest
 import com.example.offerhub.data.remote.dto.AdminCreateStaffResponse
 import com.example.offerhub.data.remote.dto.AdminRoleUpdateRequest
+import com.example.offerhub.data.network.ApiResponse
+import com.example.offerhub.data.remote.dto.AdminPagedResponseDto
+import com.example.offerhub.data.remote.dto.AuditLogDto
+import com.example.offerhub.data.remote.dto.RoleUpdateRequest
+import com.example.offerhub.data.remote.dto.StaffCreateRequest
+import com.example.offerhub.data.remote.dto.StaffCreateResponseDto
+import com.example.offerhub.data.remote.dto.StaffDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -17,13 +24,19 @@ import retrofit2.http.Query
 
 interface AdminApi {
     @POST("api/v1/admin/staff")
-    suspend fun createStaff(@Body request: AdminCreateStaffRequest): Response<ApiResponse<AdminCreateStaffResponse>>
+    suspend fun createStaff(
+        @Body request: StaffCreateRequest
+    ): Response<ApiResponse<StaffCreateResponseDto>>
 
     @GET("api/v1/admin/staff")
-    suspend fun searchStaff(@Query("query") query: String?): Response<ApiResponse<List<AdminStaff>>>
+    suspend fun searchStaff(
+        @Query("query") query: String?
+    ): Response<ApiResponse<List<StaffDto>>>
 
     @GET("api/v1/admin/staff/{staffId}")
-    suspend fun getStaff(@Path("staffId") staffId: String): Response<ApiResponse<AdminStaff>>
+    suspend fun getStaff(
+        @Path("staffId") staffId: String
+    ): Response<ApiResponse<StaffDto>>
 
     @PATCH("api/v1/admin/staff/{staffId}/role")
     suspend fun updateRole(

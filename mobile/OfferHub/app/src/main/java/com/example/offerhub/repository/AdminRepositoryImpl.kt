@@ -10,6 +10,10 @@ import com.example.offerhub.data.remote.dto.AdminCreateStaffRequest
 import com.example.offerhub.data.remote.dto.AdminRoleUpdateRequest
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.example.offerhub.data.remote.dto.RoleUpdateRequest
+import com.example.offerhub.data.remote.dto.StaffCreateRequest
+import com.example.offerhub.data.remote.dto.toDomain
+import com.google.gson.Gson
 import retrofit2.Response
 import java.io.IOException
 
@@ -25,29 +29,59 @@ class AdminRepositoryImpl(
         role: String,
         specialties: List<String>,
         regions: List<String>
-    ): AdminResult<AdminStaff> = call {
-        api.createStaff(AdminCreateStaffRequest(firstName, lastName, email, role, specialties, regions))
-    }.map { response ->
-        AdminStaff(
-            id = response.staffId,
-            firstName = firstName,
-            lastName = lastName,
-            email = email,
-            role = role,
-            specialties = specialties,
-            regions = regions,
-            tempPassword = response.tempPassword
+    ): AdminResult<AdminStaff> = try {
+        val response = api.createStaff(
+            StaffCreateRequest(
+                firstName = firstName.trim(),
+                lastName = lastName.trim(),
+                email = email.trim(),
+                role = role,
+                specialties = specialties,
+                regions = regions
+            )
         )
+        val envelope = response.body()
+        val staffId = envelope?.data?.staffId?.takeIf(String::isNotBlank)
+
+        if (response.isSuccessful && envelope?.success == true && staffId != null) {
+            findStaff(staffId)
+        } else {
+            AdminResult.Failure(errorFrom(response, envelope?.error))
+        }
+    } catch (_: IOException) {
+        AdminResult.Failure(ApiError("NETWORK_ERROR"))
+    } catch (_: Exception) {
+        AdminResult.Failure(ApiError("UNKNOWN_ERROR"))
     }
 
-    override suspend fun updateRole(staffId: String, role: String): AdminResult<AdminStaff> =
-        call { api.updateRole(staffId, AdminRoleUpdateRequest(role)) }
+    override suspend fun updateRole(
+        staffId: String,
+        role: String
+    ): AdminResult<AdminStaff> = call(
+        request = { api.updateRole(staffId.trim(), RoleUpdateRequest(role)) },
+        transform = { it.toDomain() }
+    )
 
-    override suspend fun findStaff(staffId: String): AdminResult<AdminStaff> =
-        call { api.getStaff(staffId) }
+    override suspend fun findStaff(staffId: String): AdminResult<AdminStaff> = call(
+        request = { api.getStaff(staffId.trim()) },
+        transform = { it.toDomain() }
+    )
 
-    override suspend fun searchStaff(query: String): AdminResult<List<AdminStaff>> =
-        call { api.searchStaff(query.ifBlank { null }) }
+    override suspend fun searchStaff(query: String): AdminResult<List<AdminStaff>> {
+        val normalizedQuery = query.trim()
+        return call(
+            request = { api.searchStaff(normalizedQuery.ifBlank { null }) },
+            transform = { staff ->
+                staff.mapNotNull { it.toDomain() }.filter { member ->
+                    normalizedQuery.isBlank() ||
+                        member.firstName.contains(normalizedQuery, ignoreCase = true) ||
+                        member.lastName.contains(normalizedQuery, ignoreCase = true) ||
+                        "${member.firstName} ${member.lastName}"
+                            .contains(normalizedQuery, ignoreCase = true)
+                }
+            }
+        )
+    }
 
     override suspend fun getAuditLogs(
         actionQuery: String?,
@@ -57,17 +91,33 @@ class AdminRepositoryImpl(
         toDate: String?,
         page: Int,
         size: Int
-    ): AdminResult<PagedResult<AuditLog>> = call {
-        api.getAuditLogs(actionQuery, action, result, fromDate, toDate, page, size)
-    }
+    ): AdminResult<PagedResult<AuditLog>> = call(
+        request = {
+            api.getAuditLogs(
+                actionQuery = actionQuery.nullIfBlank(),
+                action = action.nullIfBlank(),
+                result = result.nullIfBlank(),
+                fromDate = fromDate.nullIfBlank(),
+                toDate = toDate.nullIfBlank(),
+                page = page,
+                size = size
+            )
+        },
+        transform = { it.toDomain() }
+    )
 
-    private suspend fun <T> call(block: suspend () -> Response<ApiResponse<T>>): AdminResult<T> = try {
-        val response = block()
+    private suspend fun <Dto, Domain> call(
+        request: suspend () -> Response<ApiResponse<Dto>>,
+        transform: (Dto) -> Domain?
+    ): AdminResult<Domain> = try {
+        val response = request()
         val envelope = response.body()
-        if (response.isSuccessful && envelope?.success == true && envelope.data != null) {
-            AdminResult.Success(envelope.data)
+        val value = envelope?.data?.let(transform)
+
+        if (response.isSuccessful && envelope?.success == true && value != null) {
+            AdminResult.Success(value)
         } else {
-            AdminResult.Failure(envelope?.error ?: parseError(response) ?: ApiError("UNKNOWN_ERROR"))
+            AdminResult.Failure(errorFrom(response, envelope?.error))
         }
     } catch (_: IOException) {
         AdminResult.Failure(ApiError("NETWORK_ERROR"))
@@ -86,4 +136,14 @@ class AdminRepositoryImpl(
         val type = object : TypeToken<ApiResponse<T>>() {}.type
         return runCatching { gson.fromJson<ApiResponse<T>>(body, type).error }.getOrNull()
     }
+    private fun String?.nullIfBlank(): String? = this?.trim()?.takeIf(String::isNotBlank)
+
+    private fun errorFrom(response: Response<*>, bodyError: ApiError?): ApiError {
+        if (bodyError != null) return bodyError
+        return runCatching {
+            Gson().fromJson(response.errorBody()?.string(), ErrorEnvelope::class.java).error
+        }.getOrNull() ?: ApiError("UNKNOWN_ERROR")
+    }
+
+    private data class ErrorEnvelope(val error: ApiError?)
 }

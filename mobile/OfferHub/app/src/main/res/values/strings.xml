@@ -59,6 +59,8 @@
     <string name="auth_gsm">GSM</string>
     <string name="auth_email">Email</string>
     <string name="auth_password">Password</string>
+    <string name="auth_show_password">Show password</string>
+    <string name="auth_hide_password">Hide password</string>
     <string name="auth_create_new_password">Create New Password</string>
     <string name="auth_temporary_password_message">You must change your temporary password before continuing.</string>
     <string name="auth_new_password">New Password</string>
@@ -76,6 +78,7 @@
     <string name="auth_signing_in">Signing in…</string>
     <string name="auth_forgot_password">Forgot your password?</string>
     <string name="auth_mock_admin_login">Open Mock Admin</string>
+    <string name="auth_mock_subscriber_login">Open Mock Subscriber</string>
     <string name="auth_mock_expert_login">Open Mock Expert</string>
     <string name="auth_mock_supervisor_login">Open Mock Supervisor</string>
     <string name="auth_retry_countdown">Try again in: %1$02d:%2$02d</string>
@@ -147,6 +150,11 @@
     <string name="supervisor_segment_distribution">Segment distribution</string>
     <string name="supervisor_segment">Segment</string>
     <string name="supervisor_conversion_trend">Conversion trend</string>
+    <string name="supervisor_trend_conversion_value">Conversion: %1$.1f%%</string>
+    <plurals name="supervisor_trend_answered_offers">
+        <item quantity="one">%1$d answered offer</item>
+        <item quantity="other">%1$d answered offers</item>
+    </plurals>
     <string name="supervisor_attention_cases">Cases requiring attention</string>
     <string name="supervisor_no_attention_cases">No active cases currently require attention.</string>
     <string name="supervisor_expert_performance">Expert performance</string>
@@ -330,6 +338,11 @@
     <string name="expert_case_information">Case Information</string>
     <string name="expert_assigned_expert">Assigned expert</string>
     <string name="expert_created_at">Created at</string>
+    <string name="expert_completed_at">Completed at</string>
+    <string name="expert_sla_status">SLA status</string>
+    <string name="expert_sla_on_time">On time</string>
+    <string name="expert_sla_late">Late</string>
+    <string name="expert_sla_unavailable">Unavailable</string>
     <string name="expert_optimization_note">Optimization note</string>
     <string name="expert_start_working">Start working</string>
     <string name="expert_start_test">Start test</string>

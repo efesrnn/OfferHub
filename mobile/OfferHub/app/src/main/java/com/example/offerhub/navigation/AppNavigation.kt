@@ -3,8 +3,8 @@ package com.example.offerhub.navigation
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -34,8 +34,8 @@ fun AppNavigation(
     supervisorViewModel: SupervisorViewModel
 ) {
     val navController = rememberNavController()
-    val authState by authViewModel.uiState.collectAsState()
-    val subscriberState by subscriberViewModel.uiState.collectAsState()
+    val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+    val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(authState.otpReady, authState.pendingPhone) {
         if (authState.otpReady) {

@@ -150,7 +150,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     }
 
     fun debugLoginAsAdmin() {
-        if (!BuildConfig.DEBUG) return
+        if (!BuildConfig.USE_MOCK_ADMIN) return
 
         val debugAdmin = AuthUser(
             id = "debug-admin",
@@ -165,8 +165,26 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    fun debugLoginAsSubscriber() {
+        if (!BuildConfig.USE_MOCK_SUBSCRIBER) return
+
+        val debugSubscriber = AuthUser(
+            id = "debug-subscriber",
+            role = "SUBSCRIBER",
+            phone = "5551234567"
+        )
+        _uiState.update {
+            it.copy(
+                currentUser = debugSubscriber,
+                pendingNavigationRole = debugSubscriber.role,
+                pendingPhone = debugSubscriber.phone,
+                errorMessage = null
+            )
+        }
+    }
+
     fun debugLoginAsExpert() {
-        if (!BuildConfig.DEBUG) return
+        if (!BuildConfig.USE_MOCK_EXPERT) return
 
         val debugExpert = AuthUser(
             id = "debug-expert",
@@ -184,7 +202,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     }
 
     fun debugLoginAsSupervisor() {
-        if (!BuildConfig.DEBUG) return
+        if (!BuildConfig.USE_MOCK_SUPERVISOR) return
 
         val debugSupervisor = AuthUser(
             id = "debug-supervisor",
@@ -232,13 +250,14 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun logout() {
+    fun logout(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             pendingCurrentPassword = null
             repository.clearLocalSession()
             lockJob?.cancel()
             resendCooldownJob?.cancel()
             _uiState.value = AuthUiState(isSessionChecking = false)
+            onComplete()
         }
     }
     fun clearError() = _uiState.update { it.copy(errorMessage = null) }
