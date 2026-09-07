@@ -17,10 +17,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
-        buildConfigField("boolean", "USE_MOCK_EXPERT", "true")
-        buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "true")
-        buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "true")
+        buildConfigField("String", "API_BASE_URL", "\"http://localhost:8080/\"")
+        buildConfigField("boolean", "USE_MOCK_EXPERT", "false")
+        buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "false")
+        buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "false")
+        buildConfigField("boolean", "USE_MOCK_ADMIN", "false")
     }
 
     buildTypes {

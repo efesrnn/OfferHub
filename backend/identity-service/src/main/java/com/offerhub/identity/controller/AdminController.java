@@ -42,7 +42,7 @@ public class AdminController {
 
     @GetMapping("/staff")
     public ResponseEntity<ApiResponse<List<StaffResponse>>> searchStaff(@RequestParam(required = false) String query) {
-        return ResponseEntity.ok(ApiResponse.success(adminService.searchStaff(query)));
+        return ResponseEntity.ok(ApiResponse.success(adminService.searchStaff(query, null)));
     }
 
     @GetMapping("/staff/{staffId}")

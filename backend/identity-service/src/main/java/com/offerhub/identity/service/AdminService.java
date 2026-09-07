@@ -61,11 +61,22 @@ public class AdminService {
         return new StaffCreateResponse(saved.getId().toString(), true, tempPassword);
     }
 
-    public List<StaffResponse> searchStaff(String query) {
+    public List<StaffResponse> searchStaff(String query, String role) {
         List<StaffUser> results = (query == null || query.isBlank())
                 ? staffUserRepository.findAll()
                 : staffUserRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
                         query, query, query);
+
+        if (role != null && !role.isBlank()) {
+            Role parsedRole;
+            try {
+                parsedRole = Role.valueOf(role);
+            } catch (IllegalArgumentException ex) {
+                throw new ValidationException("Gecersiz rol: " + role);
+            }
+            results = results.stream().filter(staff -> staff.getRole() == parsedRole).toList();
+        }
+
         return results.stream().map(StaffResponse::from).toList();
     }
 
