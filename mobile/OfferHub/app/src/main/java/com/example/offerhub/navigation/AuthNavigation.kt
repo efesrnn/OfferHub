@@ -2,8 +2,8 @@ package com.example.offerhub.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -27,7 +27,7 @@ fun NavGraphBuilder.authGraph(
     authViewModel: AuthViewModel
 ) {
     composable(Routes.SPLASH) {
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         SplashScreen(
             onSplashFinished = {
                 if (authState.currentUser == null) {
@@ -77,7 +77,7 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Routes.STAFF_LOGIN) {
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             authViewModel.clearError()
         }
@@ -87,17 +87,17 @@ fun NavGraphBuilder.authGraph(
             isLoading = authState.isLoading,
             backendError = authState.errorMessage?.asString(),
             lockRemainingSeconds = authState.lockRemainingSeconds,
-            onMockAdminClick = if (BuildConfig.DEBUG) {
+            onMockAdminClick = if (BuildConfig.USE_MOCK_ADMIN) {
                 authViewModel::debugLoginAsAdmin
             } else {
                 null
             },
-            onMockExpertClick = if (BuildConfig.DEBUG) {
+            onMockExpertClick = if (BuildConfig.USE_MOCK_EXPERT) {
                 authViewModel::debugLoginAsExpert
             } else {
                 null
             },
-            onMockSupervisorClick = if (BuildConfig.DEBUG) {
+            onMockSupervisorClick = if (BuildConfig.USE_MOCK_SUPERVISOR) {
                 authViewModel::debugLoginAsSupervisor
             } else {
                 null
@@ -109,7 +109,7 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Routes.STAFF_CHANGE_PASSWORD) {
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         val returnToStaffLogin = {
             if (authState.passwordChangeCompleted) {
                 authViewModel.finishPasswordChangeFlow()
@@ -132,7 +132,7 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Routes.SUBSCRIBER_LOGIN) {
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             authViewModel.clearError()
         }
@@ -146,12 +146,17 @@ fun NavGraphBuilder.authGraph(
             },
             onBackClick = navController::popBackStack,
             isLoading = authState.isOtpRequestLoading,
-            backendError = authState.errorMessage?.asString()
+            backendError = authState.errorMessage?.asString(),
+            onMockSubscriberClick = if (BuildConfig.USE_MOCK_SUBSCRIBER) {
+                authViewModel::debugLoginAsSubscriber
+            } else {
+                null
+            }
         )
     }
 
     composable(Routes.SUBSCRIBER_REGISTER) {
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         SubscriberRegisterScreen(
             onRegisterClick = authViewModel::registerSubscriber,
             onLoginClick = {
@@ -175,7 +180,7 @@ fun NavGraphBuilder.authGraph(
             navArgument("phoneNumber") { type = NavType.StringType }
         )
     ) { backStackEntry ->
-        val authState by authViewModel.uiState.collectAsState()
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         val phone = backStackEntry.arguments
             ?.getString("phoneNumber")
             .orEmpty()

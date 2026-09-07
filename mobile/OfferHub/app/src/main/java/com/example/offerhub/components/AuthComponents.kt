@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -216,6 +217,26 @@ fun AuthButton(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold)
         }
+    }
+}
+
+@Composable
+fun MockLoginButton(
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+    ) {
+        Text(
+            text = text,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 

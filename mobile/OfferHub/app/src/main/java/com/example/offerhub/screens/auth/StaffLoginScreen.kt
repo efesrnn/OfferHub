@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +30,7 @@ import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.PasswordFieldComponent
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
+import com.example.offerhub.components.MockLoginButton
 import com.example.offerhub.R
 
 @Composable
@@ -166,30 +166,27 @@ fun StaffLoginScreen(
             )
             if (onMockAdminClick != null) {
                 Spacer(modifier = Modifier.height(12.dp))
-                OutlinedButton(
+                MockLoginButton(
+                    text = stringResource(R.string.auth_mock_admin_login),
                     onClick = onMockAdminClick,
                     enabled = !isLoading
-                ) {
-                    Text(text = stringResource(R.string.auth_mock_admin_login))
-                }
+                )
             }
             if (onMockExpertClick != null) {
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
+                MockLoginButton(
+                    text = stringResource(R.string.auth_mock_expert_login),
                     onClick = onMockExpertClick,
                     enabled = !isLoading
-                ) {
-                    Text(text = stringResource(R.string.auth_mock_expert_login))
-                }
+                )
             }
             if (onMockSupervisorClick != null) {
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
+                MockLoginButton(
+                    text = stringResource(R.string.auth_mock_supervisor_login),
                     onClick = onMockSupervisorClick,
                     enabled = !isLoading
-                ) {
-                    Text(text = stringResource(R.string.auth_mock_supervisor_login))
-                }
+                )
             }
 
         }

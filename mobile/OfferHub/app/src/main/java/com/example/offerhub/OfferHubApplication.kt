@@ -41,7 +41,11 @@ class OfferHubApplication : Application() {
     }
 
     val subscriberRepository by lazy {
-        realSubscriberRepository
+        if (BuildConfig.USE_MOCK_SUBSCRIBER) {
+            MockSubscriberRepository(MockOfferData.offers)
+        } else {
+            realSubscriberRepository
+        }
     }
 
     val adminRepository: AdminRepository by lazy {

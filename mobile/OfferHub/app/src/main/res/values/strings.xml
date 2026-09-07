@@ -78,6 +78,7 @@
     <string name="auth_signing_in">Signing in…</string>
     <string name="auth_forgot_password">Forgot your password?</string>
     <string name="auth_mock_admin_login">Open Mock Admin</string>
+    <string name="auth_mock_subscriber_login">Open Mock Subscriber</string>
     <string name="auth_mock_expert_login">Open Mock Expert</string>
     <string name="auth_mock_supervisor_login">Open Mock Supervisor</string>
     <string name="auth_retry_countdown">Try again in: %1$02d:%2$02d</string>

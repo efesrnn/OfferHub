@@ -22,6 +22,7 @@ android {
 
     buildTypes {
         debug {
+            buildConfigField("boolean", "USE_MOCK_SUBSCRIBER", "true")
             buildConfigField("boolean", "USE_MOCK_ADMIN", "true")
             buildConfigField("boolean", "USE_MOCK_EXPERT", "true")
             buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "true")
@@ -29,6 +30,7 @@ android {
         }
 
         release {
+            buildConfigField("boolean", "USE_MOCK_SUBSCRIBER", "false")
             buildConfigField("boolean", "USE_MOCK_ADMIN", "false")
             buildConfigField("boolean", "USE_MOCK_EXPERT", "false")
             buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "false")
@@ -74,6 +76,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
