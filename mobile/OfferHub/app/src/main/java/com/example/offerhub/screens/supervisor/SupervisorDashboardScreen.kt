@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -22,8 +24,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +44,7 @@ import com.example.offerhub.data.model.supervisor.SupervisorCaseSummary
 import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.campaign.Priority
+import kotlin.math.roundToInt
 
 @Composable
 fun SupervisorDashboardScreen(
@@ -342,27 +350,93 @@ private fun Priority.displayName(): String = stringResource(
 private fun ConversionLineChart(dashboard: SupervisorDashboard) {
     val points = dashboard.conversionTrend
     val lineColor = MaterialTheme.colorScheme.primary
+    var selectedIndex by remember(points) { mutableStateOf<Int?>(null) }
+
+    fun selectNearestPoint(x: Float, width: Int) {
+        if (points.isEmpty() || width <= 0) return
+        selectedIndex = if (points.size == 1) {
+            0
+        } else {
+            (x.coerceIn(0f, width.toFloat()) / width * points.lastIndex)
+                .roundToInt()
+                .coerceIn(points.indices)
+        }
+    }
+
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Canvas(Modifier.fillMaxWidth().height(120.dp)) {
-                if (points.size > 1) {
+            Canvas(
+                Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .pointerInput(points) {
+                        detectTapGestures { position ->
+                            selectNearestPoint(position.x, size.width)
+                        }
+                    }
+                    .pointerInput(points) {
+                        detectHorizontalDragGestures(
+                            onDragStart = { position ->
+                                selectNearestPoint(position.x, size.width)
+                            }
+                        ) { change, _ ->
+                            selectNearestPoint(change.position.x, size.width)
+                        }
+                    }
+            ) {
+                if (points.isNotEmpty()) {
                     val min = points.minOf { it.conversionPercent }
                     val max = points.maxOf { it.conversionPercent }
                     val range = (max - min).takeIf { it > 0 } ?: 1.0
                     val coordinates = points.mapIndexed { index, point ->
                         androidx.compose.ui.geometry.Offset(
-                            x = size.width * index / (points.size - 1),
-                            y = size.height - ((point.conversionPercent - min) / range * size.height).toFloat()
+                            x = if (points.size == 1) size.width / 2 else size.width * index / points.lastIndex,
+                            y = if (points.size == 1 || min == max) {
+                                size.height / 2
+                            } else {
+                                size.height - ((point.conversionPercent - min) / range * size.height).toFloat()
+                            }
                         )
                     }
                     coordinates.zipWithNext().forEach { (start, end) -> drawLine(lineColor, start, end, strokeWidth = 6f) }
-                    coordinates.forEach { drawCircle(lineColor, radius = 8f, center = it) }
+                    coordinates.forEachIndexed { index, coordinate ->
+                        drawCircle(
+                            color = lineColor,
+                            radius = if (selectedIndex == index) 13f else 8f,
+                            center = coordinate
+                        )
+                    }
                 }
             }
             if (points.isNotEmpty()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    val labels = if (points.size == 1) points else listOf(points.first(), points.last())
+                    val labels = when {
+                        points.size <= 4 -> points
+                        else -> listOf(points.first(), points[points.lastIndex / 2], points.last())
+                    }
                     labels.forEach { Text("${it.period}\n${it.conversionPercent}%", style = MaterialTheme.typography.labelSmall) }
+                }
+            }
+            selectedIndex?.let { index ->
+                val selectedPoint = points.getOrNull(index) ?: return@let
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(selectedPoint.period, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(
+                            R.string.supervisor_trend_conversion_value,
+                            selectedPoint.conversionPercent
+                        ),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        pluralStringResource(
+                            R.plurals.supervisor_trend_answered_offers,
+                            selectedPoint.answeredOfferCount.toInt(),
+                            selectedPoint.answeredOfferCount
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

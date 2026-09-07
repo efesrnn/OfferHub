@@ -36,6 +36,14 @@ object ApiClient {
         return createRetrofit(client).create(AuthApi::class.java)
     }
 
+    fun createAdminApi(tokenProvider: AccessTokenProvider): AdminApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(tokenProvider))
+            .addInterceptor(loggingInterceptor)
+            .build()
+        return createRetrofit(client).create(AdminApi::class.java)
+    }
+
     fun createSubscriberApi(tokenProvider: AccessTokenProvider): SubscriberApi {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(tokenProvider))

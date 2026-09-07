@@ -131,7 +131,9 @@ private fun CaseDetailContent(
         DetailRow(stringResource(R.string.expert_campaign_number), optimizationCase.campaignNo)
         DetailRow(stringResource(R.string.expert_status), optimizationCase.status.displayName())
         DetailRow(stringResource(R.string.expert_priority), optimizationCase.priority.name.toDisplayText())
-        DetailRow(stringResource(R.string.expert_sla), optimizationCase.slaRemainingSeconds.toSlaText())
+        if (!optimizationCase.status.isCompleted()) {
+            DetailRow(stringResource(R.string.expert_sla), optimizationCase.slaRemainingSeconds.toSlaText())
+        }
 
         Text(stringResource(R.string.expert_ai_analysis), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         DetailRow(stringResource(R.string.expert_current_segment), optimizationCase.segment.name.toDisplayText())
@@ -142,6 +144,17 @@ private fun CaseDetailContent(
         Text(stringResource(R.string.expert_case_information), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         DetailRow(stringResource(R.string.expert_assigned_expert), optimizationCase.assignedExpertId ?: stringResource(R.string.common_not_available))
         DetailRow(stringResource(R.string.expert_created_at), formatDate(optimizationCase.createdAt))
+        if (optimizationCase.status.isCompleted()) {
+            DetailRow(
+                stringResource(R.string.expert_completed_at),
+                optimizationCase.completedAt?.let(::formatDate)
+                    ?: stringResource(R.string.common_not_available)
+            )
+            DetailRow(
+                stringResource(R.string.expert_sla_status),
+                optimizationCase.slaRemainingSeconds.toCompletedSlaStatus()
+            )
+        }
         optimizationCase.optimizationNote?.let {
             DetailRow(stringResource(R.string.expert_optimization_note), it)
         }
@@ -246,6 +259,13 @@ private fun DetailRow(label: String, value: String) {
 
 private fun CaseStatus.displayName(): String = name.toDisplayText()
 
+private fun CaseStatus.isCompleted(): Boolean = when (this) {
+    CaseStatus.TAMAMLANDI,
+    CaseStatus.YAYINDA,
+    CaseStatus.ARSIVLENDI -> true
+    else -> false
+}
+
 private fun String.toDisplayText(): String = lowercase()
     .split('_')
     .joinToString(" ") { word -> word.replaceFirstChar { it.titlecase(Locale.getDefault()) } }
@@ -259,6 +279,13 @@ private fun Long?.toSlaText(): String = when {
     this == null -> "—"
     this < 0 -> stringResource(R.string.expert_sla_exceeded)
     else -> "%02d:%02d".format(this / 3600, (this % 3600) / 60)
+}
+
+@Composable
+private fun Long?.toCompletedSlaStatus(): String = when {
+    this == null -> stringResource(R.string.expert_sla_unavailable)
+    this >= 0 -> stringResource(R.string.expert_sla_on_time)
+    else -> stringResource(R.string.expert_sla_late)
 }
 
 private fun formatDate(value: String): String = runCatching {
