@@ -19,6 +19,7 @@ import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
 import com.example.offerhub.ui.text.asString
+import com.example.offerhub.components.RefreshableContent
 
 fun NavGraphBuilder.subscriberGraph(
     navController: NavHostController,
@@ -42,6 +43,7 @@ fun NavGraphBuilder.subscriberGraph(
             isLoading = subscriberState.isLoading,
             errorMessage = subscriberState.loadErrorMessage?.asString(),
             onRetryClick = subscriberViewModel::loadOffers,
+            onRefresh = subscriberViewModel::loadOffers,
             onOfferClick = openOfferDetail,
             onCategoryClick = { type ->
                 navController.navigate(Routes.offerCategory(type.name)) {
@@ -70,6 +72,7 @@ fun NavGraphBuilder.subscriberGraph(
             isLoading = subscriberState.isLoading,
             errorMessage = subscriberState.loadErrorMessage?.asString(),
             onRetryClick = subscriberViewModel::loadOffers,
+            onRefresh = subscriberViewModel::loadOffers,
             onOfferClick = openOfferDetail,
             onHomeClick = {
                 navController.navigate(Routes.SUBSCRIBER_HOME) {
@@ -106,6 +109,10 @@ fun NavGraphBuilder.subscriberGraph(
         val acceptedOffers = subscriberState.offers.filter {
             it.status == OfferStatus.ACCEPTED
         }
+        RefreshableContent(
+            isRefreshing = subscriberState.isLoading,
+            onRefresh = subscriberViewModel::loadOffers
+        ) {
         OfferCategoryScreen(
             title = stringResource(R.string.offers_my_accepted),
             offers = acceptedOffers,
@@ -114,11 +121,16 @@ fun NavGraphBuilder.subscriberGraph(
             onBackClick = navController::popBackStack,
             onOfferClick = openOfferDetail
         )
+        }
     }
 
     composable(Routes.RATED_OFFERS) {
         val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val ratedOffers = subscriberState.offers.filter { it.rating != null }
+        RefreshableContent(
+            isRefreshing = subscriberState.isLoading,
+            onRefresh = subscriberViewModel::loadOffers
+        ) {
         OfferCategoryScreen(
             title = stringResource(R.string.offers_my_rated),
             offers = ratedOffers,
@@ -129,6 +141,7 @@ fun NavGraphBuilder.subscriberGraph(
             onBackClick = navController::popBackStack,
             onOfferClick = openOfferDetail
         )
+        }
     }
 
     composable(Routes.PROFILE) {
@@ -193,11 +206,16 @@ fun NavGraphBuilder.subscriberGraph(
             it.type == selectedType && it.status == OfferStatus.PENDING
         }
 
+        RefreshableContent(
+            isRefreshing = subscriberState.isLoading,
+            onRefresh = subscriberViewModel::loadOffers
+        ) {
         OfferCategoryScreen(
             title = title,
             offers = categoryOffers,
             onBackClick = navController::popBackStack,
             onOfferClick = openOfferDetail
         )
+        }
     }
 }

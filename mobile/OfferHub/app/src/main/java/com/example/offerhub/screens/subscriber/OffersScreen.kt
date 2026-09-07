@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,12 +43,14 @@ import com.example.offerhub.R
 import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.ui.theme.OfferHubTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OffersScreen(
     offers: List<Offer>,
     isLoading: Boolean = false,
     errorMessage: String? = null,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onOfferClick: (String) -> Unit,
     onHomeClick: () -> Unit,
     onOffersClick: () -> Unit,
@@ -75,31 +79,31 @@ fun OffersScreen(
             )
         }
     ) { innerPadding ->
-
+        PullToRefreshBox(
+            isRefreshing = isLoading && offers.isNotEmpty(),
+            onRefresh = onRefresh,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
         when {
-            isLoading -> {
+            isLoading && offers.isEmpty() -> {
                 OffersLoadingState(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
-            errorMessage != null -> {
+            errorMessage != null && offers.isEmpty() -> {
                 OffersErrorState(
                     message = errorMessage,
                     onRetryClick = onRetryClick,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
             offers.isEmpty() -> {
                 OffersEmptyState(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
@@ -114,9 +118,9 @@ fun OffersScreen(
                         onRatedOffersClick,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
                 )
             }
+        }
         }
     }
 }
@@ -412,6 +416,7 @@ private fun OffersScreenPreview() {
         OffersScreen(
             offers = MockOfferData.offers,
             onRetryClick = {},
+            onRefresh = {},
             onOfferClick = {},
             onHomeClick = {},
             onOffersClick = {},

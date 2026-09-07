@@ -21,6 +21,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ import com.example.offerhub.R
 import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.ui.theme.OfferHubTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscriberHomeScreen(
     firstName: String,
@@ -50,6 +53,7 @@ fun SubscriberHomeScreen(
     isLoading: Boolean,
     errorMessage: String?,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onOfferClick: (String) -> Unit,
     onCategoryClick: (OfferType) -> Unit,
     onHomeClick: () -> Unit,
@@ -81,11 +85,16 @@ fun SubscriberHomeScreen(
             )
         }
     ) { innerPadding ->
-
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = isLoading &&
+                (recommendedOffers.isNotEmpty() || latestAcceptedOffer != null),
+            onRefresh = onRefresh,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
 
             contentPadding = PaddingValues(
                 top = 20.dp,
@@ -259,6 +268,7 @@ fun SubscriberHomeScreen(
                 }
             }
             }
+            }
         }
     }
 }
@@ -315,6 +325,7 @@ fun SubscriberHomeScreenPreview() {
             isLoading = false,
             errorMessage = null,
             onRetryClick = {},
+            onRefresh = {},
             onOfferClick = {},
             onCategoryClick = {},
             onHomeClick = {},

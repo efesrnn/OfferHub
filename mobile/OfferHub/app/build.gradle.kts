@@ -26,11 +26,12 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("boolean", "USE_MOCK_SUBSCRIBER", "false")
-            buildConfigField("boolean", "USE_MOCK_ADMIN", "false")
-            buildConfigField("boolean", "USE_MOCK_EXPERT", "false")
-            buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "false")
-            buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "false")
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
+            buildConfigField("boolean", "USE_MOCK_SUBSCRIBER", "true")
+            buildConfigField("boolean", "USE_MOCK_ADMIN", "true")
+            buildConfigField("boolean", "USE_MOCK_EXPERT", "true")
+            buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "true")
+            buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "true")
         }
 
         release {
