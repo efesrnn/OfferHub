@@ -25,6 +25,9 @@ sealed interface AuthResult<out T> {
     data class Success<T>(val value: T) : AuthResult<T>
     data class Failure(val error: ApiError) : AuthResult<Nothing>
 }
+private data class ApiErrorEnvelope(
+    val error: ApiError?
+)
 
 data class RestoredAuthSession(
     val user: AuthUser,
@@ -135,9 +138,17 @@ class AuthRepository(
         AuthResult.Failure(ApiError("UNKNOWN_ERROR"))
     }
 
-    private fun <T> parseError(response: Response<ApiResponse<T>>): ApiError? {
-        val body = response.errorBody()?.string() ?: return null
-        val type = object : TypeToken<ApiResponse<T>>() {}.type
-        return runCatching { gson.fromJson<ApiResponse<T>>(body, type).error }.getOrNull()
+    private fun <T> parseError(
+        response: Response<ApiResponse<T>>
+    ): ApiError? {
+        val body = response.errorBody()?.string()
+            ?: return null
+
+        return runCatching {
+            gson.fromJson(
+                body,
+                ApiErrorEnvelope::class.java
+            ).error
+        }.getOrNull()
     }
 }
