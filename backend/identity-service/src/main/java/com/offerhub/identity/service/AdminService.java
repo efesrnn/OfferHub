@@ -51,7 +51,8 @@ public class AdminService {
         StaffUser saved = staffUserRepository.save(staff);
 
         // MOCK: gercek SMTP entegrasyonu yerine konsola loglaniyor (OTP'deki
-        // LogOtpSender ile ayni yaklasim). Ileride gercek maile cevrilebilir.
+        // LogOtpSender ile ayni yaklasim). Ileride gercek maile cevrilebilir ama domain alınmış
+        // belki farklı bi domainle yaptırırız.
         log.info("[TEMP PASSWORD] {} icin gecici sifre: {}", saved.getEmail(), tempPassword);
 
         auditLogService.record(saved.getId().toString(), "STAFF_CREATED", "SUCCESS", ipAddress,
