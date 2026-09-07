@@ -22,8 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,7 +29,7 @@ import com.example.offerhub.R
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.AuthBackButton
 import com.example.offerhub.components.PasswordRequirements
-import com.example.offerhub.components.TextFieldComponent
+import com.example.offerhub.components.PasswordFieldComponent
 import com.example.offerhub.data.model.auth.PasswordPolicy
 import com.example.offerhub.ui.theme.OfferHubTheme
 
@@ -97,13 +95,10 @@ fun StaffChangePasswordScreen(
             Text(stringResource(R.string.auth_temporary_password_message))
             Spacer(Modifier.height(24.dp))
 
-            TextFieldComponent(
+            PasswordFieldComponent(
                 value = password,
                 onValueChange = { password = it },
                 label = stringResource(R.string.auth_new_password),
-                prefix = "",
-                keyboardType = KeyboardType.Password,
-                visualTransformation = PasswordVisualTransformation(),
                 isError = submitted && !passwordIsValid,
                 errorMessage = stringResource(R.string.error_password_requirements)
             )
@@ -111,13 +106,10 @@ fun StaffChangePasswordScreen(
             PasswordRequirements(password)
             Spacer(Modifier.height(10.dp))
 
-            TextFieldComponent(
+            PasswordFieldComponent(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = stringResource(R.string.auth_confirm_password),
-                prefix = "",
-                keyboardType = KeyboardType.Password,
-                visualTransformation = PasswordVisualTransformation(),
                 isError = submitted && (!passwordsMatch || confirmPassword.isBlank()),
                 errorMessage = stringResource(R.string.error_password_mismatch)
             )

@@ -59,6 +59,8 @@
     <string name="auth_gsm">GSM</string>
     <string name="auth_email">Email</string>
     <string name="auth_password">Password</string>
+    <string name="auth_show_password">Show password</string>
+    <string name="auth_hide_password">Hide password</string>
     <string name="auth_create_new_password">Create New Password</string>
     <string name="auth_temporary_password_message">You must change your temporary password before continuing.</string>
     <string name="auth_new_password">New Password</string>

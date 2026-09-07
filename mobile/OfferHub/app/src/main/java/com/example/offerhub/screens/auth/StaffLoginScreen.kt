@@ -23,12 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.AuthButton
 import com.example.offerhub.components.AuthBackButton
+import com.example.offerhub.components.PasswordFieldComponent
 import com.example.offerhub.components.ClickableText
 import com.example.offerhub.components.TextFieldComponent
 import com.example.offerhub.R
@@ -115,17 +115,14 @@ fun StaffLoginScreen(
                 },
             )
             Spacer(modifier=Modifier.height(3.dp))
-            TextFieldComponent(
+            PasswordFieldComponent(
                 value=password,
                 onValueChange={
                     password=it
                 },
                 label = stringResource(R.string.auth_password),
-                keyboardType= KeyboardType.Password,
-                visualTransformation = PasswordVisualTransformation(),
                 isError = passwordTouched&&passwordIsInvalid,
                 errorMessage = stringResource(R.string.error_password_empty),
-                prefix="",
                 onFocusChanged = { isFocused ->
                     if (!isFocused) {
                         passwordTouched = true

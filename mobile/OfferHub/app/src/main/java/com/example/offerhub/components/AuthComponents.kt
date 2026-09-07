@@ -13,6 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -40,6 +43,9 @@ import com.example.offerhub.ui.theme.Primary
 import com.example.offerhub.ui.theme.Secondary
 import com.example.offerhub.R
 import com.example.offerhub.data.model.auth.PasswordPolicy
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 
 @Composable
 fun TextFieldComponent(
@@ -51,7 +57,8 @@ fun TextFieldComponent(
     visualTransformation: VisualTransformation= VisualTransformation.None,
     isError: Boolean=false,
     errorMessage:String?=null,
-    onFocusChanged: (Boolean) -> Unit = {}
+    onFocusChanged: (Boolean) -> Unit = {},
+    trailingIcon: (@Composable () -> Unit)? = null
 )
 {
  var hasBeenFocused by remember { mutableStateOf(false) }
@@ -71,6 +78,7 @@ fun TextFieldComponent(
          keyboardType=keyboardType
      ),
      visualTransformation=visualTransformation,
+     trailingIcon = trailingIcon,
      isError=isError,
      supportingText = {
          if(isError && errorMessage!=null)
@@ -135,6 +143,44 @@ fun TextFieldComponent(
              }
          }
  )
+}
+
+@Composable
+fun PasswordFieldComponent(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isError: Boolean = false,
+    errorMessage: String? = null,
+    onFocusChanged: (Boolean) -> Unit = {}
+) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    TextFieldComponent(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        prefix = "",
+        keyboardType = KeyboardType.Password,
+        visualTransformation = if (passwordVisible) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
+        isError = isError,
+        errorMessage = errorMessage,
+        onFocusChanged = onFocusChanged,
+        trailingIcon = {
+            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                Icon(
+                    imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                    contentDescription = stringResource(
+                        if (passwordVisible) R.string.auth_hide_password else R.string.auth_show_password
+                    )
+                )
+            }
+        }
+    )
 }
 
 @Composable
