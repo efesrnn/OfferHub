@@ -18,17 +18,41 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
-        buildConfigField("boolean", "USE_MOCK_ADMIN", "true")
-        buildConfigField("boolean", "USE_MOCK_EXPERT", "true")
-        buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "true")
-        buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "true")
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "USE_MOCK_ADMIN", "true")
+            buildConfigField("boolean", "USE_MOCK_EXPERT", "true")
+            buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "true")
+            buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "true")
+        }
+
         release {
+            buildConfigField("boolean", "USE_MOCK_ADMIN", "false")
+            buildConfigField("boolean", "USE_MOCK_EXPERT", "false")
+            buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "false")
+            buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "false")
+
             optimization {
                 enable = false
             }
+        }
+        create("staging") {
+            initWith(getByName("release"))
+
+            isDebuggable = true
+
+            signingConfig =
+                signingConfigs.getByName("debug")
+
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+
+            matchingFallbacks += listOf(
+                "release",
+                "debug"
+            )
         }
     }
     compileOptions {
