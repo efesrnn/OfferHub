@@ -106,7 +106,11 @@ fun SupervisorExpertPerformanceScreen(
                 Text(expert.displayName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 ExpertDetailRow(stringResource(R.string.supervisor_expert_id), expert.expertId)
                 ExpertDetailRow(stringResource(R.string.supervisor_completed_cases), expert.completedCases.toString())
-                ExpertDetailRow(stringResource(R.string.supervisor_average_conversion_increase), "${expert.averageConversionIncrease}%")
+                ExpertDetailRow(
+                    stringResource(R.string.supervisor_average_conversion_increase),
+                    expert.averageConversionIncrease?.let { "$it%" }
+                        ?: stringResource(R.string.common_not_available)
+                )
                 ExpertDetailRow(stringResource(R.string.supervisor_average_completion_time), "${expert.averageCompletionHours} h")
             }
         }
