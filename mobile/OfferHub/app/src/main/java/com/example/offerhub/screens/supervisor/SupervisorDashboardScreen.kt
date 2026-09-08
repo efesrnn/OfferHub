@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
@@ -367,14 +368,16 @@ private fun Priority.displayName(): String = stringResource(
 private fun ConversionLineChart(dashboard: SupervisorDashboard) {
     val points = dashboard.conversionTrend
     val lineColor = MaterialTheme.colorScheme.primary
+    val horizontalInsetPx = with(LocalDensity.current) { 16.dp.toPx() }
     var selectedIndex by remember(points) { mutableStateOf<Int?>(null) }
 
     fun selectNearestPoint(x: Float, width: Int) {
         if (points.isEmpty() || width <= 0) return
+        val usableWidth = (width - horizontalInsetPx * 2).coerceAtLeast(1f)
         selectedIndex = if (points.size == 1) {
             0
         } else {
-            (x.coerceIn(0f, width.toFloat()) / width * points.lastIndex)
+            ((x - horizontalInsetPx).coerceIn(0f, usableWidth) / usableWidth * points.lastIndex)
                 .roundToInt()
                 .coerceIn(points.indices)
         }
@@ -405,9 +408,14 @@ private fun ConversionLineChart(dashboard: SupervisorDashboard) {
                     val min = points.minOf { it.conversionPercent }
                     val max = points.maxOf { it.conversionPercent }
                     val range = (max - min).takeIf { it > 0 } ?: 1.0
+                    val usableWidth = (size.width - horizontalInsetPx * 2).coerceAtLeast(1f)
                     val coordinates = points.mapIndexed { index, point ->
                         androidx.compose.ui.geometry.Offset(
-                            x = if (points.size == 1) size.width / 2 else size.width * index / points.lastIndex,
+                            x = if (points.size == 1) {
+                                size.width / 2
+                            } else {
+                                horizontalInsetPx + usableWidth * index / points.lastIndex
+                            },
                             y = if (points.size == 1 || min == max) {
                                 size.height / 2
                             } else {

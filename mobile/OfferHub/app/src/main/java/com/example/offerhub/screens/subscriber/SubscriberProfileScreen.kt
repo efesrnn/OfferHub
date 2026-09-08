@@ -126,6 +126,12 @@ private fun ProfileInfoCard(
     phone: String,
     email: String?
 ) {
+    val fullName = listOf(firstName, lastName)
+        .map(String::trim)
+        .filter(String::isNotEmpty)
+        .joinToString(" ")
+        .ifBlank { stringResource(R.string.profile_not_available) }
+
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -135,7 +141,7 @@ private fun ProfileInfoCard(
         ) {
             ProfileInfoRow(
                 label = stringResource(R.string.profile_name),
-                value = "$firstName $lastName"
+                value = fullName
             )
 
             ProfileInfoRow(

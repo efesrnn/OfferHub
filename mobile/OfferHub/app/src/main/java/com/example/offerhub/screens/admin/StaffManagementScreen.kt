@@ -59,8 +59,6 @@ fun CreateStaffScreen(
     onClearClick: () -> Unit,
     isSubmitting: Boolean = false,
     successMessage: String? = null,
-    createdStaffId: String? = null,
-    createdStaffTempPassword: String? = null,
     errorMessage: String? = null
 ) {
     var firstName by remember { mutableStateOf("") }
@@ -193,16 +191,6 @@ fun CreateStaffScreen(
 
             successMessage?.let {
                 Text(it, color = MaterialTheme.colorScheme.primary)
-            }
-            createdStaffId?.let { id ->
-                CopyableStaffId(id = id)
-            }
-            createdStaffTempPassword?.let { password ->
-                CopyableValue(
-                    label = stringResource(R.string.admin_created_staff_temp_password),
-                    value = password,
-                    contentDescription = stringResource(R.string.admin_copy_password)
-                )
             }
             errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }

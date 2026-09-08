@@ -10,6 +10,7 @@ import com.example.offerhub.data.model.supervisor.SegmentDistribution
 import com.example.offerhub.data.model.supervisor.SupervisorCaseSummary
 import com.example.offerhub.data.model.supervisor.SupervisorDashboard
 import kotlinx.coroutines.delay
+import java.time.LocalDate
 
 class MockSupervisorRepository : SupervisorRepository {
     private var dashboard = SupervisorDashboard(
@@ -26,9 +27,17 @@ class MockSupervisorRepository : SupervisorRepository {
             SegmentDistribution(Segment.BELIRSIZ, 6)
         ),
         conversionTrend = listOf(
-            ConversionTrendPoint("W1", 18.0), ConversionTrendPoint("W2", 20.5),
-            ConversionTrendPoint("W3", 23.1), ConversionTrendPoint("W4", 25.8)
-        ),
+            18.0 to 11L, 20.5 to 14L, 19.2 to 13L, 23.1 to 17L,
+            25.8 to 19L, 24.6 to 18L, 28.4 to 21L, 30.2 to 23L,
+            27.9 to 20L, 32.5 to 25L, 34.1 to 27L, 33.6 to 26L,
+            36.8 to 30L, 39.4 to 33L
+        ).mapIndexed { index, (conversionPercent, answeredCount) ->
+            ConversionTrendPoint(
+                period = LocalDate.now().minusDays((13 - index).toLong()).toString(),
+                conversionPercent = conversionPercent,
+                answeredOfferCount = answeredCount
+            )
+        },
         attentionCases = listOf(
             SupervisorCaseSummary("case-101", "Churn Recovery", Priority.KRITIK, CaseStatus.ATANDI, Segment.RISKLI_KAYIP, "expert-1", -900),
             SupervisorCaseSummary("case-102", "High Value Retention", Priority.YUKSEK, CaseStatus.YENI, Segment.BELIRSIZ, null, null),

@@ -19,7 +19,6 @@ import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
 import com.example.offerhub.ui.text.asString
-import com.example.offerhub.components.RefreshableContent
 
 fun NavGraphBuilder.subscriberGraph(
     navController: NavHostController,
@@ -35,7 +34,7 @@ fun NavGraphBuilder.subscriberGraph(
             .filter { it.status == OfferStatus.ACCEPTED }
             .maxByOrNull { it.acceptedAt.orEmpty() }
         SubscriberHomeScreen(
-            firstName = "Test",
+            firstName = "",
             recommendedOffers = offers.filter {
                 it.status == OfferStatus.PENDING
             },
@@ -149,10 +148,10 @@ fun NavGraphBuilder.subscriberGraph(
             ?: stringResource(R.string.profile_not_available)
 
         SubscriberProfileScreen(
-            firstName = "Test",
-            lastName = "Subscriber",
+            firstName = "",
+            lastName = "",
             phone = profilePhone,
-            email = "test@offerhub.com",
+            email = stringResource(R.string.profile_not_available),
             onRetryClick = {},
             onLogoutClick = {
                 authViewModel.logout {

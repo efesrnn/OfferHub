@@ -106,7 +106,11 @@ fun SubscriberHomeScreen(
 
             item {
                 Text(
-                    text = stringResource(R.string.subscriber_hello, firstName),
+                    text = if (firstName.isBlank()) {
+                        stringResource(R.string.subscriber_hello_generic)
+                    } else {
+                        stringResource(R.string.subscriber_hello, firstName)
+                    },
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 24.dp)

@@ -34,8 +34,6 @@ data class AdminUiState(
     val isSubmitting: Boolean = false,
     val actionMessage: UiText? = null,
     val actionError: UiText? = null,
-    val createdStaffId: String? = null,
-    val createdStaffTempPassword: String? = null,
     val selectedStaff: AdminStaff? = null,
     val staffSearchQuery: String = "",
     val staffSearchResults: List<AdminStaff> = emptyList(),
@@ -151,9 +149,7 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
             when (val result = repository.createStaff(firstName, lastName, email, role, specialties, regions)) {
                 is AdminResult.Success -> _uiState.update {
                     it.copy(
-                        actionMessage = UiText.Resource(R.string.admin_staff_created_success),
-                        createdStaffId = result.value.id,
-                        createdStaffTempPassword = result.value.tempPassword
+                        actionMessage = UiText.Resource(R.string.admin_staff_created_success)
                     )
                 }
                 is AdminResult.Failure -> _uiState.update {
@@ -266,9 +262,7 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         _uiState.update {
             it.copy(
                 actionMessage = null,
-                actionError = null,
-                createdStaffId = null,
-                createdStaffTempPassword = null
+                actionError = null
             )
         }
     }
@@ -277,9 +271,7 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         it.copy(
             isSubmitting = true,
             actionMessage = null,
-            actionError = null,
-            createdStaffId = null,
-            createdStaffTempPassword = null
+            actionError = null
         )
     }
 
