@@ -20,9 +20,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,12 +48,14 @@ import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.campaign.Priority
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupervisorDashboardScreen(
     dashboard: SupervisorDashboard?,
     isLoading: Boolean,
     errorMessage: String?,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onActiveCasesClick: () -> Unit,
     onPendingAssignmentClick: () -> Unit,
     onExpertsClick: () -> Unit,
@@ -64,29 +68,36 @@ fun SupervisorDashboardScreen(
             SupervisorBottomBar("home", {}, onCasesClick, onProfileClick)
         }
     ) { padding ->
-        when {
-            isLoading && dashboard == null -> Column(
-                Modifier.fillMaxSize().padding(padding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) { CircularProgressIndicator() }
-            errorMessage != null && dashboard == null -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(errorMessage, color = MaterialTheme.colorScheme.error)
-                Button(onClick = onRetryClick, modifier = Modifier.padding(top = 12.dp)) {
-                    Text(stringResource(R.string.admin_try_again))
+        PullToRefreshBox(
+            isRefreshing = isLoading && dashboard != null,
+            onRefresh = onRefresh,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            when {
+                isLoading && dashboard == null -> Column(
+                    Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) { CircularProgressIndicator() }
+                errorMessage != null && dashboard == null -> Column(
+                    Modifier.fillMaxSize().padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(errorMessage, color = MaterialTheme.colorScheme.error)
+                    Button(onClick = onRetryClick, modifier = Modifier.padding(top = 12.dp)) {
+                        Text(stringResource(R.string.admin_try_again))
+                    }
                 }
+                dashboard != null -> DashboardContent(
+                    dashboard = dashboard,
+                    onActiveCasesClick = onActiveCasesClick,
+                    onPendingAssignmentClick = onPendingAssignmentClick,
+                    onExpertsClick = onExpertsClick
+                )
             }
-            dashboard != null -> DashboardContent(
-                dashboard = dashboard,
-                onActiveCasesClick = onActiveCasesClick,
-                onPendingAssignmentClick = onPendingAssignmentClick,
-                onExpertsClick = onExpertsClick,
-                modifier = Modifier.padding(padding)
-            )
         }
     }
 }
@@ -150,11 +161,19 @@ private fun DashboardContent(
         }
         item { SectionTitle(stringResource(R.string.supervisor_segment_distribution)) }
         item {
-            SegmentBarChart(dashboard)
+            if (dashboard.segmentDistribution.isEmpty()) {
+                EmptyMessage(
+                    stringResource(R.string.supervisor_no_segment_distribution)
+                )
+            } else {
+                SegmentBarChart(dashboard)
+            }
         }
-        if (dashboard.conversionTrend.isNotEmpty()) {
-            item { SectionTitle(stringResource(R.string.supervisor_conversion_trend)) }
-            item {
+        item { SectionTitle(stringResource(R.string.supervisor_conversion_trend)) }
+        item {
+            if (dashboard.conversionTrend.isEmpty()) {
+                EmptyMessage(stringResource(R.string.supervisor_no_conversion_trend))
+            } else {
                 ConversionLineChart(dashboard)
             }
         }
@@ -442,4 +461,3 @@ private fun ConversionLineChart(dashboard: SupervisorDashboard) {
         }
     }
 }
-

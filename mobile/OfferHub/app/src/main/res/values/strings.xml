@@ -150,6 +150,7 @@
     <string name="supervisor_segment_distribution">Segment distribution</string>
     <string name="supervisor_segment">Segment</string>
     <string name="supervisor_conversion_trend">Conversion trend</string>
+    <string name="supervisor_no_conversion_trend">No answered offers in the last 14 days.</string>
     <string name="supervisor_trend_conversion_value">Conversion: %1$.1f%%</string>
     <plurals name="supervisor_trend_answered_offers">
         <item quantity="one">%1$d answered offer</item>
@@ -428,4 +429,5 @@
     <string name="expert_level_gold">Gold</string>
     <string name="expert_level_platinum">Platinum</string>
     <string name="error_gamification">Progress information could not be loaded.</string>
+    <string name="supervisor_no_segment_distribution">No segment data available.</string>
 </resources>

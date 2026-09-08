@@ -302,22 +302,18 @@ fun NavGraphBuilder.staffRoleGraphs(
     composable(Routes.SUPERVISOR_HOME) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
-        RefreshableContent(
-            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
-            onRefresh = supervisorViewModel::loadDashboard
-        ) {
         SupervisorDashboardScreen(
             dashboard = supervisorState.dashboard,
             isLoading = supervisorState.isLoading,
             errorMessage = supervisorState.errorMessage?.asString(),
             onRetryClick = supervisorViewModel::loadDashboard,
+            onRefresh = supervisorViewModel::loadDashboard,
             onActiveCasesClick = { navController.navigate(Routes.SUPERVISOR_ACTIVE_CASES) },
             onPendingAssignmentClick = { navController.navigate(Routes.SUPERVISOR_PENDING_CASES) },
             onExpertsClick = { navController.navigate(Routes.SUPERVISOR_EXPERT_PERFORMANCE) },
             onCasesClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_OPERATIONS) },
             onProfileClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_PROFILE) }
         )
-        }
     }
     composable(Routes.SUPERVISOR_OPERATIONS) {
         SupervisorOperationsScreen(
