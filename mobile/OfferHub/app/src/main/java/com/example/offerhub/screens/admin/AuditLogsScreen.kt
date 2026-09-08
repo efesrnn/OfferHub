@@ -77,8 +77,10 @@ fun AuditLogsScreen(
     onLoadNextPage: () -> Unit,
     onRetryClick: () -> Unit,
     onRetryNextPageClick: () -> Unit,
+    onRefresh: () -> Unit,
     isLoading: Boolean = false,
     isLoadingNextPage: Boolean = false,
+    isRefreshing: Boolean = false,
     canLoadMore: Boolean = false,
     errorMessage: String? = null,
     nextPageErrorMessage: String? = null
@@ -123,10 +125,14 @@ fun AuditLogsScreen(
             )
         }
     ) { padding ->
+        com.example.offerhub.components.RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -248,6 +254,7 @@ fun AuditLogsScreen(
                     }
                 }
             }
+        }
         }
     }
 

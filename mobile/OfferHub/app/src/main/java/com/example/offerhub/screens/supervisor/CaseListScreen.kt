@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.supervisor.SupervisorCaseSummary
 import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 import com.example.offerhub.data.model.campaign.Priority
@@ -76,6 +77,8 @@ fun SupervisorCaseListScreen(
     isSubmitting: Boolean,
     actionError: String?,
     actionSuccessVersion: Long,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onAssignCase: (String, String) -> Unit,
     onPublishCase: (String) -> Unit,
     onUpdateClassification: (String, Segment, Priority, String) -> Unit,
@@ -112,8 +115,13 @@ fun SupervisorCaseListScreen(
     Scaffold(
         topBar = { OfferHubDetailTopBar(title, onBackClick) }
     ) { padding ->
+        RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         LazyColumn(
-            Modifier.fillMaxSize().padding(padding),
+            Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -213,6 +221,7 @@ fun SupervisorCaseListScreen(
                     }
                 }
             }
+        }
         }
     }
     selectedCase?.let { item ->

@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.campaign.Campaign
 import com.example.offerhub.data.model.campaign.CampaignStatus
 import com.example.offerhub.data.model.campaign.Segment
@@ -48,10 +49,12 @@ fun ExpertCampaignListScreen(
     isLoadingNextPage: Boolean,
     canLoadMore: Boolean,
     errorMessage: String?,
+    isRefreshing: Boolean,
     selectedStatus: CampaignStatus?,
     selectedSegment: Segment?,
     onBackClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onCreateClick: () -> Unit,
     onLoadNextPage: () -> Unit,
     onApplyFilters: (CampaignStatus?, Segment?) -> Unit,
@@ -70,12 +73,13 @@ fun ExpertCampaignListScreen(
         if (shouldLoadNextPage) onLoadNextPage()
     }
     Scaffold(topBar = { OfferHubDetailTopBar(stringResource(R.string.expert_campaigns), onBackClick) }) { padding ->
+        RefreshableContent(isRefreshing, onRefresh, Modifier.padding(padding)) {
         when {
-            isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            isLoading && campaigns.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
             errorMessage != null -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -85,7 +89,7 @@ fun ExpertCampaignListScreen(
                 }
             }
             else -> LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -137,6 +141,7 @@ fun ExpertCampaignListScreen(
                     }
                 }
             }
+        }
         }
     }
 

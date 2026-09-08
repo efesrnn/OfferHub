@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
@@ -33,6 +34,8 @@ fun OfferCategoryScreen(
     offers: List<Offer>,
     onBackClick: () -> Unit,
     onOfferClick: (String) -> Unit,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     showAcceptedTag: Boolean = false,
     ratings: Map<String, Int> = emptyMap(),
     emptyMessage: String? = null
@@ -53,11 +56,14 @@ fun OfferCategoryScreen(
             )
         }
     ) { innerPadding ->
-
+        RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(innerPadding)
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
         ) {
             if (offers.isEmpty()) {
                 Box(
@@ -111,6 +117,7 @@ fun OfferCategoryScreen(
                     }
                 }
             }
+        }
         }
     }
 }

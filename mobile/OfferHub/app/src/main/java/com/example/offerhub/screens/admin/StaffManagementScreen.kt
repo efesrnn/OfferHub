@@ -217,12 +217,14 @@ fun UpdateStaffRoleScreen(
     selectedStaff: AdminStaff?,
     isSearchingStaff: Boolean,
     staffSearchError: String?,
+    isRefreshing: Boolean,
     onBackClick: () -> Unit,
     onQueryChange: (String) -> Unit,
     onStaffSelected: (AdminStaff) -> Unit,
     onDismissStaff: () -> Unit,
     onUpdateRole: (String, String) -> Unit,
     onClearClick: () -> Unit,
+    onRefresh: () -> Unit,
     isSubmitting: Boolean = false,
     successMessage: String? = null,
     errorMessage: String? = null
@@ -243,10 +245,14 @@ fun UpdateStaffRoleScreen(
     Scaffold(
         topBar = { OfferHubDetailTopBar(stringResource(R.string.admin_update_role), onBackClick) }
     ) { padding ->
+        com.example.offerhub.components.RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 24.dp),
             contentPadding = PaddingValues(vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -312,6 +318,7 @@ fun UpdateStaffRoleScreen(
                     }
                 }
             }
+        }
         }
     }
 

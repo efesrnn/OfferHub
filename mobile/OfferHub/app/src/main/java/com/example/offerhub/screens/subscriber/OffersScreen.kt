@@ -14,7 +14,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +28,7 @@ import com.example.offerhub.components.NavigationActionCard
 import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.SubscriberBottomBar
 import com.example.offerhub.components.OfferHubTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferType
 import androidx.compose.foundation.layout.height
@@ -79,7 +79,7 @@ fun OffersScreen(
             )
         }
     ) { innerPadding ->
-        PullToRefreshBox(
+        RefreshableContent(
             isRefreshing = isLoading && offers.isNotEmpty(),
             onRefresh = onRefresh,
             modifier = Modifier

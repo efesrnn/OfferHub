@@ -64,9 +64,11 @@ fun ExpertCaseListScreen(
     isLoadingNextPage: Boolean,
     canLoadMore: Boolean,
     errorMessage: String?,
+    isRefreshing: Boolean,
     initialCriticalOnly: Boolean,
     initialStatusFilter: CaseStatus?,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onLoadNextPage: () -> Unit,
     onStatusFilterChanged: (CaseStatus?) -> Unit,
     onCaseClick: (String) -> Unit,
@@ -148,12 +150,17 @@ fun ExpertCaseListScreen(
             )
         }
     ) { padding ->
+        com.example.offerhub.components.RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         when {
-            isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            isLoading && cases.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
             errorMessage != null -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -163,7 +170,7 @@ fun ExpertCaseListScreen(
                 }
             }
             else -> LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -293,6 +300,7 @@ fun ExpertCaseListScreen(
                     }
                 }
             }
+        }
         }
     }
 

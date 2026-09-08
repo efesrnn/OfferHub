@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 
 @Composable
@@ -36,8 +37,10 @@ import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 fun SupervisorExpertPerformanceScreen(
     experts: List<ExpertPerformanceSummary>,
     isLoading: Boolean,
+    isRefreshing: Boolean,
     errorMessage: String?,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onBackClick: () -> Unit
 ) {
     var query by remember { mutableStateOf("") }
@@ -49,8 +52,13 @@ fun SupervisorExpertPerformanceScreen(
         }
     }
     Scaffold(topBar = { OfferHubDetailTopBar(stringResource(R.string.supervisor_experts), onBackClick) }) { padding ->
+        RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         LazyColumn(
-            Modifier.fillMaxSize().padding(padding),
+            Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -95,6 +103,7 @@ fun SupervisorExpertPerformanceScreen(
                     }
                 }
             }
+        }
         }
     }
     selectedExpert?.let { expert ->

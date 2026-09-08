@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.OptimizationCase
 import java.time.Instant
@@ -44,11 +45,13 @@ fun ExpertCaseDetailScreen(
     optimizationCase: OptimizationCase?,
     isLoading: Boolean,
     isSubmitting: Boolean,
+    isRefreshing: Boolean,
     errorMessage: String?,
     isNotFound: Boolean,
     actionErrorMessage: String?,
     onBackClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onChangeStatus: (CaseStatus, String?) -> Unit,
     onClearActionError: () -> Unit
 ) {
@@ -66,15 +69,16 @@ fun ExpertCaseDetailScreen(
             )
         }
     ) { padding ->
+        RefreshableContent(isRefreshing, onRefresh, Modifier.padding(padding)) {
         when {
-            isLoading -> Column(
-                modifier = Modifier.fillMaxSize().padding(padding),
+            isLoading && optimizationCase == null -> Column(
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) { CircularProgressIndicator() }
 
             errorMessage != null -> Column(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                modifier = Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -93,8 +97,9 @@ fun ExpertCaseDetailScreen(
                     onClearActionError()
                     showCompletionSheet = true
                 },
-                modifier = Modifier.padding(padding)
+                modifier = Modifier
             )
+        }
         }
     }
 

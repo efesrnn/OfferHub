@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.gamification.ExpertLevel
 import com.example.offerhub.data.model.gamification.GamificationProfile
 import com.example.offerhub.data.model.gamification.RankingEntry
@@ -39,9 +40,11 @@ fun ExpertProgressScreen(
     selectedPeriod: RankingPeriod,
     isLoading: Boolean,
     isLoadingRanking: Boolean,
+    isRefreshing: Boolean,
     errorMessage: String?,
     onBackClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onPeriodSelected: (RankingPeriod) -> Unit
 ) {
     Scaffold(
@@ -52,12 +55,13 @@ fun ExpertProgressScreen(
             )
         }
     ) { padding ->
+        RefreshableContent(isRefreshing, onRefresh, Modifier.padding(padding)) {
         when {
-            isLoading && profile == null -> ProgressLoading(Modifier.padding(padding))
+            isLoading && profile == null -> ProgressLoading()
             profile == null -> ProgressError(
                 message = errorMessage ?: stringResource(R.string.error_gamification),
                 onRetryClick = onRetryClick,
-                modifier = Modifier.padding(padding)
+                modifier = Modifier
             )
             else -> ProgressContent(
                 profile = profile,
@@ -67,8 +71,9 @@ fun ExpertProgressScreen(
                 errorMessage = errorMessage,
                 onRetryClick = onRetryClick,
                 onPeriodSelected = onPeriodSelected,
-                modifier = Modifier.padding(padding)
+                modifier = Modifier
             )
+        }
         }
     }
 }

@@ -20,11 +20,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.SupervisorBottomBar
 import com.example.offerhub.components.OfferHubTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.supervisor.SupervisorDashboard
 import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 import com.example.offerhub.data.model.supervisor.SupervisorCaseSummary
@@ -48,7 +47,6 @@ import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.campaign.Priority
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupervisorDashboardScreen(
     dashboard: SupervisorDashboard?,
@@ -68,7 +66,7 @@ fun SupervisorDashboardScreen(
             SupervisorBottomBar("home", {}, onCasesClick, onProfileClick)
         }
     ) { padding ->
-        PullToRefreshBox(
+        RefreshableContent(
             isRefreshing = isLoading && dashboard != null,
             onRefresh = onRefresh,
             modifier = Modifier
