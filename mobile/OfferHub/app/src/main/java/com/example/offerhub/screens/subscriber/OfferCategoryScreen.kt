@@ -124,7 +124,7 @@ private fun OfferCategoryScreenPreview() {
     // TODO: Remove temporary subscriber previews after real backend integration is testable.
     OfferHubTheme {
         OfferCategoryScreen(
-            title = "Add-on Packages",
+            title = stringResource(R.string.offers_add_on_packages),
             offers = MockOfferData.offers.filter {
                 it.type == OfferType.ADD_ON && it.status == OfferStatus.PENDING
             },

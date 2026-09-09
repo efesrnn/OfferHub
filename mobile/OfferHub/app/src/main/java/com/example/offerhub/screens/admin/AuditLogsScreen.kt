@@ -399,7 +399,7 @@ private fun AuditFilterChoices(
                     FilterChip(
                         selected = selected == option,
                         onClick = { onSelect(if (selected == option) null else option) },
-                        label = { Text(option) }
+                        label = { Text(auditCodeLabel(option)) }
                     )
                 }
             }
@@ -419,8 +419,11 @@ private fun AuditLogCard(
     ) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(log.action, fontWeight = FontWeight.Bold)
-                Text(log.result, color = if (log.result == "FAILED") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
+                Text(auditCodeLabel(log.action), fontWeight = FontWeight.Bold)
+                Text(
+                    auditCodeLabel(log.result),
+                    color = if (log.result == "FAILED") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                )
             }
             Text(formatAuditTimestamp(log.timestamp), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -433,10 +436,16 @@ private fun AuditLogDetailSheet(
     log: AuditLog,
     onDismiss: () -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -447,8 +456,8 @@ private fun AuditLogDetailSheet(
             )
             AuditDetailRow(stringResource(R.string.admin_log_id), log.id, copyable = true)
             AuditDetailRow(stringResource(R.string.admin_user_id), log.userId, copyable = true)
-            AuditDetailRow(stringResource(R.string.admin_action), log.action)
-            AuditDetailRow(stringResource(R.string.admin_result), log.result)
+            AuditDetailRow(stringResource(R.string.admin_action), auditCodeLabel(log.action))
+            AuditDetailRow(stringResource(R.string.admin_result), auditCodeLabel(log.result))
             AuditDetailRow(stringResource(R.string.admin_timestamp), formatAuditTimestamp(log.timestamp))
             AuditDetailRow(stringResource(R.string.admin_ip_address), log.ip)
             log.detail?.takeIf { it.isNotBlank() }?.let {
@@ -459,9 +468,21 @@ private fun AuditLogDetailSheet(
 }
 
 @Composable
+private fun auditCodeLabel(code: String): String = when (code) {
+    "STAFF_CREATED" -> stringResource(R.string.admin_audit_staff_created)
+    "ROLE_UPDATED" -> stringResource(R.string.admin_audit_role_updated)
+    "LOGIN_SUCCESS" -> stringResource(R.string.admin_audit_login_success)
+    "LOGIN_FAILED" -> stringResource(R.string.admin_audit_login_failed)
+    "SUCCESS" -> stringResource(R.string.admin_audit_success)
+    "FAILED" -> stringResource(R.string.admin_audit_failed)
+    else -> code
+}
+
+@Composable
 private fun AuditDetailRow(label: String, value: String, copyable: Boolean = false) {
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
+    val clipboardLabel = stringResource(R.string.admin_audit_clip_label)
 
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -479,7 +500,12 @@ private fun AuditDetailRow(label: String, value: String, copyable: Boolean = fal
                     onClick = {
                         coroutineScope.launch {
                             clipboard.setClipEntry(
-                                ClipEntry(ClipData.newPlainText("audit log id", value))
+                                ClipEntry(
+                                    ClipData.newPlainText(
+                                        clipboardLabel,
+                                        value
+                                    )
+                                )
                             )
                         }
                     }

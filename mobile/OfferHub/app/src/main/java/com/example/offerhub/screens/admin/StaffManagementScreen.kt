@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.components.OfferHubDetailTopBar
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.adminCodeLabel
 import com.example.offerhub.data.model.admin.AdminStaff
 import kotlinx.coroutines.launch
 
@@ -308,7 +309,11 @@ fun UpdateStaffRoleScreen(
                             )
                             Text(staff.email, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
-                                "${stringResource(R.string.admin_current_role)}: ${staff.role}",
+                                stringResource(
+                                    R.string.common_label_value,
+                                    stringResource(R.string.admin_current_role),
+                                    adminCodeLabel(staff.role)
+                                ),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -341,14 +346,20 @@ fun UpdateStaffRoleScreen(
                 StaffDetailValue(stringResource(R.string.admin_first_name), staff.firstName)
                 StaffDetailValue(stringResource(R.string.admin_last_name), staff.lastName)
                 StaffDetailValue(stringResource(R.string.admin_email), staff.email)
-                StaffDetailValue(stringResource(R.string.admin_current_role), staff.role)
+                StaffDetailValue(stringResource(R.string.admin_current_role), adminCodeLabel(staff.role))
                 StaffDetailValue(
                     stringResource(R.string.admin_specialties),
-                    staff.specialties.joinToString().ifBlank { stringResource(R.string.common_not_available) }
+                    staff.specialties
+                        .map { adminCodeLabel(it) }
+                        .joinToString()
+                        .ifBlank { stringResource(R.string.common_not_available) }
                 )
                 StaffDetailValue(
                     stringResource(R.string.admin_regions),
-                    staff.regions.joinToString().ifBlank { stringResource(R.string.common_not_available) }
+                    staff.regions
+                        .map { adminCodeLabel(it) }
+                        .joinToString()
+                        .ifBlank { stringResource(R.string.common_not_available) }
                 )
                 Text(stringResource(R.string.admin_new_role), fontWeight = FontWeight.SemiBold)
                 ChoiceRow(
@@ -394,7 +405,7 @@ private fun ChoiceRow(
                 selected = option == selected,
                 onClick = { onSelect(option) },
                 enabled = isOptionEnabled(option),
-                label = { Text(option) }
+                label = { Text(adminCodeLabel(option)) }
             )
         }
     }
@@ -404,7 +415,11 @@ private fun ChoiceRow(
 private fun MultiChoiceRow(options: List<String>, selected: Set<String>, onToggle: (String) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         options.forEach { option ->
-            FilterChip(selected = option in selected, onClick = { onToggle(option) }, label = { Text(option) })
+            FilterChip(
+                selected = option in selected,
+                onClick = { onToggle(option) },
+                label = { Text(adminCodeLabel(option)) }
+            )
         }
     }
 }
@@ -431,7 +446,7 @@ private fun CopyableValue(label: String, value: String, contentDescription: Stri
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "$label: $value",
+            text = stringResource(R.string.common_label_value, label, value),
             modifier = Modifier.weight(1f)
         )
         IconButton(

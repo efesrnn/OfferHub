@@ -113,8 +113,18 @@ private fun ProgressContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MetricCard(stringResource(R.string.expert_daily_short), profile.dailyRank.asRank(), Modifier.weight(1f))
-                MetricCard(stringResource(R.string.expert_weekly_short), profile.weeklyRank.asRank(), Modifier.weight(1f))
+                MetricCard(
+                    stringResource(R.string.expert_daily_short),
+                    profile.dailyRank?.let { stringResource(R.string.common_rank_value, it) }
+                        ?: stringResource(R.string.common_not_available_short),
+                    Modifier.weight(1f)
+                )
+                MetricCard(
+                    stringResource(R.string.expert_weekly_short),
+                    profile.weeklyRank?.let { stringResource(R.string.common_rank_value, it) }
+                        ?: stringResource(R.string.common_not_available_short),
+                    Modifier.weight(1f)
+                )
             }
         }
         item {
@@ -265,7 +275,7 @@ private fun RankingCard(entry: RankingEntry, isCurrentUser: Boolean) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("#${entry.rank}", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.common_rank_value, entry.rank), fontWeight = FontWeight.Bold)
             Text(entry.displayName, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
             Text(stringResource(R.string.expert_points_value, entry.points))
         }
@@ -306,5 +316,3 @@ private fun ExpertLevel.displayName(): String = stringResource(
         ExpertLevel.PLATINUM -> R.string.expert_level_platinum
     }
 )
-
-private fun Int?.asRank(): String = this?.let { "#$it" } ?: "—"

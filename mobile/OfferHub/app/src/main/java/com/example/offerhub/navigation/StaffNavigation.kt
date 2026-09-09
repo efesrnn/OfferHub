@@ -524,7 +524,7 @@ fun NavGraphBuilder.staffRoleGraphs(
             searchResults = adminState.staffSearchResults,
             selectedStaff = adminState.selectedStaff,
             isSearchingStaff = adminState.isSearchingStaff,
-            staffSearchError = adminState.staffSearchError,
+            staffSearchError = adminState.staffSearchError?.asString(),
             isRefreshing = adminState.isSearchingStaff && adminState.staffSearchResults.isNotEmpty(),
             onBackClick = navController::popBackStack,
             onQueryChange = adminViewModel::onStaffSearchQueryChange,
@@ -561,8 +561,8 @@ fun NavGraphBuilder.staffRoleGraphs(
             isLoadingNextPage = adminState.isLoadingNextAuditPage,
             isRefreshing = adminState.isLoadingAudit && adminState.auditLogs.isNotEmpty(),
             canLoadMore = adminState.canLoadMoreAudit,
-            errorMessage = adminState.auditError,
-            nextPageErrorMessage = adminState.auditNextPageError
+            errorMessage = adminState.auditError?.asString(),
+            nextPageErrorMessage = adminState.auditNextPageError?.asString()
         )
     }
 

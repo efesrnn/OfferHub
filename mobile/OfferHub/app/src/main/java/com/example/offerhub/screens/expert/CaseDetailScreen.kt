@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.localizedLabel
 import com.example.offerhub.components.OfferHubDetailTopBar
 import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.campaign.CaseStatus
@@ -137,15 +138,15 @@ private fun CaseDetailContent(
     ) {
         Text(optimizationCase.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         DetailRow(stringResource(R.string.expert_campaign_number), optimizationCase.campaignNo)
-        DetailRow(stringResource(R.string.expert_status), optimizationCase.status.displayName())
-        DetailRow(stringResource(R.string.expert_priority), optimizationCase.priority.name.toDisplayText())
+        DetailRow(stringResource(R.string.expert_status), optimizationCase.status.localizedLabel())
+        DetailRow(stringResource(R.string.expert_priority), optimizationCase.priority.localizedLabel())
         if (!optimizationCase.status.isCompleted()) {
             DetailRow(stringResource(R.string.expert_sla), optimizationCase.slaRemainingSeconds.toSlaText())
         }
 
         Text(stringResource(R.string.expert_ai_analysis), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        DetailRow(stringResource(R.string.expert_current_segment), optimizationCase.segment.name.toDisplayText())
-        DetailRow(stringResource(R.string.expert_ai_segment), optimizationCase.aiSegment.name.toDisplayText())
+        DetailRow(stringResource(R.string.expert_current_segment), optimizationCase.segment.localizedLabel())
+        DetailRow(stringResource(R.string.expert_ai_segment), optimizationCase.aiSegment.localizedLabel())
         DetailRow(stringResource(R.string.expert_conversion_probability), optimizationCase.conversionProbability.toPercentage())
         DetailRow(stringResource(R.string.expert_recommendation_score), optimizationCase.recommendationScore?.let { "%.2f".format(it) } ?: stringResource(R.string.common_not_available))
 
@@ -241,7 +242,7 @@ private fun OptimizationNoteSheet(
                         } else {
                             Text("")
                         }
-                        Text("${note.length}/1000")
+                        Text(stringResource(R.string.common_character_count, note.length, 1000))
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

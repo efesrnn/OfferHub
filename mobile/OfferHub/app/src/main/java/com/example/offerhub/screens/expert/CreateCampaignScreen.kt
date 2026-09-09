@@ -32,6 +32,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.localizedLabel
 import com.example.offerhub.components.OfferHubDetailTopBar
 import com.example.offerhub.data.model.campaign.CampaignType
 import com.example.offerhub.data.model.campaign.Segment
@@ -76,7 +77,7 @@ fun CreateCampaignScreen(
                 isError = submitAttempted && !titleValid,
                 supportingText = {
                     if (submitAttempted && !titleValid) Text(stringResource(R.string.error_campaign_title))
-                    else Text("${title.length}/200")
+                    else Text(stringResource(R.string.common_character_count, title.length, 200))
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -84,7 +85,7 @@ fun CreateCampaignScreen(
             CampaignType.entries.filterNot { it == CampaignType.UNKNOWN }.chunked(2).forEach { values ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     values.forEach { value ->
-                        FilterChip(selected = type == value, onClick = { type = value }, label = { Text(value.name.displayName()) })
+                        FilterChip(selected = type == value, onClick = { type = value }, label = { Text(value.localizedLabel()) })
                     }
                 }
             }
@@ -94,7 +95,7 @@ fun CreateCampaignScreen(
             Segment.entries.filterNot { it == Segment.UNKNOWN }.chunked(3).forEach { values ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     values.forEach { value ->
-                        FilterChip(selected = segment == value, onClick = { segment = value }, label = { Text(value.name.displayName()) })
+                        FilterChip(selected = segment == value, onClick = { segment = value }, label = { Text(value.localizedLabel()) })
                     }
                 }
             }

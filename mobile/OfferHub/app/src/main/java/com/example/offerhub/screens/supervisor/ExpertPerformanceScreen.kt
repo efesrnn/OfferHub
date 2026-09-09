@@ -127,10 +127,15 @@ fun SupervisorExpertPerformanceScreen(
                 ExpertDetailRow(stringResource(R.string.supervisor_completed_cases), expert.completedCases.toString())
                 ExpertDetailRow(
                     stringResource(R.string.supervisor_average_conversion_increase),
-                    expert.averageConversionIncrease?.let { "$it%" }
+                    expert.averageConversionIncrease?.let {
+                        stringResource(R.string.common_percentage_value, it.toString())
+                    }
                         ?: stringResource(R.string.common_not_available)
                 )
-                ExpertDetailRow(stringResource(R.string.supervisor_average_completion_time), "${expert.averageCompletionHours} h")
+                ExpertDetailRow(
+                    stringResource(R.string.supervisor_average_completion_time),
+                    stringResource(R.string.common_hours_value, expert.averageCompletionHours.toString())
+                )
             }
         }
     }

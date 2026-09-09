@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.example.offerhub.components.AdminBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.adminCodeLabel
 
 @Composable
 fun AdminProfileScreen(
@@ -51,7 +52,7 @@ fun AdminProfileScreen(
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     ProfileValue(stringResource(R.string.admin_user_id), userId)
-                    ProfileValue(stringResource(R.string.admin_role), role)
+                    ProfileValue(stringResource(R.string.admin_role), adminCodeLabel(role))
                 }
             }
             Text(

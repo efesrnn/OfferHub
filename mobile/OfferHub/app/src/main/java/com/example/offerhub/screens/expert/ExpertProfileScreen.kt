@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.adminCodeLabel
 import com.example.offerhub.components.ExpertBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.ui.theme.Primary
@@ -69,14 +70,16 @@ fun ExpertProfileScreen(
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     ExpertProfileValue(stringResource(R.string.admin_user_id), userId)
-                    ExpertProfileValue(stringResource(R.string.admin_role), role)
+                    ExpertProfileValue(stringResource(R.string.admin_role), adminCodeLabel(role))
                     ExpertProfileValue(
                         stringResource(R.string.admin_specialties),
-                        specialties.ifEmpty { listOf(stringResource(R.string.common_not_available)) }.joinToString()
+                        if (specialties.isEmpty()) stringResource(R.string.common_not_available)
+                        else specialties.map { adminCodeLabel(it) }.joinToString()
                     )
                     ExpertProfileValue(
                         stringResource(R.string.admin_regions),
-                        regions.ifEmpty { listOf(stringResource(R.string.common_not_available)) }.joinToString()
+                        if (regions.isEmpty()) stringResource(R.string.common_not_available)
+                        else regions.map { adminCodeLabel(it) }.joinToString()
                     )
                 }
             }

@@ -106,7 +106,10 @@ fun OfferDetailBottomSheet(
             offer.discountRate?.let { discountRate ->
                 DetailRow(
                     label = stringResource(R.string.offer_discount_label),
-                    value = "${discountRate.toDisplayNumber()}%"
+                    value = stringResource(
+                        R.string.common_percentage_value,
+                        discountRate.toDisplayNumber()
+                    )
                 )
             }
 

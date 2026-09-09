@@ -31,8 +31,8 @@ data class AdminUiState(
     val toDate: String? = null,
     val isLoadingAudit: Boolean = false,
     val isLoadingNextAuditPage: Boolean = false,
-    val auditError: String? = null,
-    val auditNextPageError: String? = null,
+    val auditError: UiText? = null,
+    val auditNextPageError: UiText? = null,
     val isSubmitting: Boolean = false,
     val actionMessage: UiText? = null,
     val actionError: UiText? = null,
@@ -40,7 +40,7 @@ data class AdminUiState(
     val staffSearchQuery: String = "",
     val staffSearchResults: List<AdminStaff> = emptyList(),
     val isSearchingStaff: Boolean = false,
-    val staffSearchError: String? = null
+    val staffSearchError: UiText? = null
 ) {
     val canLoadMoreAudit: Boolean
         get() = auditLogs.size < auditTotal
@@ -98,7 +98,7 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
                     )
                 }
                 is AdminResult.Failure -> _uiState.update {
-                    val message = result.error.message ?: "Audit logs could not be loaded"
+                    val message = result.error.toUiText(R.string.admin_audit_load_failed)
                     if (reset) {
                         it.copy(auditError = message)
                     } else {
@@ -257,7 +257,9 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
                         it.copy(
                             staffSearchResults = emptyList(),
                             isSearchingStaff = false,
-                            staffSearchError = result.error.message
+                            staffSearchError = result.error.toUiText(
+                                R.string.admin_staff_search_failed
+                            )
                         )
                     } else it
                 }
@@ -289,9 +291,13 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
     private fun endSubmission() = _uiState.update { it.copy(isSubmitting = false) }
 
     private fun ApiError.toUiText(fallbackResource: Int): UiText =
-        message?.takeIf { it.isNotBlank() }
-            ?.let(UiText::Dynamic)
-            ?: UiText.Resource(fallbackResource)
+        UiText.Resource(
+            when (code) {
+                "NETWORK_ERROR" -> R.string.error_network
+                "FORBIDDEN" -> R.string.error_forbidden
+                else -> fallbackResource
+            }
+        )
 
     private fun ApiError.toCreateStaffUiText(): UiText =
         UiText.Resource(
