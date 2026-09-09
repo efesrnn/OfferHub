@@ -73,6 +73,23 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
             """)
     long countClassifiedCorrectly();
 
+    /**
+     * Expired campaigns that never had an optimization case. AI scored these above the
+     * threshold, so no expert was ever going to touch them and nothing else would move
+     * them off YENI.
+     *
+     * Campaigns that do have a case are left to the case level archival, which follows the
+     * state machine. Status is only checked against ARSIVLENDI so that the scan stays
+     * idempotent rather than depending on which status a caseless campaign happens to be in.
+     */
+    @Query("""
+            select c from Campaign c
+            where c.status <> com.offerhub.campaign.entity.CampaignStatus.ARSIVLENDI
+              and c.validUntil < :now
+              and not exists (select 1 from OptimizationCase oc where oc.campaign = c)
+            """)
+    List<Campaign> findExpiredWithoutCase(@Param("now") Instant now);
+
     /** Dashboard: how campaigns are spread across segments. One row per segment in use. */
     @Query("select c.segment, count(c) from Campaign c group by c.segment")
     List<Object[]> countPerSegment();

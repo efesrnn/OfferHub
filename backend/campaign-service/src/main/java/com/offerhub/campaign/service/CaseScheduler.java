@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class CaseScheduler {
 
     private final OptimizationCaseService caseService;
+    private final CampaignService campaignService;
 
     /**
      * fixedDelay, not fixedRate: the next scan starts after the previous one finished, so
@@ -29,12 +30,22 @@ public class CaseScheduler {
         }
     }
 
-    /** Validity expiry is a matter of days, so this runs far less often than the SLA scan. */
+    /**
+     * Validity expiry is a matter of days, so this runs far less often than the SLA scan.
+     *
+     * Two passes because a campaign can be retired down two different routes: through its
+     * case when it has one, and on its own when it never got one.
+     */
     @Scheduled(fixedDelayString = "${campaign.archive-interval-ms:60000}")
     public void archiveExpiredCampaigns() {
         int archived = caseService.archiveExpiredCases();
         if (archived > 0) {
             log.info("{} case(s) archived after their campaign expired", archived);
+        }
+
+        int caseless = campaignService.archiveExpiredWithoutCase();
+        if (caseless > 0) {
+            log.info("{} campaign(s) with no case archived after expiring", caseless);
         }
     }
 }
