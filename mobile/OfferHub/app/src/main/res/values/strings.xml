@@ -435,6 +435,10 @@
     <string name="expert_valid_until">Valid until</string>
     <string name="expert_no_campaigns">No campaigns are available.</string>
     <string name="expert_campaign_created">Campaign %1$s was created successfully.</string>
+    <string name="expert_case_started_success">Work on the case has started.</string>
+    <string name="expert_case_test_started_success">The case has moved to the testing stage.</string>
+    <string name="expert_case_completed_success">The optimization was completed successfully.</string>
+    <string name="expert_case_updated_success">The case was updated successfully.</string>
     <string name="error_campaign_title">Enter a title of at most 200 characters without angle brackets.</string>
     <string name="error_campaign_type">Select a campaign type.</string>
     <string name="error_campaign_segment">Select a target segment.</string>

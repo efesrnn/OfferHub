@@ -14,6 +14,8 @@ import com.example.offerhub.repository.ExpertResult
 import com.example.offerhub.R
 import com.example.offerhub.ui.text.UiText
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -53,6 +55,8 @@ data class ExpertUiState(
 
 class ExpertViewModel(private val repository: ExpertRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(ExpertUiState())
+    private val _snackbarEvents = MutableSharedFlow<UiText>(extraBufferCapacity = 1)
+    val snackbarEvents: SharedFlow<UiText> = _snackbarEvents
     val uiState: StateFlow<ExpertUiState> = _uiState.asStateFlow()
 
     init { loadCases() }
@@ -141,13 +145,25 @@ class ExpertViewModel(private val repository: ExpertRepository) : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmittingAction = true, actionErrorMessage = null) }
             when (val result = repository.changeCaseStatus(selectedCase.caseId, targetStatus, normalizedNote)) {
-                is ExpertResult.Success -> _uiState.update { state ->
-                    state.copy(
-                        selectedCase = result.value,
-                        cases = state.cases.map { current ->
-                            if (current.caseId == result.value.caseId) result.value else current
-                        },
-                        isSubmittingAction = false
+                is ExpertResult.Success -> {
+                    _uiState.update { state ->
+                        state.copy(
+                            selectedCase = result.value,
+                            cases = state.cases.map { current ->
+                                if (current.caseId == result.value.caseId) result.value else current
+                            },
+                            isSubmittingAction = false
+                        )
+                    }
+                    _snackbarEvents.tryEmit(
+                        UiText.Resource(
+                            when (targetStatus) {
+                                CaseStatus.OPTIMIZE_EDILIYOR -> R.string.expert_case_started_success
+                                CaseStatus.TEST_EDILIYOR -> R.string.expert_case_test_started_success
+                                CaseStatus.TAMAMLANDI -> R.string.expert_case_completed_success
+                                else -> R.string.expert_case_updated_success
+                            }
+                        )
                     )
                 }
                 is ExpertResult.Failure -> _uiState.update {
@@ -233,13 +249,22 @@ class ExpertViewModel(private val repository: ExpertRepository) : ViewModel() {
                 it.copy(isCreatingCampaign = true, campaignActionError = null, createdCampaignNo = null)
             }
             when (val result = repository.createCampaign(title, type, targetSegment, discountRate, validUntil)) {
-                is ExpertResult.Success -> _uiState.update { state ->
-                    state.copy(
-                        selectedCampaign = result.value,
-                        isCreatingCampaign = false,
-                        createdCampaignNo = result.value.campaignNo
+                is ExpertResult.Success -> {
+                    _uiState.update { state ->
+                        state.copy(
+                            selectedCampaign = result.value,
+                            isCreatingCampaign = false,
+                            createdCampaignNo = result.value.campaignNo
+                        )
+                    }
+                    _snackbarEvents.tryEmit(
+                        UiText.Resource(
+                            R.string.expert_campaign_created,
+                            listOf(result.value.campaignNo)
+                        )
                     )
-                }.also { loadCampaigns(reset = true) }
+                    loadCampaigns(reset = true)
+                }
                 is ExpertResult.Failure -> _uiState.update {
                     it.copy(
                         isCreatingCampaign = false,

@@ -237,8 +237,10 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.EXPERT_CREATE_CAMPAIGN) {
         val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(expertViewModel.snackbarEvents)
         LaunchedEffect(Unit) { expertViewModel.clearCampaignFeedback() }
         CreateCampaignScreen(
+            snackbarHostState = snackbarHostState,
             isSubmitting = expertState.isCreatingCampaign,
             errorMessage = expertState.campaignActionError?.asString(),
             createdCampaignNo = expertState.createdCampaignNo,
@@ -271,12 +273,14 @@ fun NavGraphBuilder.staffRoleGraphs(
     ) { backStackEntry ->
         val caseId = backStackEntry.arguments?.getString("caseId").orEmpty()
         val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(expertViewModel.snackbarEvents)
 
         LaunchedEffect(caseId) {
             if (caseId.isNotBlank()) expertViewModel.loadCaseDetail(caseId)
         }
 
         ExpertCaseDetailScreen(
+            snackbarHostState = snackbarHostState,
             optimizationCase = expertState.selectedCase,
             isLoading = expertState.isLoadingDetail,
             isSubmitting = expertState.isSubmittingAction,

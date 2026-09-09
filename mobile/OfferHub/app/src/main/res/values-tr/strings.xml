@@ -438,6 +438,10 @@
     <string name="expert_valid_until">Son geçerlilik tarihi</string>
     <string name="expert_no_campaigns">Kampanya bulunmuyor.</string>
     <string name="expert_campaign_created">%1$s kampanyası başarıyla oluşturuldu.</string>
+    <string name="expert_case_started_success">Vaka üzerinde çalışmaya başlandı.</string>
+    <string name="expert_case_test_started_success">Vaka test aşamasına geçirildi.</string>
+    <string name="expert_case_completed_success">Optimizasyon başarıyla tamamlandı.</string>
+    <string name="expert_case_updated_success">Vaka başarıyla güncellendi.</string>
     <string name="error_campaign_title">Açılı parantez içermeyen, en fazla 200 karakterlik bir başlık girin.</string>
     <string name="error_campaign_type">Kampanya türü seçin.</string>
     <string name="error_campaign_segment">Hedef segment seçin.</string>

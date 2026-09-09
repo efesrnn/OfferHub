@@ -19,6 +19,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +48,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpertCaseDetailScreen(
+    snackbarHostState: SnackbarHostState,
     optimizationCase: OptimizationCase?,
     isLoading: Boolean,
     isSubmitting: Boolean,
@@ -66,6 +69,7 @@ fun ExpertCaseDetailScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             OfferHubDetailTopBar(
                 title = stringResource(R.string.expert_case_detail),
