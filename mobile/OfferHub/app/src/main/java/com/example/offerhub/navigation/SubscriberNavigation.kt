@@ -18,6 +18,7 @@ import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
 import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
+import com.example.offerhub.viewModel.buildSubscriberHomeSummary
 import com.example.offerhub.ui.text.asString
 
 fun NavGraphBuilder.subscriberGraph(
@@ -33,25 +34,33 @@ fun NavGraphBuilder.subscriberGraph(
         val latestAcceptedOffer = offers
             .filter { it.status == OfferStatus.ACCEPTED }
             .maxByOrNull { it.acceptedAt.orEmpty() }
+        val homeSummary = buildSubscriberHomeSummary(offers)
         SubscriberHomeScreen(
             firstName = "",
-            recommendedOffers = offers.filter {
-                it.status == OfferStatus.PENDING
-            },
+            recommendedOffers = offers
+                .filter { it.status == OfferStatus.PENDING }
+                .sortedByDescending { it.score }
+                .take(3),
             latestAcceptedOffer = latestAcceptedOffer,
+            homeSummary = homeSummary,
             isLoading = subscriberState.isLoading,
             errorMessage = subscriberState.loadErrorMessage?.asString(),
             onRetryClick = subscriberViewModel::loadOffers,
             onRefresh = subscriberViewModel::loadOffers,
             onOfferClick = openOfferDetail,
-            onCategoryClick = { type ->
-                navController.navigate(Routes.offerCategory(type.name)) {
-                    launchSingleTop = true
-                }
-            },
             onHomeClick = {},
             onOffersClick = {
                 navController.navigate(Routes.OFFERS) {
+                    launchSingleTop = true
+                }
+            },
+            onAcceptedOffersClick = {
+                navController.navigate(Routes.ACCEPTED_OFFERS) {
+                    launchSingleTop = true
+                }
+            },
+            onRatedOffersClick = {
+                navController.navigate(Routes.RATED_OFFERS) {
                     launchSingleTop = true
                 }
             },
@@ -111,7 +120,6 @@ fun NavGraphBuilder.subscriberGraph(
         OfferCategoryScreen(
             title = stringResource(R.string.offers_my_accepted),
             offers = acceptedOffers,
-            showAcceptedTag = true,
             emptyMessage = stringResource(R.string.subscriber_no_accepted_offer),
             isRefreshing = subscriberState.isLoading,
             onRefresh = subscriberViewModel::loadOffers,

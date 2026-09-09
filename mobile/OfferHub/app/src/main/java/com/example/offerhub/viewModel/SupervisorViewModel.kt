@@ -12,6 +12,8 @@ import com.example.offerhub.ui.text.UiText
 import com.example.offerhub.data.model.campaign.Priority
 import com.example.offerhub.data.model.campaign.Segment
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -33,6 +35,8 @@ class SupervisorViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SupervisorUiState())
     val uiState: StateFlow<SupervisorUiState> = _uiState.asStateFlow()
+    private val _snackbarEvents = MutableSharedFlow<UiText>(extraBufferCapacity = 1)
+    val snackbarEvents: SharedFlow<UiText> = _snackbarEvents
 
     fun loadDashboard() {
         if (_uiState.value.isLoading) return
@@ -72,11 +76,15 @@ class SupervisorViewModel(
         _uiState.update { it.copy(selectedConversionTrendPeriod = period) }
     }
 
-    fun assignCase(caseId: String, expertId: String) = executeAction {
+    fun assignCase(caseId: String, expertId: String) = executeAction(
+        successMessage = UiText.Resource(R.string.supervisor_case_assigned_success)
+    ) {
         repository.assignCase(caseId, expertId)
     }
 
-    fun publishCase(caseId: String) = executeAction {
+    fun publishCase(caseId: String) = executeAction(
+        successMessage = UiText.Resource(R.string.supervisor_case_published_success)
+    ) {
         repository.publishCase(caseId)
     }
 
@@ -85,23 +93,31 @@ class SupervisorViewModel(
         segment: Segment,
         priority: Priority,
         reason: String
-    ) = executeAction {
+    ) = executeAction(
+        successMessage = UiText.Resource(R.string.supervisor_classification_updated_success)
+    ) {
         repository.updateCaseClassification(campaignNo, segment, priority, reason)
     }
 
     fun clearActionError() = _uiState.update { it.copy(actionErrorMessage = null) }
 
-    private fun executeAction(operation: suspend () -> SupervisorResult<SupervisorDashboard>) {
+    private fun executeAction(
+        successMessage: UiText,
+        operation: suspend () -> SupervisorResult<SupervisorDashboard>
+    ) {
         if (_uiState.value.isSubmittingAction) return
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmittingAction = true, actionErrorMessage = null) }
             when (val result = operation()) {
-                is SupervisorResult.Success -> _uiState.update {
-                    it.copy(
-                        dashboard = result.value,
-                        isSubmittingAction = false,
-                        actionSuccessVersion = it.actionSuccessVersion + 1
-                    )
+                is SupervisorResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            dashboard = result.value,
+                            isSubmittingAction = false,
+                            actionSuccessVersion = it.actionSuccessVersion + 1
+                        )
+                    }
+                    _snackbarEvents.tryEmit(successMessage)
                 }
                 is SupervisorResult.Failure -> _uiState.update {
                     it.copy(

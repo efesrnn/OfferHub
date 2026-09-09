@@ -1,23 +1,20 @@
 package com.example.offerhub.screens.subscriber
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -39,10 +36,11 @@ import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
-import com.example.offerhub.data.model.OfferType
 import com.example.offerhub.R
 import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.ui.theme.OfferHubTheme
+import com.example.offerhub.viewModel.SubscriberHomeSummary
+import com.example.offerhub.viewModel.buildSubscriberHomeSummary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,14 +48,16 @@ fun SubscriberHomeScreen(
     firstName: String,
     recommendedOffers: List<Offer>,
     latestAcceptedOffer: Offer?,
+    homeSummary: SubscriberHomeSummary,
     isLoading: Boolean,
     errorMessage: String?,
     onRetryClick: () -> Unit,
     onRefresh: () -> Unit,
     onOfferClick: (String) -> Unit,
-    onCategoryClick: (OfferType) -> Unit,
     onHomeClick: () -> Unit,
     onOffersClick: () -> Unit,
+    onAcceptedOffersClick: () -> Unit,
+    onRatedOffersClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
 
@@ -195,7 +195,6 @@ fun SubscriberHomeScreen(
                 if (latestAcceptedOffer != null) {
                     OfferCard(
                         offer = latestAcceptedOffer,
-                        isAccepted = true,
                         onClick = {
                             onOfferClick(latestAcceptedOffer.offerId)
                         },
@@ -214,7 +213,7 @@ fun SubscriberHomeScreen(
 
             item {
                 Text(
-                    text = stringResource(R.string.subscriber_quick_actions),
+                    text = stringResource(R.string.subscriber_pending_ratings),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -222,54 +221,48 @@ fun SubscriberHomeScreen(
                 )
             }
 
-            item {
-                LazyRow(
-                    contentPadding =
-                        PaddingValues(horizontal = 24.dp),
-
-                    horizontalArrangement =
-                        Arrangement.spacedBy(12.dp)
-                ) {
-                    item {
-                        QuickActionCard(
-                            title = stringResource(R.string.offers_add_on_packages),
-                            onClick = {
-                                onCategoryClick(OfferType.ADD_ON)
-                            }
-                        )
-                    }
-
-                    item {
-                        QuickActionCard(
-                            title = stringResource(R.string.offers_tariff_upgrade),
-                            onClick = {
-                                onCategoryClick(
-                                    OfferType.TARIFF_UPGRADE
-                                )
-                            }
-                        )
-                    }
-
-                    item {
-                        QuickActionCard(
-                            title = stringResource(R.string.offers_device),
-                            onClick = {
-                                onCategoryClick(
-                                    OfferType.DEVICE_OFFER
-                                )
-                            }
-                        )
-                    }
-
-                    item {
-                        QuickActionCard(
-                            title = stringResource(R.string.offers_loyalty),
-                            onClick = {
-                                onCategoryClick(OfferType.LOYALTY)
-                            }
-                        )
-                    }
+            if (homeSummary.pendingRatingOffers.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.subscriber_no_pending_ratings),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
                 }
+            } else {
+                items(
+                    items = homeSummary.pendingRatingOffers,
+                    key = Offer::offerId
+                ) { offer ->
+                    PendingRatingCard(
+                        offer = offer,
+                        onOfferClick = onOfferClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                    )
+                }
+            }
+
+            item {
+                Text(
+                    text = stringResource(R.string.subscriber_offer_journey),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+
+            item {
+                OfferJourney(
+                    summary = homeSummary,
+                    onAvailableClick = onOffersClick,
+                    onAcceptedClick = onAcceptedOffersClick,
+                    onRatedClick = onRatedOffersClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                )
             }
             }
             }
@@ -278,38 +271,90 @@ fun SubscriberHomeScreen(
 }
 
 @Composable
-private fun QuickActionCard(
-    title: String,
-    onClick: () -> Unit
+private fun PendingRatingCard(
+    offer: Offer,
+    onOfferClick: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
-            .width(160.dp)
-            .height(96.dp)
-            .clickable(onClick = onClick),
-
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceContainerHigh,
-
-            contentColor =
-                MaterialTheme.colorScheme.onSurface
-        ),
-
-        shape = RoundedCornerShape(16.dp)
+        onClick = { onOfferClick(offer.offerId) },
+        modifier = modifier
     ) {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(16.dp),
-
-            contentAlignment = Alignment.CenterStart
+            verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                text = offer.title,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                stringResource(R.string.subscriber_tap_to_rate),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun OfferJourney(
+    summary: SubscriberHomeSummary,
+    onAvailableClick: () -> Unit,
+    onAcceptedClick: () -> Unit,
+    onRatedClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        JourneyStatCard(
+            label = stringResource(R.string.subscriber_journey_available),
+            count = summary.availableCount,
+            onClick = onAvailableClick,
+            modifier = Modifier.weight(1f)
+        )
+        JourneyStatCard(
+            label = stringResource(R.string.subscriber_journey_accepted),
+            count = summary.acceptedCount,
+            onClick = onAcceptedClick,
+            modifier = Modifier.weight(1f)
+        )
+        JourneyStatCard(
+            label = stringResource(R.string.subscriber_journey_rated),
+            count = summary.ratedCount,
+            onClick = onRatedClick,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun JourneyStatCard(
+    label: String,
+    count: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(onClick = onClick, modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -322,18 +367,23 @@ fun SubscriberHomeScreenPreview() {
     OfferHubTheme {
         SubscriberHomeScreen(
             firstName = "Test",
-            recommendedOffers = MockOfferData.offers.filter { it.status == OfferStatus.PENDING },
+            recommendedOffers = MockOfferData.offers
+                .filter { it.status == OfferStatus.PENDING }
+                .sortedByDescending { it.score }
+                .take(3),
             latestAcceptedOffer = MockOfferData.offers
                 .filter { it.status == OfferStatus.ACCEPTED }
                 .maxByOrNull { it.acceptedAt.orEmpty() },
+            homeSummary = buildSubscriberHomeSummary(MockOfferData.offers),
             isLoading = false,
             errorMessage = null,
             onRetryClick = {},
             onRefresh = {},
             onOfferClick = {},
-            onCategoryClick = {},
             onHomeClick = {},
             onOffersClick = {},
+            onAcceptedOffersClick = {},
+            onRatedOffersClick = {},
             onProfileClick = {}
         )
     }

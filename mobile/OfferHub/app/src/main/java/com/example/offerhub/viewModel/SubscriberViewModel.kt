@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.repository.SubscriberRepository
 import com.example.offerhub.repository.SubscriberResult
 import com.example.offerhub.R
@@ -13,6 +14,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+data class SubscriberHomeSummary(
+    val pendingRatingOffers: List<Offer>,
+    val availableCount: Int,
+    val acceptedCount: Int,
+    val ratedCount: Int
+)
+
+fun buildSubscriberHomeSummary(offers: List<Offer>): SubscriberHomeSummary =
+    SubscriberHomeSummary(
+        pendingRatingOffers = offers
+        .filter { it.status == OfferStatus.ACCEPTED && it.rating == null }
+            .sortedByDescending { it.acceptedAt.orEmpty() },
+        availableCount = offers.count { it.status == OfferStatus.PENDING },
+        acceptedCount = offers.count { it.status == OfferStatus.ACCEPTED },
+        ratedCount = offers.count { it.rating != null }
+    )
 
 data class SubscriberUiState(
     val isLoading: Boolean = false,

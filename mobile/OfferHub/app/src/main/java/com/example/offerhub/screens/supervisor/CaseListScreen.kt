@@ -22,6 +22,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -74,6 +76,7 @@ private enum class ActiveCaseTab(val status: CaseStatus) {
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun SupervisorCaseListScreen(
+    snackbarHostState: SnackbarHostState,
     title: String,
     cases: List<SupervisorCaseSummary>,
     mode: SupervisorCaseListMode,
@@ -122,6 +125,7 @@ fun SupervisorCaseListScreen(
         }
     }
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { OfferHubDetailTopBar(title, onBackClick) }
     ) { padding ->
         RefreshableContent(
@@ -447,7 +451,7 @@ private fun ActiveCaseTab.label(count: Int): String = stringResource(
 private fun CompactActionButton(text: String, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier.width(78.dp).height(36.dp),
+        modifier = Modifier.width(84.dp).height(48.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
     ) {
         Text(text, style = MaterialTheme.typography.labelMedium)

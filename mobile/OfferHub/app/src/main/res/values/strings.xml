@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">OfferHub</string>
-    <string name="offer_recommended">Recommended</string>
+    <string name="offer_featured">Featured</string>
     <string name="offer_accepted">Accepted</string>
     <string name="offer_not_interested">Not interested</string>
     <string name="offer_pending">Pending</string>
@@ -118,7 +118,13 @@
     <string name="subscriber_recently_accepted">Recently accepted</string>
     <string name="subscriber_no_accepted_offer">You have not accepted an offer yet.</string>
     <string name="subscriber_no_recommended_offers">No recommended offers are available right now.</string>
-    <string name="subscriber_quick_actions">Quick actions</string>
+    <string name="subscriber_pending_ratings">Pending ratings</string>
+    <string name="subscriber_no_pending_ratings">No pending ratings.</string>
+    <string name="subscriber_tap_to_rate">Open the offer to rate your experience.</string>
+    <string name="subscriber_offer_journey">Your offer journey</string>
+    <string name="subscriber_journey_available">Available</string>
+    <string name="subscriber_journey_accepted">Accepted</string>
+    <string name="subscriber_journey_rated">Rated</string>
     <string name="offers_subtitle">Offers selected for you</string>
     <string name="offers_add_on_packages">Add-on Packages</string>
     <string name="offers_tariff_upgrades">Tariff Upgrades</string>
@@ -211,6 +217,9 @@
     <string name="supervisor_confirm_active_edit_message">An expert is currently working on this case. Changing its segment or priority may affect the ongoing optimization.</string>
     <string name="supervisor_confirm">Confirm</string>
     <string name="supervisor_cancel">Cancel</string>
+    <string name="supervisor_case_assigned_success">Case assigned successfully.</string>
+    <string name="supervisor_case_published_success">Case published successfully.</string>
+    <string name="supervisor_classification_updated_success">Classification updated successfully.</string>
     <string name="error_case_classification_locked">Segment and priority cannot be changed at this case status.</string>
     <string name="supervisor_edit">Edit</string>
     <string name="supervisor_segment_high_value">High Value</string>

@@ -30,6 +30,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,6 +59,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun CreateStaffScreen(
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onCreateStaff: (String, String, String, String, List<String>, List<String>) -> Unit,
     onClearClick: () -> Unit,
@@ -91,6 +94,7 @@ fun CreateStaffScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             OfferHubDetailTopBar(
                 title = stringResource(R.string.admin_create_staff),
@@ -192,9 +196,6 @@ fun CreateStaffScreen(
                 Text(stringResource(R.string.admin_error_region), color = MaterialTheme.colorScheme.error)
             }
 
-            successMessage?.let {
-                Text(it, color = MaterialTheme.colorScheme.primary)
-            }
             errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }
@@ -203,6 +204,7 @@ fun CreateStaffScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateStaffRoleScreen(
+    snackbarHostState: SnackbarHostState,
     query: String,
     searchResults: List<AdminStaff>,
     selectedStaff: AdminStaff?,
@@ -237,6 +239,7 @@ fun UpdateStaffRoleScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { OfferHubDetailTopBar(stringResource(R.string.admin_update_role), onBackClick) }
     ) { padding ->
         com.example.offerhub.components.RefreshableContent(
@@ -354,7 +357,6 @@ fun UpdateStaffRoleScreen(
                     isOptionEnabled = { it != staff.role },
                     onSelect = { role = it }
                 )
-                successMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
                 errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 Button(
                     enabled = !isSubmitting && role.isNotBlank() && role != staff.role,

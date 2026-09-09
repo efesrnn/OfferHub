@@ -43,6 +43,9 @@ import com.example.offerhub.data.model.supervisor.SupervisorCaseSummary
 import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.campaign.Priority
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -379,6 +382,7 @@ private fun ConversionLineChart(
 ) {
     val points = dashboard.conversionTrend
     val lineColor = MaterialTheme.colorScheme.primary
+    val guideColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
     val horizontalInsetPx = with(LocalDensity.current) { 16.dp.toPx() }
     val selectedIndex = points.indexOfFirst { it.period == selectedPeriod }
         .takeIf { it >= 0 }
@@ -423,6 +427,15 @@ private fun ConversionLineChart(
                     val max = points.maxOf { it.conversionPercent }
                     val range = (max - min).takeIf { it > 0 } ?: 1.0
                     val usableWidth = (size.width - horizontalInsetPx * 2).coerceAtLeast(1f)
+                    listOf(0.25f, 0.5f, 0.75f).forEach { fraction ->
+                        val y = size.height * fraction
+                        drawLine(
+                            color = guideColor,
+                            start = androidx.compose.ui.geometry.Offset(horizontalInsetPx, y),
+                            end = androidx.compose.ui.geometry.Offset(size.width - horizontalInsetPx, y),
+                            strokeWidth = 2f
+                        )
+                    }
                     val coordinates = points.mapIndexed { index, point ->
                         androidx.compose.ui.geometry.Offset(
                             x = if (points.size == 1) {
@@ -438,6 +451,16 @@ private fun ConversionLineChart(
                         )
                     }
                     coordinates.zipWithNext().forEach { (start, end) -> drawLine(lineColor, start, end, strokeWidth = 6f) }
+                    selectedIndex?.let { index ->
+                        coordinates.getOrNull(index)?.let { coordinate ->
+                            drawLine(
+                                color = guideColor,
+                                start = androidx.compose.ui.geometry.Offset(coordinate.x, 0f),
+                                end = androidx.compose.ui.geometry.Offset(coordinate.x, size.height),
+                                strokeWidth = 3f
+                            )
+                        }
+                    }
                     coordinates.forEachIndexed { index, coordinate ->
                         if (selectedIndex == index) {
                             drawCircle(
@@ -461,13 +484,18 @@ private fun ConversionLineChart(
                         points.size <= 4 -> points
                         else -> listOf(points.first(), points[points.lastIndex / 2], points.last())
                     }
-                    labels.forEach { Text("${it.period}\n${it.conversionPercent}%", style = MaterialTheme.typography.labelSmall) }
+                    labels.forEach {
+                        Text(
+                            "${it.period.toTrendDateLabel()}\n${it.conversionPercent}%",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
             }
             selectedIndex?.let { index ->
                 val selectedPoint = points.getOrNull(index) ?: return@let
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(selectedPoint.period, fontWeight = FontWeight.Bold)
+                    Text(selectedPoint.period.toTrendDateLabel(), fontWeight = FontWeight.Bold)
                     Text(
                         stringResource(
                             R.string.supervisor_trend_conversion_value,
@@ -489,3 +517,9 @@ private fun ConversionLineChart(
         }
     }
 }
+
+private fun String.toTrendDateLabel(): String = runCatching {
+    LocalDate.parse(this).format(
+        DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
+    )
+}.getOrDefault(this)

@@ -1,5 +1,6 @@
 package com.example.offerhub.ui.text
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -15,5 +16,10 @@ sealed interface UiText {
 @Composable
 fun UiText.asString(): String = when (this) {
     is UiText.Resource -> stringResource(resourceId, *formatArgs.toTypedArray())
+    is UiText.Dynamic -> value
+}
+
+fun UiText.asString(context: Context): String = when (this) {
+    is UiText.Resource -> context.getString(resourceId, *formatArgs.toTypedArray())
     is UiText.Dynamic -> value
 }

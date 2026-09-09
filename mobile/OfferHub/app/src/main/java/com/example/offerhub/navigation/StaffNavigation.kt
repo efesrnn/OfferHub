@@ -1,10 +1,13 @@
 package com.example.offerhub.navigation
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -33,6 +36,7 @@ import com.example.offerhub.screens.supervisor.SupervisorOperationsScreen
 import com.example.offerhub.screens.supervisor.SupervisorExpertPerformanceScreen
 import com.example.offerhub.screens.supervisor.SupervisorCaseListMode
 import com.example.offerhub.ui.text.asString
+import com.example.offerhub.ui.text.UiText
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.AdminViewModel
 import com.example.offerhub.viewModel.ExpertViewModel
@@ -42,6 +46,21 @@ import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.admin.AdminStaff
 import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
+import kotlinx.coroutines.flow.Flow
+
+@Composable
+private fun rememberOfferHubSnackbarHostState(
+    events: Flow<UiText>
+): SnackbarHostState {
+    val hostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    LaunchedEffect(events, context) {
+        events.collect { message ->
+            hostState.showSnackbar(message.asString(context))
+        }
+    }
+    return hostState
+}
 
 private fun mergeExperts(
     directory: List<AdminStaff>,
@@ -309,11 +328,13 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_PENDING_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
         }
         SupervisorCaseListScreen(
+            snackbarHostState = snackbarHostState,
             title = stringResource(R.string.supervisor_pending_assignment),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
                 it.status == CaseStatus.YENI &&
@@ -338,11 +359,13 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_ACTIVE_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
         }
         SupervisorCaseListScreen(
+            snackbarHostState = snackbarHostState,
             title = stringResource(R.string.supervisor_active_cases),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
                 it.assignedExpertId != null && it.status in setOf(
@@ -370,11 +393,13 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_APPROVAL_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
         }
         SupervisorCaseListScreen(
+            snackbarHostState = snackbarHostState,
             title = stringResource(R.string.supervisor_approval_queue),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
                 it.status == CaseStatus.TAMAMLANDI
@@ -398,11 +423,13 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_PUBLISHED_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
         }
         SupervisorCaseListScreen(
+            snackbarHostState = snackbarHostState,
             title = stringResource(R.string.supervisor_published_cases),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter { it.status == CaseStatus.YAYINDA },
             mode = SupervisorCaseListMode.PUBLISHED,
@@ -471,8 +498,10 @@ fun NavGraphBuilder.staffRoleGraphs(
 
     composable(Routes.ADMIN_CREATE_STAFF) {
         val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(adminViewModel.snackbarEvents)
         LaunchedEffect(Unit) { adminViewModel.clearActionFeedback() }
         CreateStaffScreen(
+            snackbarHostState = snackbarHostState,
             onBackClick = navController::popBackStack,
             onCreateStaff = adminViewModel::createStaff,
             onClearClick = adminViewModel::clearActionFeedback,
@@ -484,11 +513,13 @@ fun NavGraphBuilder.staffRoleGraphs(
 
     composable(Routes.ADMIN_UPDATE_ROLE) {
         val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(adminViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             adminViewModel.clearActionFeedback()
             adminViewModel.loadStaff()
         }
         UpdateStaffRoleScreen(
+            snackbarHostState = snackbarHostState,
             query = adminState.staffSearchQuery,
             searchResults = adminState.staffSearchResults,
             selectedStaff = adminState.selectedStaff,

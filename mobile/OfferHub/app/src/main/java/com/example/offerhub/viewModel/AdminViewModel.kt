@@ -13,6 +13,8 @@ import com.example.offerhub.R
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -47,6 +49,8 @@ data class AdminUiState(
 class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(AdminUiState())
     val uiState: StateFlow<AdminUiState> = _uiState.asStateFlow()
+    private val _snackbarEvents = MutableSharedFlow<UiText>(extraBufferCapacity = 1)
+    val snackbarEvents: SharedFlow<UiText> = _snackbarEvents
     private var searchJob: Job? = null
     private var auditJob: Job? = null
     private var staffSearchJob: Job? = null
@@ -147,10 +151,13 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         viewModelScope.launch {
             beginSubmission()
             when (val result = repository.createStaff(firstName, lastName, email, role, specialties, regions)) {
-                is AdminResult.Success -> _uiState.update {
-                    it.copy(
-                        actionMessage = UiText.Resource(R.string.admin_staff_created_success)
-                    )
+                is AdminResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            actionMessage = UiText.Resource(R.string.admin_staff_created_success)
+                        )
+                    }
+                    _snackbarEvents.tryEmit(UiText.Resource(R.string.admin_staff_created_success))
                 }
                 is AdminResult.Failure -> _uiState.update {
                     it.copy(actionError = result.error.toCreateStaffUiText())
@@ -168,15 +175,19 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
             val activeQuery = _uiState.value.staffSearchQuery
             var shouldRefreshStaff = false
             when (val result = repository.updateRole(staffId, role)) {
-                is AdminResult.Success -> _uiState.update {
+                is AdminResult.Success -> {
                     shouldRefreshStaff = true
-                    it.copy(
-                        selectedStaff = null,
-                        actionMessage = UiText.Resource(
-                            R.string.admin_role_updated,
-                            listOf(result.value.role)
-                        )
+                    val successMessage = UiText.Resource(
+                        R.string.admin_role_updated,
+                        listOf(result.value.role)
                     )
+                    _uiState.update {
+                        it.copy(
+                            selectedStaff = null,
+                            actionMessage = successMessage
+                        )
+                    }
+                    _snackbarEvents.tryEmit(successMessage)
                 }
                 is AdminResult.Failure -> _uiState.update {
                     it.copy(actionError = result.error.toUiText(R.string.admin_role_update_failed))

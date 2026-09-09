@@ -36,7 +36,6 @@ fun OfferCategoryScreen(
     onOfferClick: (String) -> Unit,
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
-    showAcceptedTag: Boolean = false,
     ratings: Map<String, Int> = emptyMap(),
     emptyMessage: String? = null
 ) {
@@ -101,9 +100,6 @@ fun OfferCategoryScreen(
 
                             modifier =
                                 Modifier.fillMaxWidth(),
-
-                            isAccepted =
-                                showAcceptedTag,
 
                             showRating =
                                 ratings.containsKey(offer.offerId),
