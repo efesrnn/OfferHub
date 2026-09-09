@@ -20,10 +20,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -59,6 +62,7 @@ fun SupervisorDashboardScreen(
     onConversionTrendPointSelected: (String) -> Unit,
     onActiveCasesClick: () -> Unit,
     onPendingAssignmentClick: () -> Unit,
+    onAttentionCaseClick: (String) -> Unit,
     onExpertsClick: () -> Unit,
     onCasesClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -96,6 +100,7 @@ fun SupervisorDashboardScreen(
                     dashboard = dashboard,
                     onActiveCasesClick = onActiveCasesClick,
                     onPendingAssignmentClick = onPendingAssignmentClick,
+                    onAttentionCaseClick = onAttentionCaseClick,
                     onExpertsClick = onExpertsClick,
                     selectedConversionTrendPeriod = selectedConversionTrendPeriod,
                     onConversionTrendPointSelected = onConversionTrendPointSelected
@@ -110,6 +115,7 @@ private fun DashboardContent(
     dashboard: SupervisorDashboard,
     onActiveCasesClick: () -> Unit,
     onPendingAssignmentClick: () -> Unit,
+    onAttentionCaseClick: (String) -> Unit,
     onExpertsClick: () -> Unit,
     selectedConversionTrendPeriod: String?,
     onConversionTrendPointSelected: (String) -> Unit,
@@ -193,6 +199,7 @@ private fun DashboardContent(
         items(attentionCases, key = { it.caseId }) { item ->
             val hasBreachedSla = item.slaRemainingSeconds != null && item.slaRemainingSeconds < 0
             Card(
+                onClick = { onAttentionCaseClick(item.caseId) },
                 colors = CardDefaults.cardColors(
                     containerColor = if (hasBreachedSla) {
                         MaterialTheme.colorScheme.errorContainer
@@ -202,7 +209,16 @@ private fun DashboardContent(
                 )
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(item.title, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(item.title, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = stringResource(R.string.common_view_details)
+                        )
+                    }
                     Text(item.priority.displayName(), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment))
                     Text(
@@ -227,6 +243,7 @@ private fun DashboardContent(
             }
         }
     }
+
 }
 
 private val activeCaseStatuses = setOf(

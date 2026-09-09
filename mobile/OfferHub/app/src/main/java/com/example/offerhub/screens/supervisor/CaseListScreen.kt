@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -93,7 +94,8 @@ fun SupervisorCaseListScreen(
     onUpdateClassification: (String, Segment, Priority, String) -> Unit,
     onClearActionError: () -> Unit,
     onRetryClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    focusedCaseId: String? = null
 ) {
     var selectedCase by remember { mutableStateOf<SupervisorCaseSummary?>(null) }
     var editingCase by remember { mutableStateOf<SupervisorCaseSummary?>(null) }
@@ -102,7 +104,7 @@ fun SupervisorCaseListScreen(
     var pendingClassification by remember { mutableStateOf<PendingClassification?>(null) }
     var activeCaseTab by remember { mutableStateOf(ActiveCaseTab.ASSIGNED) }
     var handledActionSuccessVersion by remember { mutableStateOf(actionSuccessVersion) }
-    val caseDetailSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val listState = rememberLazyListState()
     val editCaseSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val assignmentSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val displayedCases = if (mode == SupervisorCaseListMode.ACTIVE) {
@@ -124,6 +126,28 @@ fun SupervisorCaseListScreen(
             handledActionSuccessVersion = actionSuccessVersion
         }
     }
+    LaunchedEffect(focusedCaseId, cases) {
+        val focusedCase = cases.firstOrNull { it.caseId == focusedCaseId }
+            ?: return@LaunchedEffect
+        if (mode == SupervisorCaseListMode.ACTIVE) {
+            activeCaseTab = ActiveCaseTab.entries.firstOrNull {
+                it.status == focusedCase.status
+            } ?: activeCaseTab
+        }
+    }
+    LaunchedEffect(focusedCaseId, cases, activeCaseTab) {
+        val focusedCase = cases.firstOrNull { it.caseId == focusedCaseId }
+            ?: return@LaunchedEffect
+        if (
+            mode == SupervisorCaseListMode.ACTIVE &&
+            activeCaseTab.status == focusedCase.status
+        ) {
+            val focusedIndex = displayedCases.indexOfFirst {
+                it.caseId == focusedCase.caseId
+            }
+            if (focusedIndex >= 0) listState.animateScrollToItem(focusedIndex + 1)
+        }
+    }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { OfferHubDetailTopBar(title, onBackClick) }
@@ -135,6 +159,7 @@ fun SupervisorCaseListScreen(
         ) {
         LazyColumn(
             Modifier.fillMaxSize(),
+            state = listState,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -248,38 +273,19 @@ fun SupervisorCaseListScreen(
         }
     }
     selectedCase?.let { item ->
-        ModalBottomSheet(onDismissRequest = {
+        SupervisorCaseDetailBottomSheet(
+            item = item,
+            isSubmitting = isSubmitting,
+            actionError = actionError,
+            showPublishAction = mode == SupervisorCaseListMode.APPROVAL,
+            onPublishCase = onPublishCase,
+            onDismiss = {
             if (!isSubmitting) {
                 selectedCase = null
                 onClearActionError()
             }
-        }, sheetState = caseDetailSheetState) {
-            Column(
-                Modifier.fillMaxWidth().navigationBarsPadding()
-                    .heightIn(max = 650.dp).verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp).padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                CaseDetailRow(stringResource(R.string.supervisor_case_id), item.caseId)
-                CaseDetailRow(stringResource(R.string.supervisor_priority), item.priority.displayName())
-                CaseDetailRow(stringResource(R.string.supervisor_status), item.status.displayName())
-                CaseDetailRow(stringResource(R.string.supervisor_segment), item.segment.displayName())
-                CaseDetailRow(
-                    stringResource(R.string.supervisor_assigned_expert),
-                    item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment)
-                )
-                CaseDetailRow(stringResource(R.string.supervisor_sla_remaining), item.slaRemainingSeconds.toSlaText())
-                if (mode == SupervisorCaseListMode.APPROVAL) {
-                    Button(
-                        onClick = { onPublishCase(item.caseId) },
-                        enabled = !isSubmitting,
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.supervisor_publish_case)) }
-                }
-                actionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             }
-        }
+        )
     }
     editingCase?.let { item ->
         var selectedSegment by remember(item.caseId, item.segment) { mutableStateOf(item.segment) }
@@ -424,6 +430,50 @@ fun SupervisorCaseListScreen(
                 TextButton(onClick = { pendingClassification = null }) { Text(stringResource(R.string.supervisor_cancel)) }
             }
         )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+internal fun SupervisorCaseDetailBottomSheet(
+    item: SupervisorCaseSummary,
+    isSubmitting: Boolean = false,
+    actionError: String? = null,
+    showPublishAction: Boolean = false,
+    onPublishCase: (String) -> Unit = {},
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            Modifier.fillMaxWidth().navigationBarsPadding()
+                .heightIn(max = 650.dp).verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp).padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            CaseDetailRow(stringResource(R.string.supervisor_case_id), item.caseId)
+            CaseDetailRow(stringResource(R.string.supervisor_priority), item.priority.displayName())
+            CaseDetailRow(stringResource(R.string.supervisor_status), item.status.displayName())
+            CaseDetailRow(stringResource(R.string.supervisor_segment), item.segment.displayName())
+            CaseDetailRow(
+                stringResource(R.string.supervisor_assigned_expert),
+                item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment)
+            )
+            CaseDetailRow(stringResource(R.string.supervisor_sla_remaining), item.slaRemainingSeconds.toSlaText())
+            if (showPublishAction) {
+                Button(
+                    onClick = { onPublishCase(item.caseId) },
+                    enabled = !isSubmitting,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(stringResource(R.string.supervisor_publish_case)) }
+            }
+            actionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        }
     }
 }
 

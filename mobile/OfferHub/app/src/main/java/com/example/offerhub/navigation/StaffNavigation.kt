@@ -310,6 +310,9 @@ fun NavGraphBuilder.staffRoleGraphs(
             onConversionTrendPointSelected = supervisorViewModel::selectConversionTrendPeriod,
             onActiveCasesClick = { navController.navigate(Routes.SUPERVISOR_ACTIVE_CASES) },
             onPendingAssignmentClick = { navController.navigate(Routes.SUPERVISOR_PENDING_CASES) },
+            onAttentionCaseClick = { caseId ->
+                navController.navigate(Routes.supervisorActiveCases(caseId))
+            },
             onExpertsClick = { navController.navigate(Routes.SUPERVISOR_EXPERT_PERFORMANCE) },
             onCasesClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_OPERATIONS) },
             onProfileClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_PROFILE) }
@@ -357,8 +360,18 @@ fun NavGraphBuilder.staffRoleGraphs(
             onBackClick = navController::popBackStack
         )
     }
-    composable(Routes.SUPERVISOR_ACTIVE_CASES) {
+    composable(
+        route = Routes.SUPERVISOR_ACTIVE_CASES_WITH_FOCUS,
+        arguments = listOf(
+            navArgument("focusCaseId") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }
+        )
+    ) { backStackEntry ->
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val focusCaseId = backStackEntry.arguments?.getString("focusCaseId")
         val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
@@ -388,7 +401,8 @@ fun NavGraphBuilder.staffRoleGraphs(
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
             onClearActionError = supervisorViewModel::clearActionError,
             onRetryClick = supervisorViewModel::loadDashboard,
-            onBackClick = navController::popBackStack
+            onBackClick = navController::popBackStack,
+            focusedCaseId = focusCaseId
         )
     }
     composable(Routes.SUPERVISOR_APPROVAL_CASES) {

@@ -1,6 +1,7 @@
 package com.example.offerhub.screens.subscriber
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
@@ -16,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,21 +59,28 @@ fun OfferDetailBottomSheet(
     var showAcceptConfirmation by remember(offer.offerId) {
         mutableStateOf(false)
     }
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
 
     ModalBottomSheet(
         onDismissRequest = {
             if (!isSubmitting) onDismiss()
         },
+        sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
                 .padding(
-                    horizontal = 24.dp,
-                    vertical = 12.dp
+                    start = 24.dp,
+                    top = 12.dp,
+                    end = 24.dp,
+                    bottom = 28.dp
                 )
         ) {
             Text(
