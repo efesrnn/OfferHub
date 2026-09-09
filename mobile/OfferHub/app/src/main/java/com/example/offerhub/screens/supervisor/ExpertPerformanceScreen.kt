@@ -4,7 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -13,6 +16,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,6 +49,7 @@ fun SupervisorExpertPerformanceScreen(
 ) {
     var query by remember { mutableStateOf("") }
     var selectedExpert by remember { mutableStateOf<ExpertPerformanceSummary?>(null) }
+    val expertDetailSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val filteredExperts = remember(experts, query) {
         val normalizedQuery = query.trim()
         if (normalizedQuery.isEmpty()) experts else experts.filter {
@@ -107,9 +112,14 @@ fun SupervisorExpertPerformanceScreen(
         }
     }
     selectedExpert?.let { expert ->
-        ModalBottomSheet(onDismissRequest = { selectedExpert = null }) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedExpert = null },
+            sheetState = expertDetailSheetState
+        ) {
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
+                Modifier.fillMaxWidth().navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(expert.displayName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)

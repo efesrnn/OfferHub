@@ -12,6 +12,9 @@
     <string name="offer_accepted_on_label">Accepted on</string>
     <string name="offer_rate_experience">Rate your experience</string>
     <string name="offer_accept">Accept</string>
+    <string name="offer_accept_confirmation_title">Accept offer?</string>
+    <string name="offer_accept_confirmation_message">Are you sure you want to accept this offer?</string>
+    <string name="cancel">Cancel</string>
     <string name="offer_rate_later">Rate later</string>
     <string name="offer_submit_rating">Submit</string>
     <string name="offer_your_rating">Your rating</string>
@@ -353,6 +356,7 @@
     <string name="expert_empty_cases">No assigned cases</string>
     <string name="expert_empty_cases_description">New cases assigned to you will appear here.</string>
     <string name="common_not_available">Not available</string>
+    <string name="common_view_details">View details</string>
     <string name="error_case_forbidden">You are not authorized to access this case.</string>
     <string name="error_case_not_found">The requested case could not be found.</string>
     <string name="error_invalid_state_transition">This action is not allowed for the current case status.</string>

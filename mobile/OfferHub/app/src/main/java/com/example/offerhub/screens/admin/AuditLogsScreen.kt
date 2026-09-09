@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
@@ -94,6 +97,9 @@ fun AuditLogsScreen(
     var draftToDate by remember { mutableStateOf(selectedToDate) }
     var selectedLog by remember { mutableStateOf<AuditLog?>(null) }
     val datePickerState = androidx.compose.material3.rememberDatePickerState()
+    val filterSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     val hasInvalidDateRange = draftFromDate != null && draftToDate != null && draftFromDate!! > draftToDate!!
     val hasActiveFilters = selectedAction != null || selectedResult != null ||
         selectedFromDate != null || selectedToDate != null
@@ -285,10 +291,15 @@ fun AuditLogsScreen(
     }
 
     if (showFilterSheet) {
-        ModalBottomSheet(onDismissRequest = { showFilterSheet = false }) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilterSheet = false },
+            sheetState = filterSheetState
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .imePadding()
+                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
                     .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)

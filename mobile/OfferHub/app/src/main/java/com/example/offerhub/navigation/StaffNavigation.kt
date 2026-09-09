@@ -287,6 +287,8 @@ fun NavGraphBuilder.staffRoleGraphs(
             errorMessage = supervisorState.errorMessage?.asString(),
             onRetryClick = supervisorViewModel::loadDashboard,
             onRefresh = supervisorViewModel::loadDashboard,
+            selectedConversionTrendPeriod = supervisorState.selectedConversionTrendPeriod,
+            onConversionTrendPointSelected = supervisorViewModel::selectConversionTrendPeriod,
             onActiveCasesClick = { navController.navigate(Routes.SUPERVISOR_ACTIVE_CASES) },
             onPendingAssignmentClick = { navController.navigate(Routes.SUPERVISOR_PENDING_CASES) },
             onExpertsClick = { navController.navigate(Routes.SUPERVISOR_EXPERT_PERFORMANCE) },

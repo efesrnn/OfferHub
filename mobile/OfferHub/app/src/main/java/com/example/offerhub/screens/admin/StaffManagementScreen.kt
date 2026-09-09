@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -219,6 +222,9 @@ fun UpdateStaffRoleScreen(
 ) {
     var role by remember { mutableStateOf("SUPERVISOR") }
     val availableRoles = listOf("EXPERT", "SUPERVISOR")
+    val staffDetailSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
 
     LaunchedEffect(selectedStaff?.id, selectedStaff?.role) {
         role = availableRoles.firstOrNull { it != selectedStaff?.role } ?: ""
@@ -314,11 +320,14 @@ fun UpdateStaffRoleScreen(
         ModalBottomSheet(
             onDismissRequest = {
                 if (!isSubmitting) onDismissStaff()
-            }
+            },
+            sheetState = staffDetailSheetState
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .imePadding()
+                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 32.dp),

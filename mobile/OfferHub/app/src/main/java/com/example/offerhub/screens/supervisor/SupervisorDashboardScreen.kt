@@ -24,14 +24,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -55,6 +52,8 @@ fun SupervisorDashboardScreen(
     errorMessage: String?,
     onRetryClick: () -> Unit,
     onRefresh: () -> Unit,
+    selectedConversionTrendPeriod: String?,
+    onConversionTrendPointSelected: (String) -> Unit,
     onActiveCasesClick: () -> Unit,
     onPendingAssignmentClick: () -> Unit,
     onExpertsClick: () -> Unit,
@@ -94,7 +93,9 @@ fun SupervisorDashboardScreen(
                     dashboard = dashboard,
                     onActiveCasesClick = onActiveCasesClick,
                     onPendingAssignmentClick = onPendingAssignmentClick,
-                    onExpertsClick = onExpertsClick
+                    onExpertsClick = onExpertsClick,
+                    selectedConversionTrendPeriod = selectedConversionTrendPeriod,
+                    onConversionTrendPointSelected = onConversionTrendPointSelected
                 )
             }
         }
@@ -107,6 +108,8 @@ private fun DashboardContent(
     onActiveCasesClick: () -> Unit,
     onPendingAssignmentClick: () -> Unit,
     onExpertsClick: () -> Unit,
+    selectedConversionTrendPeriod: String?,
+    onConversionTrendPointSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val attentionCases = dashboard.attentionCases
@@ -173,7 +176,11 @@ private fun DashboardContent(
             if (dashboard.conversionTrend.isEmpty()) {
                 EmptyMessage(stringResource(R.string.supervisor_no_conversion_trend))
             } else {
-                ConversionLineChart(dashboard)
+                ConversionLineChart(
+                    dashboard = dashboard,
+                    selectedPeriod = selectedConversionTrendPeriod,
+                    onPointSelected = onConversionTrendPointSelected
+                )
             }
         }
         item { SectionTitle(stringResource(R.string.supervisor_attention_cases)) }
@@ -365,22 +372,29 @@ private fun Priority.displayName(): String = stringResource(
 )
 
 @Composable
-private fun ConversionLineChart(dashboard: SupervisorDashboard) {
+private fun ConversionLineChart(
+    dashboard: SupervisorDashboard,
+    selectedPeriod: String?,
+    onPointSelected: (String) -> Unit
+) {
     val points = dashboard.conversionTrend
     val lineColor = MaterialTheme.colorScheme.primary
     val horizontalInsetPx = with(LocalDensity.current) { 16.dp.toPx() }
-    var selectedIndex by remember(points) { mutableStateOf<Int?>(null) }
+    val selectedIndex = points.indexOfFirst { it.period == selectedPeriod }
+        .takeIf { it >= 0 }
+        ?: points.indices.lastOrNull()
 
     fun selectNearestPoint(x: Float, width: Int) {
         if (points.isEmpty() || width <= 0) return
         val usableWidth = (width - horizontalInsetPx * 2).coerceAtLeast(1f)
-        selectedIndex = if (points.size == 1) {
+        val nearestIndex = if (points.size == 1) {
             0
         } else {
             ((x - horizontalInsetPx).coerceIn(0f, usableWidth) / usableWidth * points.lastIndex)
                 .roundToInt()
                 .coerceIn(points.indices)
         }
+        onPointSelected(points[nearestIndex].period)
     }
 
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
@@ -425,9 +439,17 @@ private fun ConversionLineChart(dashboard: SupervisorDashboard) {
                     }
                     coordinates.zipWithNext().forEach { (start, end) -> drawLine(lineColor, start, end, strokeWidth = 6f) }
                     coordinates.forEachIndexed { index, coordinate ->
+                        if (selectedIndex == index) {
+                            drawCircle(
+                                color = lineColor,
+                                radius = 14f,
+                                center = coordinate,
+                                style = Stroke(width = 4f)
+                            )
+                        }
                         drawCircle(
                             color = lineColor,
-                            radius = if (selectedIndex == index) 13f else 8f,
+                            radius = if (selectedIndex == index) 9f else 7f,
                             center = coordinate
                         )
                     }

@@ -24,7 +24,8 @@ data class SupervisorUiState(
     val errorMessage: UiText? = null,
     val isSubmittingAction: Boolean = false,
     val actionErrorMessage: UiText? = null,
-    val actionSuccessVersion: Long = 0L
+    val actionSuccessVersion: Long = 0L,
+    val selectedConversionTrendPeriod: String? = null
 )
 
 class SupervisorViewModel(
@@ -39,7 +40,16 @@ class SupervisorViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             when (val result = repository.getDashboard()) {
                 is SupervisorResult.Success -> _uiState.update {
-                    it.copy(dashboard = result.value, isLoading = false)
+                    val selectedPeriod = it.selectedConversionTrendPeriod
+                        ?.takeIf { period ->
+                            result.value.conversionTrend.any { point -> point.period == period }
+                        }
+                        ?: result.value.conversionTrend.lastOrNull()?.period
+                    it.copy(
+                        dashboard = result.value,
+                        isLoading = false,
+                        selectedConversionTrendPeriod = selectedPeriod
+                    )
                 }
                 is SupervisorResult.Failure -> _uiState.update {
                     it.copy(isLoading = false, errorMessage = UiText.Resource(R.string.error_supervisor_dashboard))
@@ -56,6 +66,10 @@ class SupervisorViewModel(
                 is SupervisorResult.Failure -> Unit
             }
         }
+    }
+
+    fun selectConversionTrendPeriod(period: String) {
+        _uiState.update { it.copy(selectedConversionTrendPeriod = period) }
     }
 
     fun assignCase(caseId: String, expertId: String) = executeAction {

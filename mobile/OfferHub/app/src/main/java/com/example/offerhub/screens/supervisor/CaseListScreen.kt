@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
@@ -18,11 +20,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.AlertDialog
@@ -37,6 +41,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -93,6 +99,9 @@ fun SupervisorCaseListScreen(
     var pendingClassification by remember { mutableStateOf<PendingClassification?>(null) }
     var activeCaseTab by remember { mutableStateOf(ActiveCaseTab.ASSIGNED) }
     var handledActionSuccessVersion by remember { mutableStateOf(actionSuccessVersion) }
+    val caseDetailSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val editCaseSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val assignmentSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val displayedCases = if (mode == SupervisorCaseListMode.ACTIVE) {
         cases.filter { it.status == activeCaseTab.status }
     } else {
@@ -125,9 +134,6 @@ fun SupervisorCaseListScreen(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            }
             if (mode == SupervisorCaseListMode.ACTIVE) {
                 item {
                     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
@@ -189,7 +195,20 @@ fun SupervisorCaseListScreen(
                         )
                     ) {
                         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                            Text(item.title, fontWeight = FontWeight.Bold)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = item.title,
+                                    modifier = Modifier.weight(1f),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = stringResource(R.string.common_view_details)
+                                )
+                            }
                             Text(item.priority.displayName())
                             Text(item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment))
                             Text(
@@ -230,9 +249,10 @@ fun SupervisorCaseListScreen(
                 selectedCase = null
                 onClearActionError()
             }
-        }) {
+        }, sheetState = caseDetailSheetState) {
             Column(
-                Modifier.fillMaxWidth().heightIn(max = 650.dp).verticalScroll(rememberScrollState())
+                Modifier.fillMaxWidth().navigationBarsPadding()
+                    .heightIn(max = 650.dp).verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
@@ -267,9 +287,11 @@ fun SupervisorCaseListScreen(
                 editingCase = null
                 onClearActionError()
             }
-        }) {
+        }, sheetState = editCaseSheetState) {
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
+                Modifier.fillMaxWidth().imePadding().navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(stringResource(R.string.supervisor_update_classification), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -340,9 +362,10 @@ fun SupervisorCaseListScreen(
                 assignmentCase = null
                 onClearActionError()
             }
-        }) {
+        }, sheetState = assignmentSheetState) {
             Column(
-                Modifier.fillMaxWidth().heightIn(max = 650.dp).verticalScroll(rememberScrollState())
+                Modifier.fillMaxWidth().imePadding().navigationBarsPadding()
+                    .heightIn(max = 650.dp).verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
