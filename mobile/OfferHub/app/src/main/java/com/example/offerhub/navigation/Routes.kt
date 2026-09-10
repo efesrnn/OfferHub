@@ -28,6 +28,8 @@ object Routes{
     const val SUPERVISOR_OPERATIONS = "supervisor_operations"
     const val SUPERVISOR_PENDING_CASES = "supervisor_pending_cases"
     const val SUPERVISOR_ACTIVE_CASES = "supervisor_active_cases"
+    const val SUPERVISOR_ACTIVE_CASES_WITH_FOCUS =
+        "$SUPERVISOR_ACTIVE_CASES?focusCaseId={focusCaseId}"
     const val SUPERVISOR_APPROVAL_CASES = "supervisor_approval_cases"
     const val SUPERVISOR_PUBLISHED_CASES = "supervisor_published_cases"
     const val SUPERVISOR_EXPERT_PERFORMANCE = "supervisor_expert_performance"
@@ -49,6 +51,8 @@ object Routes{
 
     fun expertCaseDetail(caseId: String): String = "$EXPERT_CASE_DETAIL/$caseId"
     fun expertCampaignDetail(campaignNo: String): String = "$EXPERT_CAMPAIGN_DETAIL/$campaignNo"
+    fun supervisorActiveCases(focusCaseId: String): String =
+        "$SUPERVISOR_ACTIVE_CASES?focusCaseId=$focusCaseId"
     const val ACCEPTED_OFFERS = "accepted_offers"
     const val RATED_OFFERS = "rated_offers"
 

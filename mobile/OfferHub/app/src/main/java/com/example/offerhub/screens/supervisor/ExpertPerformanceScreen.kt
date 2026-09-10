@@ -4,7 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -13,6 +16,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 
 @Composable
@@ -36,12 +41,15 @@ import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 fun SupervisorExpertPerformanceScreen(
     experts: List<ExpertPerformanceSummary>,
     isLoading: Boolean,
+    isRefreshing: Boolean,
     errorMessage: String?,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onBackClick: () -> Unit
 ) {
     var query by remember { mutableStateOf("") }
     var selectedExpert by remember { mutableStateOf<ExpertPerformanceSummary?>(null) }
+    val expertDetailSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val filteredExperts = remember(experts, query) {
         val normalizedQuery = query.trim()
         if (normalizedQuery.isEmpty()) experts else experts.filter {
@@ -49,8 +57,13 @@ fun SupervisorExpertPerformanceScreen(
         }
     }
     Scaffold(topBar = { OfferHubDetailTopBar(stringResource(R.string.supervisor_experts), onBackClick) }) { padding ->
+        RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         LazyColumn(
-            Modifier.fillMaxSize().padding(padding),
+            Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -96,11 +109,17 @@ fun SupervisorExpertPerformanceScreen(
                 }
             }
         }
+        }
     }
     selectedExpert?.let { expert ->
-        ModalBottomSheet(onDismissRequest = { selectedExpert = null }) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedExpert = null },
+            sheetState = expertDetailSheetState
+        ) {
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
+                Modifier.fillMaxWidth().navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(expert.displayName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -108,10 +127,15 @@ fun SupervisorExpertPerformanceScreen(
                 ExpertDetailRow(stringResource(R.string.supervisor_completed_cases), expert.completedCases.toString())
                 ExpertDetailRow(
                     stringResource(R.string.supervisor_average_conversion_increase),
-                    expert.averageConversionIncrease?.let { "$it%" }
+                    expert.averageConversionIncrease?.let {
+                        stringResource(R.string.common_percentage_value, it.toString())
+                    }
                         ?: stringResource(R.string.common_not_available)
                 )
-                ExpertDetailRow(stringResource(R.string.supervisor_average_completion_time), "${expert.averageCompletionHours} h")
+                ExpertDetailRow(
+                    stringResource(R.string.supervisor_average_completion_time),
+                    stringResource(R.string.common_hours_value, expert.averageCompletionHours.toString())
+                )
             }
         }
     }

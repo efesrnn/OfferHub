@@ -34,7 +34,6 @@ fun OfferCard(
     offer: Offer,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isAccepted: Boolean = false,
     showStatus: Boolean = false,
     showRating: Boolean = false
 ) {
@@ -115,25 +114,13 @@ fun OfferCard(
                 ) {
                     if (offer.highlighted) {
                         OfferTag(
-                            text = stringResource(R.string.offer_recommended),
+                            text = stringResource(R.string.offer_featured),
 
                             containerColor =
                                 MaterialTheme.colorScheme.primaryContainer,
 
                             contentColor =
                                 MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-
-                    if (isAccepted) {
-                        OfferTag(
-                            text = stringResource(R.string.offer_accepted),
-
-                            containerColor =
-                                MaterialTheme.colorScheme.tertiaryContainer,
-
-                            contentColor =
-                                MaterialTheme.colorScheme.onTertiaryContainer
                         )
                     }
 

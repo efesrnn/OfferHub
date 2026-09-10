@@ -3,6 +3,7 @@ package com.example.offerhub.repository
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.data.network.ApiError
+import kotlinx.coroutines.delay
 import java.time.Instant
 
 class MockSubscriberRepository(
@@ -10,8 +11,10 @@ class MockSubscriberRepository(
 ) : SubscriberRepository {
     private var offers = initialOffers
 
-    override suspend fun getOffers(): SubscriberResult<List<Offer>> =
-        SubscriberResult.Success(offers.sortedByDescending { it.score })
+    override suspend fun getOffers(): SubscriberResult<List<Offer>> {
+        delay(250)
+        return SubscriberResult.Success(offers.sortedByDescending { it.score })
+    }
 
     override suspend fun getOfferDetail(offerId: String): SubscriberResult<Offer> =
         findOffer(offerId)

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,9 +26,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,18 +54,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.components.OfferHubDetailTopBar
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.adminCodeLabel
 import com.example.offerhub.data.model.admin.AdminStaff
 import kotlinx.coroutines.launch
 
 @Composable
 fun CreateStaffScreen(
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onCreateStaff: (String, String, String, String, List<String>, List<String>) -> Unit,
     onClearClick: () -> Unit,
     isSubmitting: Boolean = false,
     successMessage: String? = null,
-    createdStaffId: String? = null,
-    createdStaffTempPassword: String? = null,
     errorMessage: String? = null
 ) {
     var firstName by remember { mutableStateOf("") }
@@ -90,6 +95,7 @@ fun CreateStaffScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             OfferHubDetailTopBar(
                 title = stringResource(R.string.admin_create_staff),
@@ -209,23 +215,29 @@ fun CreateStaffScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateStaffRoleScreen(
+    snackbarHostState: SnackbarHostState,
     query: String,
     searchResults: List<AdminStaff>,
     selectedStaff: AdminStaff?,
     isSearchingStaff: Boolean,
     staffSearchError: String?,
+    isRefreshing: Boolean,
     onBackClick: () -> Unit,
     onQueryChange: (String) -> Unit,
     onStaffSelected: (AdminStaff) -> Unit,
     onDismissStaff: () -> Unit,
     onUpdateRole: (String, String) -> Unit,
     onClearClick: () -> Unit,
+    onRefresh: () -> Unit,
     isSubmitting: Boolean = false,
     successMessage: String? = null,
     errorMessage: String? = null
 ) {
     var role by remember { mutableStateOf("SUPERVISOR") }
     val availableRoles = listOf("EXPERT", "SUPERVISOR")
+    val staffDetailSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
 
     LaunchedEffect(selectedStaff?.id, selectedStaff?.role) {
         role = availableRoles.firstOrNull { it != selectedStaff?.role } ?: ""
@@ -238,12 +250,17 @@ fun UpdateStaffRoleScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { OfferHubDetailTopBar(stringResource(R.string.admin_update_role), onBackClick) }
     ) { padding ->
+        com.example.offerhub.components.RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 24.dp),
             contentPadding = PaddingValues(vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -302,7 +319,11 @@ fun UpdateStaffRoleScreen(
                             )
                             Text(staff.email, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
-                                "${stringResource(R.string.admin_current_role)}: ${staff.role}",
+                                stringResource(
+                                    R.string.common_label_value,
+                                    stringResource(R.string.admin_current_role),
+                                    adminCodeLabel(staff.role)
+                                ),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -310,17 +331,21 @@ fun UpdateStaffRoleScreen(
                 }
             }
         }
+        }
     }
 
     selectedStaff?.let { staff ->
         ModalBottomSheet(
             onDismissRequest = {
                 if (!isSubmitting) onDismissStaff()
-            }
+            },
+            sheetState = staffDetailSheetState
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .imePadding()
+                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 32.dp),
@@ -331,14 +356,20 @@ fun UpdateStaffRoleScreen(
                 StaffDetailValue(stringResource(R.string.admin_first_name), staff.firstName)
                 StaffDetailValue(stringResource(R.string.admin_last_name), staff.lastName)
                 StaffDetailValue(stringResource(R.string.admin_email), staff.email)
-                StaffDetailValue(stringResource(R.string.admin_current_role), staff.role)
+                StaffDetailValue(stringResource(R.string.admin_current_role), adminCodeLabel(staff.role))
                 StaffDetailValue(
                     stringResource(R.string.admin_specialties),
-                    staff.specialties.joinToString().ifBlank { stringResource(R.string.common_not_available) }
+                    staff.specialties
+                        .map { adminCodeLabel(it) }
+                        .joinToString()
+                        .ifBlank { stringResource(R.string.common_not_available) }
                 )
                 StaffDetailValue(
                     stringResource(R.string.admin_regions),
-                    staff.regions.joinToString().ifBlank { stringResource(R.string.common_not_available) }
+                    staff.regions
+                        .map { adminCodeLabel(it) }
+                        .joinToString()
+                        .ifBlank { stringResource(R.string.common_not_available) }
                 )
                 Text(stringResource(R.string.admin_new_role), fontWeight = FontWeight.SemiBold)
                 ChoiceRow(
@@ -347,7 +378,6 @@ fun UpdateStaffRoleScreen(
                     isOptionEnabled = { it != staff.role },
                     onSelect = { role = it }
                 )
-                successMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
                 errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 Button(
                     enabled = !isSubmitting && role.isNotBlank() && role != staff.role,
@@ -385,7 +415,7 @@ private fun ChoiceRow(
                 selected = option == selected,
                 onClick = { onSelect(option) },
                 enabled = isOptionEnabled(option),
-                label = { Text(option) }
+                label = { Text(adminCodeLabel(option)) }
             )
         }
     }
@@ -395,7 +425,11 @@ private fun ChoiceRow(
 private fun MultiChoiceRow(options: List<String>, selected: Set<String>, onToggle: (String) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         options.forEach { option ->
-            FilterChip(selected = option in selected, onClick = { onToggle(option) }, label = { Text(option) })
+            FilterChip(
+                selected = option in selected,
+                onClick = { onToggle(option) },
+                label = { Text(adminCodeLabel(option)) }
+            )
         }
     }
 }
@@ -422,7 +456,7 @@ private fun CopyableValue(label: String, value: String, contentDescription: Stri
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "$label: $value",
+            text = stringResource(R.string.common_label_value, label, value),
             modifier = Modifier.weight(1f)
         )
         IconButton(

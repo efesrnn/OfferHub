@@ -22,7 +22,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.localizedLabel
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.campaign.Campaign
 import java.util.Locale
 
@@ -31,14 +33,17 @@ fun ExpertCampaignDetailScreen(
     campaign: Campaign?,
     isLoading: Boolean,
     errorMessage: String?,
+    isRefreshing: Boolean,
     onBackClick: () -> Unit,
-    onRetryClick: () -> Unit
+    onRetryClick: () -> Unit,
+    onRefresh: () -> Unit
 ) {
     Scaffold(topBar = { OfferHubDetailTopBar(stringResource(R.string.expert_campaign_detail), onBackClick) }) { padding ->
+        RefreshableContent(isRefreshing, onRefresh, Modifier.padding(padding)) {
         when {
-            isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            isLoading && campaign == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             errorMessage != null -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -46,7 +51,7 @@ fun ExpertCampaignDetailScreen(
                 Button(onClick = onRetryClick, modifier = Modifier.padding(top = 12.dp)) { Text(stringResource(R.string.admin_try_again)) }
             }
             campaign != null -> Column(
-                Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(campaign.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -56,14 +61,17 @@ fun ExpertCampaignDetailScreen(
                 ) {
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         CampaignValue(stringResource(R.string.expert_campaign_number), campaign.campaignNo)
-                        CampaignValue(stringResource(R.string.expert_campaign_type), campaign.type.name.readable())
-                        CampaignValue(stringResource(R.string.expert_target_segment), campaign.targetSegment.name.readable())
-                        CampaignValue(stringResource(R.string.expert_current_segment), campaign.segment.name.readable())
-                        CampaignValue(stringResource(R.string.expert_ai_segment), campaign.aiSegment.name.readable())
-                        CampaignValue(stringResource(R.string.expert_discount_rate), "${campaign.discountRate}%")
+                        CampaignValue(stringResource(R.string.expert_campaign_type), campaign.type.localizedLabel())
+                        CampaignValue(stringResource(R.string.expert_target_segment), campaign.targetSegment.localizedLabel())
+                        CampaignValue(stringResource(R.string.expert_current_segment), campaign.segment.localizedLabel())
+                        CampaignValue(stringResource(R.string.expert_ai_segment), campaign.aiSegment.localizedLabel())
+                        CampaignValue(
+                            stringResource(R.string.expert_discount_rate),
+                            stringResource(R.string.common_percentage_value, campaign.discountRate.toString())
+                        )
                         CampaignValue(stringResource(R.string.expert_valid_until), campaign.validUntil)
-                        CampaignValue(stringResource(R.string.expert_status), campaign.status.name.readable())
-                        CampaignValue(stringResource(R.string.expert_priority), campaign.priority.name.readable())
+                        CampaignValue(stringResource(R.string.expert_status), campaign.status.localizedLabel())
+                        CampaignValue(stringResource(R.string.expert_priority), campaign.priority.localizedLabel())
                         CampaignValue(
                             stringResource(R.string.expert_conversion_probability),
                             campaign.conversionProbability?.let { "${(it * 100).toInt()}%" } ?: stringResource(R.string.common_not_available)
@@ -71,6 +79,7 @@ fun ExpertCampaignDetailScreen(
                     }
                 }
             }
+        }
         }
     }
 }

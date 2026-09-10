@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.isSystemInDarkTheme
 import java.util.Locale
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.localizedLabel
 import com.example.offerhub.data.model.campaign.OptimizationCase
 import com.example.offerhub.data.model.campaign.Priority
 
@@ -68,14 +69,20 @@ fun ExpertCaseCard(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    optimizationCase.priority.name.toDisplayText(),
+                    optimizationCase.priority.localizedLabel(),
                     color = priorityColor(optimizationCase.priority),
                     fontWeight = FontWeight.Bold
                 )
             }
             Text(optimizationCase.campaignNo, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(optimizationCase.segment.name.toDisplayText(), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("${stringResource(R.string.expert_status)}: ${optimizationCase.status.name.toDisplayText()}")
+            Text(optimizationCase.segment.localizedLabel(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                stringResource(
+                    R.string.common_label_value,
+                    stringResource(R.string.expert_status),
+                    optimizationCase.status.localizedLabel()
+                )
+            )
             Text(
                 text = slaText(optimizationCase.slaRemainingSeconds),
                 color = slaColor(optimizationCase.priority, optimizationCase.slaRemainingSeconds)

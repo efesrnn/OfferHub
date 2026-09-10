@@ -6,10 +6,12 @@ import com.example.offerhub.data.model.gamification.GamificationProfile
 import com.example.offerhub.data.model.gamification.RankingEntry
 import com.example.offerhub.data.model.gamification.RankingPeriod
 import com.example.offerhub.data.network.ApiError
+import kotlinx.coroutines.delay
 
 class MockGamificationRepository : GamificationRepository {
     override suspend fun getProfile(expertId: String): GamificationResult<GamificationProfile> {
         if (expertId.isBlank()) return GamificationResult.Failure(ApiError("USER_NOT_FOUND"))
+        delay(250)
 
         return GamificationResult.Success(
             GamificationProfile(
@@ -37,6 +39,7 @@ class MockGamificationRepository : GamificationRepository {
         currentExpertId: String
     ): GamificationResult<List<RankingEntry>> {
         if (currentExpertId.isBlank()) return GamificationResult.Failure(ApiError("USER_NOT_FOUND"))
+        delay(250)
 
         val daily = listOf(
             Triple("expert-1", "Ayse Yilmaz", 320),

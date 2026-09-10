@@ -1,10 +1,13 @@
 package com.example.offerhub.navigation
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -33,6 +36,7 @@ import com.example.offerhub.screens.supervisor.SupervisorOperationsScreen
 import com.example.offerhub.screens.supervisor.SupervisorExpertPerformanceScreen
 import com.example.offerhub.screens.supervisor.SupervisorCaseListMode
 import com.example.offerhub.ui.text.asString
+import com.example.offerhub.ui.text.UiText
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.AdminViewModel
 import com.example.offerhub.viewModel.ExpertViewModel
@@ -42,6 +46,21 @@ import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.admin.AdminStaff
 import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
+import kotlinx.coroutines.flow.Flow
+
+@Composable
+private fun rememberOfferHubSnackbarHostState(
+    events: Flow<UiText>
+): SnackbarHostState {
+    val hostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    LaunchedEffect(events, context) {
+        events.collect { message ->
+            hostState.showSnackbar(message.asString(context))
+        }
+    }
+    return hostState
+}
 
 private fun mergeExperts(
     directory: List<AdminStaff>,
@@ -77,15 +96,13 @@ fun NavGraphBuilder.staffRoleGraphs(
                 expertViewModel.loadCases(reset = true, status = null)
             }
         }
-        RefreshableContent(
-            isRefreshing = expertState.isLoading && expertState.cases.isNotEmpty(),
-            onRefresh = { expertViewModel.loadCases(reset = true, status = null) }
-        ) {
         ExpertHomeScreen(
             cases = expertState.cases,
             isLoading = expertState.isLoading,
             errorMessage = expertState.errorMessage?.asString(),
             onRetryClick = { expertViewModel.loadCases(reset = true) },
+            isRefreshing = expertState.isLoading && expertState.cases.isNotEmpty(),
+            onRefresh = { expertViewModel.loadCases(reset = true, status = null) },
             onCaseClick = { caseId ->
                 navController.navigate(Routes.expertCaseDetail(caseId))
             },
@@ -94,7 +111,6 @@ fun NavGraphBuilder.staffRoleGraphs(
             onActiveCasesClick = { navController.navigateExpertTopLevel(Routes.EXPERT_CASES) },
             onProfileClick = { navController.navigateExpertTopLevel(Routes.EXPERT_PROFILE) }
         )
-        }
     }
     composable(Routes.EXPERT_OPERATIONS) {
         ExpertOperationsScreen(
@@ -106,19 +122,17 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.EXPERT_CASES) {
         val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
-        RefreshableContent(
-            isRefreshing = expertState.isLoading && expertState.cases.isNotEmpty(),
-            onRefresh = { expertViewModel.loadCases(reset = true, status = expertState.caseStatusFilter) }
-        ) {
         ExpertCaseListScreen(
             cases = expertState.cases,
             isLoading = expertState.isLoading,
             isLoadingNextPage = expertState.isLoadingNextPage,
             canLoadMore = expertState.canLoadMore,
             errorMessage = expertState.errorMessage?.asString(),
+            isRefreshing = expertState.isLoading && expertState.cases.isNotEmpty(),
             initialCriticalOnly = false,
             initialStatusFilter = expertState.caseStatusFilter,
             onRetryClick = { expertViewModel.loadCases(reset = true) },
+            onRefresh = { expertViewModel.loadCases(reset = true, status = expertState.caseStatusFilter) },
             onLoadNextPage = { expertViewModel.loadCases(reset = false) },
             onStatusFilterChanged = { status -> expertViewModel.loadCases(reset = true, status = status) },
             onCaseClick = { caseId ->
@@ -126,29 +140,25 @@ fun NavGraphBuilder.staffRoleGraphs(
             },
             onBackClick = navController::popBackStack
         )
-        }
     }
     composable(Routes.EXPERT_CRITICAL_CASES) {
         val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
-        RefreshableContent(
-            isRefreshing = expertState.isLoading && expertState.cases.isNotEmpty(),
-            onRefresh = { expertViewModel.loadCases(reset = true, status = expertState.caseStatusFilter) }
-        ) {
         ExpertCaseListScreen(
             cases = expertState.cases,
             isLoading = expertState.isLoading,
             isLoadingNextPage = expertState.isLoadingNextPage,
             canLoadMore = expertState.canLoadMore,
             errorMessage = expertState.errorMessage?.asString(),
+            isRefreshing = expertState.isLoading && expertState.cases.isNotEmpty(),
             initialCriticalOnly = true,
             initialStatusFilter = expertState.caseStatusFilter,
             onRetryClick = { expertViewModel.loadCases(reset = true) },
+            onRefresh = { expertViewModel.loadCases(reset = true, status = expertState.caseStatusFilter) },
             onLoadNextPage = { expertViewModel.loadCases(reset = false) },
             onStatusFilterChanged = { status -> expertViewModel.loadCases(reset = true, status = status) },
             onCaseClick = { caseId -> navController.navigate(Routes.expertCaseDetail(caseId)) },
             onBackClick = navController::popBackStack
         )
-        }
     }
     composable(Routes.EXPERT_PROFILE) {
         val authState by authViewModel.uiState.collectAsStateWithLifecycle()
@@ -180,46 +190,41 @@ fun NavGraphBuilder.staffRoleGraphs(
             gamificationViewModel.load(expertId)
         }
 
-        RefreshableContent(
-            isRefreshing = gamificationState.isLoading && gamificationState.profile != null,
-            onRefresh = gamificationViewModel::retry
-        ) {
         ExpertProgressScreen(
             profile = gamificationState.profile,
             ranking = gamificationState.ranking,
             selectedPeriod = gamificationState.selectedPeriod,
             isLoading = gamificationState.isLoading,
             isLoadingRanking = gamificationState.isLoadingRanking,
+            isRefreshing = gamificationState.isLoading && gamificationState.profile != null,
             errorMessage = gamificationState.errorMessage?.asString(),
             onBackClick = navController::popBackStack,
             onRetryClick = gamificationViewModel::retry,
+            onRefresh = gamificationViewModel::retry,
             onPeriodSelected = gamificationViewModel::selectPeriod
         )
-        }
     }
     composable(Routes.EXPERT_CAMPAIGNS) {
         val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { expertViewModel.loadCampaigns() }
-        RefreshableContent(
-            isRefreshing = expertState.isLoadingCampaigns && expertState.campaigns.isNotEmpty(),
-            onRefresh = {
-                expertViewModel.loadCampaigns(
-                    reset = true,
-                    status = expertState.campaignStatusFilter,
-                    segment = expertState.campaignSegmentFilter
-                )
-            }
-        ) {
         ExpertCampaignListScreen(
             campaigns = expertState.campaigns,
             isLoading = expertState.isLoadingCampaigns,
             isLoadingNextPage = expertState.isLoadingNextCampaignPage,
             canLoadMore = expertState.canLoadMoreCampaigns,
             errorMessage = expertState.campaignErrorMessage?.asString(),
+            isRefreshing = expertState.isLoadingCampaigns && expertState.campaigns.isNotEmpty(),
             selectedStatus = expertState.campaignStatusFilter,
             selectedSegment = expertState.campaignSegmentFilter,
             onBackClick = navController::popBackStack,
             onRetryClick = { expertViewModel.loadCampaigns() },
+            onRefresh = {
+                expertViewModel.loadCampaigns(
+                    reset = true,
+                    status = expertState.campaignStatusFilter,
+                    segment = expertState.campaignSegmentFilter
+                )
+            },
             onCreateClick = { navController.navigate(Routes.EXPERT_CREATE_CAMPAIGN) },
             onLoadNextPage = { expertViewModel.loadCampaigns(reset = false) },
             onApplyFilters = { status, segment ->
@@ -229,12 +234,13 @@ fun NavGraphBuilder.staffRoleGraphs(
                 navController.navigate(Routes.expertCampaignDetail(campaignNo))
             }
         )
-        }
     }
     composable(Routes.EXPERT_CREATE_CAMPAIGN) {
         val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(expertViewModel.snackbarEvents)
         LaunchedEffect(Unit) { expertViewModel.clearCampaignFeedback() }
         CreateCampaignScreen(
+            snackbarHostState = snackbarHostState,
             isSubmitting = expertState.isCreatingCampaign,
             errorMessage = expertState.campaignActionError?.asString(),
             createdCampaignNo = expertState.createdCampaignNo,
@@ -251,18 +257,15 @@ fun NavGraphBuilder.staffRoleGraphs(
         LaunchedEffect(campaignNo) {
             if (campaignNo.isNotBlank()) expertViewModel.loadCampaignDetail(campaignNo)
         }
-        RefreshableContent(
-            isRefreshing = expertState.isLoadingCampaignDetail && expertState.selectedCampaign != null,
-            onRefresh = { expertViewModel.loadCampaignDetail(campaignNo) }
-        ) {
         ExpertCampaignDetailScreen(
             campaign = expertState.selectedCampaign,
             isLoading = expertState.isLoadingCampaignDetail,
+            isRefreshing = expertState.isLoadingCampaignDetail && expertState.selectedCampaign != null,
             errorMessage = expertState.campaignErrorMessage?.asString(),
             onBackClick = navController::popBackStack,
-            onRetryClick = { expertViewModel.loadCampaignDetail(campaignNo) }
+            onRetryClick = { expertViewModel.loadCampaignDetail(campaignNo) },
+            onRefresh = { expertViewModel.loadCampaignDetail(campaignNo) }
         )
-        }
     }
     composable(
         route = Routes.EXPERT_CASE_DETAIL_WITH_ID,
@@ -270,19 +273,18 @@ fun NavGraphBuilder.staffRoleGraphs(
     ) { backStackEntry ->
         val caseId = backStackEntry.arguments?.getString("caseId").orEmpty()
         val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(expertViewModel.snackbarEvents)
 
         LaunchedEffect(caseId) {
             if (caseId.isNotBlank()) expertViewModel.loadCaseDetail(caseId)
         }
 
-        RefreshableContent(
-            isRefreshing = expertState.isLoadingDetail && expertState.selectedCase != null,
-            onRefresh = { expertViewModel.loadCaseDetail(caseId) }
-        ) {
         ExpertCaseDetailScreen(
+            snackbarHostState = snackbarHostState,
             optimizationCase = expertState.selectedCase,
             isLoading = expertState.isLoadingDetail,
             isSubmitting = expertState.isSubmittingAction,
+            isRefreshing = expertState.isLoadingDetail && expertState.selectedCase != null,
             errorMessage = expertState.detailErrorMessage?.asString(),
             isNotFound = expertState.isDetailNotFound,
             actionErrorMessage = expertState.actionErrorMessage?.asString(),
@@ -294,30 +296,31 @@ fun NavGraphBuilder.staffRoleGraphs(
                     expertViewModel.loadCaseDetail(caseId)
                 }
             },
+            onRefresh = { expertViewModel.loadCaseDetail(caseId) },
             onChangeStatus = expertViewModel::changeCaseStatus,
             onClearActionError = expertViewModel::clearActionError
         )
-        }
     }
     composable(Routes.SUPERVISOR_HOME) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
-        RefreshableContent(
-            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
-            onRefresh = supervisorViewModel::loadDashboard
-        ) {
         SupervisorDashboardScreen(
             dashboard = supervisorState.dashboard,
             isLoading = supervisorState.isLoading,
             errorMessage = supervisorState.errorMessage?.asString(),
             onRetryClick = supervisorViewModel::loadDashboard,
+            onRefresh = supervisorViewModel::loadDashboard,
+            selectedConversionTrendPeriod = supervisorState.selectedConversionTrendPeriod,
+            onConversionTrendPointSelected = supervisorViewModel::selectConversionTrendPeriod,
             onActiveCasesClick = { navController.navigate(Routes.SUPERVISOR_ACTIVE_CASES) },
             onPendingAssignmentClick = { navController.navigate(Routes.SUPERVISOR_PENDING_CASES) },
+            onAttentionCaseClick = { caseId ->
+                navController.navigate(Routes.supervisorActiveCases(caseId))
+            },
             onExpertsClick = { navController.navigate(Routes.SUPERVISOR_EXPERT_PERFORMANCE) },
             onCasesClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_OPERATIONS) },
             onProfileClick = { navController.navigateSupervisorTopLevel(Routes.SUPERVISOR_PROFILE) }
         )
-        }
     }
     composable(Routes.SUPERVISOR_OPERATIONS) {
         SupervisorOperationsScreen(
@@ -332,15 +335,13 @@ fun NavGraphBuilder.staffRoleGraphs(
     }
     composable(Routes.SUPERVISOR_PENDING_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
         }
-        RefreshableContent(
-            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
-            onRefresh = supervisorViewModel::loadDashboard
-        ) {
         SupervisorCaseListScreen(
+            snackbarHostState = snackbarHostState,
             title = stringResource(R.string.supervisor_pending_assignment),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
                 it.status == CaseStatus.YENI &&
@@ -353,6 +354,8 @@ fun NavGraphBuilder.staffRoleGraphs(
             isSubmitting = supervisorState.isSubmittingAction,
             actionError = supervisorState.actionErrorMessage?.asString(),
             actionSuccessVersion = supervisorState.actionSuccessVersion,
+            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
+            onRefresh = supervisorViewModel::loadDashboard,
             onAssignCase = supervisorViewModel::assignCase,
             onPublishCase = supervisorViewModel::publishCase,
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
@@ -360,19 +363,26 @@ fun NavGraphBuilder.staffRoleGraphs(
             onRetryClick = supervisorViewModel::loadDashboard,
             onBackClick = navController::popBackStack
         )
-        }
     }
-    composable(Routes.SUPERVISOR_ACTIVE_CASES) {
+    composable(
+        route = Routes.SUPERVISOR_ACTIVE_CASES_WITH_FOCUS,
+        arguments = listOf(
+            navArgument("focusCaseId") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }
+        )
+    ) { backStackEntry ->
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val focusCaseId = backStackEntry.arguments?.getString("focusCaseId")
+        val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
         }
-        RefreshableContent(
-            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
-            onRefresh = supervisorViewModel::loadDashboard
-        ) {
         SupervisorCaseListScreen(
+            snackbarHostState = snackbarHostState,
             title = stringResource(R.string.supervisor_active_cases),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
                 it.assignedExpertId != null && it.status in setOf(
@@ -388,26 +398,26 @@ fun NavGraphBuilder.staffRoleGraphs(
             isSubmitting = supervisorState.isSubmittingAction,
             actionError = supervisorState.actionErrorMessage?.asString(),
             actionSuccessVersion = supervisorState.actionSuccessVersion,
+            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
+            onRefresh = supervisorViewModel::loadDashboard,
             onAssignCase = supervisorViewModel::assignCase,
             onPublishCase = supervisorViewModel::publishCase,
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
             onClearActionError = supervisorViewModel::clearActionError,
             onRetryClick = supervisorViewModel::loadDashboard,
-            onBackClick = navController::popBackStack
+            onBackClick = navController::popBackStack,
+            focusedCaseId = focusCaseId
         )
-        }
     }
     composable(Routes.SUPERVISOR_APPROVAL_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
         }
-        RefreshableContent(
-            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
-            onRefresh = supervisorViewModel::loadDashboard
-        ) {
         SupervisorCaseListScreen(
+            snackbarHostState = snackbarHostState,
             title = stringResource(R.string.supervisor_approval_queue),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter {
                 it.status == CaseStatus.TAMAMLANDI
@@ -419,6 +429,8 @@ fun NavGraphBuilder.staffRoleGraphs(
             isSubmitting = supervisorState.isSubmittingAction,
             actionError = supervisorState.actionErrorMessage?.asString(),
             actionSuccessVersion = supervisorState.actionSuccessVersion,
+            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
+            onRefresh = supervisorViewModel::loadDashboard,
             onAssignCase = supervisorViewModel::assignCase,
             onPublishCase = supervisorViewModel::publishCase,
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
@@ -426,19 +438,16 @@ fun NavGraphBuilder.staffRoleGraphs(
             onRetryClick = supervisorViewModel::loadDashboard,
             onBackClick = navController::popBackStack
         )
-        }
     }
     composable(Routes.SUPERVISOR_PUBLISHED_CASES) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(supervisorViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             supervisorViewModel.clearActionError()
             supervisorViewModel.loadDashboard()
         }
-        RefreshableContent(
-            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
-            onRefresh = supervisorViewModel::loadDashboard
-        ) {
         SupervisorCaseListScreen(
+            snackbarHostState = snackbarHostState,
             title = stringResource(R.string.supervisor_published_cases),
             cases = supervisorState.dashboard?.attentionCases.orEmpty().filter { it.status == CaseStatus.YAYINDA },
             mode = SupervisorCaseListMode.PUBLISHED,
@@ -448,6 +457,8 @@ fun NavGraphBuilder.staffRoleGraphs(
             isSubmitting = supervisorState.isSubmittingAction,
             actionError = supervisorState.actionErrorMessage?.asString(),
             actionSuccessVersion = supervisorState.actionSuccessVersion,
+            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
+            onRefresh = supervisorViewModel::loadDashboard,
             onAssignCase = supervisorViewModel::assignCase,
             onPublishCase = supervisorViewModel::publishCase,
             onUpdateClassification = supervisorViewModel::updateCaseClassification,
@@ -455,23 +466,19 @@ fun NavGraphBuilder.staffRoleGraphs(
             onRetryClick = supervisorViewModel::loadDashboard,
             onBackClick = navController::popBackStack
         )
-        }
     }
     composable(Routes.SUPERVISOR_EXPERT_PERFORMANCE) {
         val supervisorState by supervisorViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { supervisorViewModel.loadDashboard() }
-        RefreshableContent(
-            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
-            onRefresh = supervisorViewModel::loadDashboard
-        ) {
         SupervisorExpertPerformanceScreen(
             experts = mergeExperts(supervisorState.experts, supervisorState.dashboard?.expertPerformance.orEmpty()),
             isLoading = supervisorState.isLoading && supervisorState.dashboard == null,
+            isRefreshing = supervisorState.isLoading && supervisorState.dashboard != null,
             errorMessage = supervisorState.errorMessage?.asString(),
             onRetryClick = supervisorViewModel::loadDashboard,
+            onRefresh = supervisorViewModel::loadDashboard,
             onBackClick = navController::popBackStack
         )
-        }
     }
     composable(Routes.SUPERVISOR_PROFILE) {
         val authState by authViewModel.uiState.collectAsStateWithLifecycle()
@@ -509,55 +516,50 @@ fun NavGraphBuilder.staffRoleGraphs(
 
     composable(Routes.ADMIN_CREATE_STAFF) {
         val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(adminViewModel.snackbarEvents)
         LaunchedEffect(Unit) { adminViewModel.clearActionFeedback() }
         CreateStaffScreen(
+            snackbarHostState = snackbarHostState,
             onBackClick = navController::popBackStack,
             onCreateStaff = adminViewModel::createStaff,
             onClearClick = adminViewModel::clearActionFeedback,
             isSubmitting = adminState.isSubmitting,
             successMessage = adminState.actionMessage?.asString(),
-            createdStaffId = adminState.createdStaffId,
-            createdStaffTempPassword = adminState.createdStaffTempPassword,
             errorMessage = adminState.actionError?.asString()
         )
     }
 
     composable(Routes.ADMIN_UPDATE_ROLE) {
         val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = rememberOfferHubSnackbarHostState(adminViewModel.snackbarEvents)
         LaunchedEffect(Unit) {
             adminViewModel.clearActionFeedback()
             adminViewModel.loadStaff()
         }
-        RefreshableContent(
-            isRefreshing = adminState.isSearchingStaff && adminState.staffSearchResults.isNotEmpty(),
-            onRefresh = adminViewModel::loadStaff
-        ) {
         UpdateStaffRoleScreen(
+            snackbarHostState = snackbarHostState,
             query = adminState.staffSearchQuery,
             searchResults = adminState.staffSearchResults,
             selectedStaff = adminState.selectedStaff,
             isSearchingStaff = adminState.isSearchingStaff,
-            staffSearchError = adminState.staffSearchError,
+            staffSearchError = adminState.staffSearchError?.asString(),
+            isRefreshing = adminState.isSearchingStaff && adminState.staffSearchResults.isNotEmpty(),
             onBackClick = navController::popBackStack,
             onQueryChange = adminViewModel::onStaffSearchQueryChange,
             onStaffSelected = adminViewModel::selectStaff,
             onDismissStaff = adminViewModel::clearSelectedStaff,
             onUpdateRole = adminViewModel::updateRole,
             onClearClick = adminViewModel::clearStaffSearch,
+            onRefresh = adminViewModel::loadStaff,
             isSubmitting = adminState.isSubmitting,
             successMessage = adminState.actionMessage?.asString(),
             errorMessage = adminState.actionError?.asString()
         )
-        }
     }
 
     composable(Routes.ADMIN_AUDIT_LOGS) {
         val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { adminViewModel.loadAuditLogs(reset = true) }
-        RefreshableContent(
-            isRefreshing = adminState.isLoadingAudit && adminState.auditLogs.isNotEmpty(),
-            onRefresh = { adminViewModel.loadAuditLogs(reset = true) }
-        ) {
         AuditLogsScreen(
             logs = adminState.auditLogs,
             actionQuery = adminState.actionQuery.orEmpty(),
@@ -572,13 +574,14 @@ fun NavGraphBuilder.staffRoleGraphs(
             onLoadNextPage = { adminViewModel.loadAuditLogs(reset = false) },
             onRetryClick = { adminViewModel.loadAuditLogs(reset = true) },
             onRetryNextPageClick = { adminViewModel.loadAuditLogs(reset = false) },
+            onRefresh = { adminViewModel.loadAuditLogs(reset = true) },
             isLoading = adminState.isLoadingAudit,
             isLoadingNextPage = adminState.isLoadingNextAuditPage,
+            isRefreshing = adminState.isLoadingAudit && adminState.auditLogs.isNotEmpty(),
             canLoadMore = adminState.canLoadMoreAudit,
-            errorMessage = adminState.auditError,
-            nextPageErrorMessage = adminState.auditNextPageError
+            errorMessage = adminState.auditError?.asString(),
+            nextPageErrorMessage = adminState.auditNextPageError?.asString()
         )
-        }
     }
 
     composable(Routes.ADMIN_PROFILE) {

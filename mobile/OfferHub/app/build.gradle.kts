@@ -18,10 +18,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"http://localhost:8080/\"")
-        buildConfigField("boolean", "USE_MOCK_EXPERT", "false")
-        buildConfigField("boolean", "USE_MOCK_GAMIFICATION", "false")
-        buildConfigField("boolean", "USE_MOCK_SUPERVISOR", "false")
-        buildConfigField("boolean", "USE_MOCK_ADMIN", "false")
     }
 
     buildTypes {
@@ -46,6 +42,12 @@ android {
         }
         create("staging") {
             initWith(getByName("release"))
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"http://10.0.2.2:8080/\""
+            )
 
             isDebuggable = true
 

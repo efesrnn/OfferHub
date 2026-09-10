@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -13,9 +15,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +34,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.localizedLabel
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.OptimizationCase
 import java.time.Instant
@@ -41,14 +48,17 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpertCaseDetailScreen(
+    snackbarHostState: SnackbarHostState,
     optimizationCase: OptimizationCase?,
     isLoading: Boolean,
     isSubmitting: Boolean,
+    isRefreshing: Boolean,
     errorMessage: String?,
     isNotFound: Boolean,
     actionErrorMessage: String?,
     onBackClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onChangeStatus: (CaseStatus, String?) -> Unit,
     onClearActionError: () -> Unit
 ) {
@@ -59,6 +69,7 @@ fun ExpertCaseDetailScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             OfferHubDetailTopBar(
                 title = stringResource(R.string.expert_case_detail),
@@ -66,15 +77,16 @@ fun ExpertCaseDetailScreen(
             )
         }
     ) { padding ->
+        RefreshableContent(isRefreshing, onRefresh, Modifier.padding(padding)) {
         when {
-            isLoading -> Column(
-                modifier = Modifier.fillMaxSize().padding(padding),
+            isLoading && optimizationCase == null -> Column(
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) { CircularProgressIndicator() }
 
             errorMessage != null -> Column(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                modifier = Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -93,8 +105,9 @@ fun ExpertCaseDetailScreen(
                     onClearActionError()
                     showCompletionSheet = true
                 },
-                modifier = Modifier.padding(padding)
+                modifier = Modifier
             )
+        }
         }
     }
 
@@ -129,15 +142,15 @@ private fun CaseDetailContent(
     ) {
         Text(optimizationCase.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         DetailRow(stringResource(R.string.expert_campaign_number), optimizationCase.campaignNo)
-        DetailRow(stringResource(R.string.expert_status), optimizationCase.status.displayName())
-        DetailRow(stringResource(R.string.expert_priority), optimizationCase.priority.name.toDisplayText())
+        DetailRow(stringResource(R.string.expert_status), optimizationCase.status.localizedLabel())
+        DetailRow(stringResource(R.string.expert_priority), optimizationCase.priority.localizedLabel())
         if (!optimizationCase.status.isCompleted()) {
             DetailRow(stringResource(R.string.expert_sla), optimizationCase.slaRemainingSeconds.toSlaText())
         }
 
         Text(stringResource(R.string.expert_ai_analysis), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        DetailRow(stringResource(R.string.expert_current_segment), optimizationCase.segment.name.toDisplayText())
-        DetailRow(stringResource(R.string.expert_ai_segment), optimizationCase.aiSegment.name.toDisplayText())
+        DetailRow(stringResource(R.string.expert_current_segment), optimizationCase.segment.localizedLabel())
+        DetailRow(stringResource(R.string.expert_ai_segment), optimizationCase.aiSegment.localizedLabel())
         DetailRow(stringResource(R.string.expert_conversion_probability), optimizationCase.conversionProbability.toPercentage())
         DetailRow(stringResource(R.string.expert_recommendation_score), optimizationCase.recommendationScore?.let { "%.2f".format(it) } ?: stringResource(R.string.common_not_available))
 
@@ -202,14 +215,18 @@ private fun OptimizationNoteSheet(
     val normalizedNote = note.trim()
     val containsInvalidCharacters = '<' in note || '>' in note
     val isValid = normalizedNote.isNotEmpty() && note.length <= 1000 && !containsInvalidCharacters
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = {
             if (!isSubmitting) onDismiss()
-        }
+        },
+        sheetState = sheetState
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            modifier = Modifier.fillMaxWidth().imePadding().navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(stringResource(R.string.expert_complete_optimization), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -229,7 +246,7 @@ private fun OptimizationNoteSheet(
                         } else {
                             Text("")
                         }
-                        Text("${note.length}/1000")
+                        Text(stringResource(R.string.common_character_count, note.length, 1000))
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

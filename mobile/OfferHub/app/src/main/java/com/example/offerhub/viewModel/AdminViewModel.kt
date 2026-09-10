@@ -13,6 +13,8 @@ import com.example.offerhub.R
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,18 +31,16 @@ data class AdminUiState(
     val toDate: String? = null,
     val isLoadingAudit: Boolean = false,
     val isLoadingNextAuditPage: Boolean = false,
-    val auditError: String? = null,
-    val auditNextPageError: String? = null,
+    val auditError: UiText? = null,
+    val auditNextPageError: UiText? = null,
     val isSubmitting: Boolean = false,
     val actionMessage: UiText? = null,
     val actionError: UiText? = null,
-    val createdStaffId: String? = null,
-    val createdStaffTempPassword: String? = null,
     val selectedStaff: AdminStaff? = null,
     val staffSearchQuery: String = "",
     val staffSearchResults: List<AdminStaff> = emptyList(),
     val isSearchingStaff: Boolean = false,
-    val staffSearchError: String? = null
+    val staffSearchError: UiText? = null
 ) {
     val canLoadMoreAudit: Boolean
         get() = auditLogs.size < auditTotal
@@ -49,6 +49,8 @@ data class AdminUiState(
 class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(AdminUiState())
     val uiState: StateFlow<AdminUiState> = _uiState.asStateFlow()
+    private val _snackbarEvents = MutableSharedFlow<UiText>(extraBufferCapacity = 1)
+    val snackbarEvents: SharedFlow<UiText> = _snackbarEvents
     private var searchJob: Job? = null
     private var auditJob: Job? = null
     private var staffSearchJob: Job? = null
@@ -96,7 +98,7 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
                     )
                 }
                 is AdminResult.Failure -> _uiState.update {
-                    val message = result.error.message ?: "Audit logs could not be loaded"
+                    val message = result.error.toUiText(R.string.admin_audit_load_failed)
                     if (reset) {
                         it.copy(auditError = message)
                     } else {
@@ -149,12 +151,13 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         viewModelScope.launch {
             beginSubmission()
             when (val result = repository.createStaff(firstName, lastName, email, role, specialties, regions)) {
-                is AdminResult.Success -> _uiState.update {
-                    it.copy(
-                        actionMessage = UiText.Resource(R.string.admin_staff_created_success),
-                        createdStaffId = result.value.id,
-                        createdStaffTempPassword = result.value.tempPassword
-                    )
+                is AdminResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            actionMessage = UiText.Resource(R.string.admin_staff_created_success)
+                        )
+                    }
+                    _snackbarEvents.tryEmit(UiText.Resource(R.string.admin_staff_created_success))
                 }
                 is AdminResult.Failure -> _uiState.update {
                     it.copy(actionError = result.error.toCreateStaffUiText())
@@ -172,15 +175,19 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
             val activeQuery = _uiState.value.staffSearchQuery
             var shouldRefreshStaff = false
             when (val result = repository.updateRole(staffId, role)) {
-                is AdminResult.Success -> _uiState.update {
+                is AdminResult.Success -> {
                     shouldRefreshStaff = true
-                    it.copy(
-                        selectedStaff = null,
-                        actionMessage = UiText.Resource(
-                            R.string.admin_role_updated,
-                            listOf(result.value.role)
-                        )
+                    val successMessage = UiText.Resource(
+                        R.string.admin_role_updated,
+                        listOf(result.value.role)
                     )
+                    _uiState.update {
+                        it.copy(
+                            selectedStaff = null,
+                            actionMessage = successMessage
+                        )
+                    }
+                    _snackbarEvents.tryEmit(successMessage)
                 }
                 is AdminResult.Failure -> _uiState.update {
                     it.copy(actionError = result.error.toUiText(R.string.admin_role_update_failed))
@@ -250,7 +257,9 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
                         it.copy(
                             staffSearchResults = emptyList(),
                             isSearchingStaff = false,
-                            staffSearchError = result.error.message
+                            staffSearchError = result.error.toUiText(
+                                R.string.admin_staff_search_failed
+                            )
                         )
                     } else it
                 }
@@ -266,9 +275,7 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         _uiState.update {
             it.copy(
                 actionMessage = null,
-                actionError = null,
-                createdStaffId = null,
-                createdStaffTempPassword = null
+                actionError = null
             )
         }
     }
@@ -277,18 +284,20 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         it.copy(
             isSubmitting = true,
             actionMessage = null,
-            actionError = null,
-            createdStaffId = null,
-            createdStaffTempPassword = null
+            actionError = null
         )
     }
 
     private fun endSubmission() = _uiState.update { it.copy(isSubmitting = false) }
 
     private fun ApiError.toUiText(fallbackResource: Int): UiText =
-        message?.takeIf { it.isNotBlank() }
-            ?.let(UiText::Dynamic)
-            ?: UiText.Resource(fallbackResource)
+        UiText.Resource(
+            when (code) {
+                "NETWORK_ERROR" -> R.string.error_network
+                "FORBIDDEN" -> R.string.error_forbidden
+                else -> fallbackResource
+            }
+        )
 
     private fun ApiError.toCreateStaffUiText(): UiText =
         UiText.Resource(

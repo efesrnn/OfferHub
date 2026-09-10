@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,7 +36,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.localizedLabel
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.campaign.Campaign
 import com.example.offerhub.data.model.campaign.CampaignStatus
 import com.example.offerhub.data.model.campaign.Segment
@@ -48,10 +52,12 @@ fun ExpertCampaignListScreen(
     isLoadingNextPage: Boolean,
     canLoadMore: Boolean,
     errorMessage: String?,
+    isRefreshing: Boolean,
     selectedStatus: CampaignStatus?,
     selectedSegment: Segment?,
     onBackClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onCreateClick: () -> Unit,
     onLoadNextPage: () -> Unit,
     onApplyFilters: (CampaignStatus?, Segment?) -> Unit,
@@ -70,12 +76,13 @@ fun ExpertCampaignListScreen(
         if (shouldLoadNextPage) onLoadNextPage()
     }
     Scaffold(topBar = { OfferHubDetailTopBar(stringResource(R.string.expert_campaigns), onBackClick) }) { padding ->
+        RefreshableContent(isRefreshing, onRefresh, Modifier.padding(padding)) {
         when {
-            isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            isLoading && campaigns.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
             errorMessage != null -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -85,7 +92,7 @@ fun ExpertCampaignListScreen(
                 }
             }
             else -> LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -123,8 +130,8 @@ fun ExpertCampaignListScreen(
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(campaign.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Text(campaign.campaignNo, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(campaign.type.name.displayText())
-                                Text(campaign.status.name.displayText(), color = MaterialTheme.colorScheme.primary)
+                                Text(campaign.type.localizedLabel())
+                                Text(campaign.status.localizedLabel(), color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
@@ -137,6 +144,7 @@ fun ExpertCampaignListScreen(
                     }
                 }
             }
+        }
         }
     }
 
@@ -163,10 +171,12 @@ private fun CampaignFilterSheet(
 ) {
     var draftStatus by remember(currentStatus) { mutableStateOf(currentStatus) }
     var draftSegment by remember(currentSegment) { mutableStateOf(currentSegment) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            modifier = Modifier.fillMaxWidth().navigationBarsPadding()
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(stringResource(R.string.expert_filter_campaigns), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -176,7 +186,7 @@ private fun CampaignFilterSheet(
                     FilterChip(selected = draftStatus == null, onClick = { draftStatus = null }, label = { Text(stringResource(R.string.expert_filter_all)) })
                 }
                 items(CampaignStatus.entries.filterNot { it == CampaignStatus.UNKNOWN }) { status ->
-                    FilterChip(selected = draftStatus == status, onClick = { draftStatus = status }, label = { Text(status.name.displayText()) })
+                    FilterChip(selected = draftStatus == status, onClick = { draftStatus = status }, label = { Text(status.localizedLabel()) })
                 }
             }
             Text(stringResource(R.string.expert_target_segment), fontWeight = FontWeight.SemiBold)
@@ -185,7 +195,7 @@ private fun CampaignFilterSheet(
                     FilterChip(selected = draftSegment == null, onClick = { draftSegment = null }, label = { Text(stringResource(R.string.expert_filter_all)) })
                 }
                 items(Segment.entries.filterNot { it == Segment.UNKNOWN }) { segment ->
-                    FilterChip(selected = draftSegment == segment, onClick = { draftSegment = segment }, label = { Text(segment.name.displayText()) })
+                    FilterChip(selected = draftSegment == segment, onClick = { draftSegment = segment }, label = { Text(segment.localizedLabel()) })
                 }
             }
             androidx.compose.foundation.layout.Row(

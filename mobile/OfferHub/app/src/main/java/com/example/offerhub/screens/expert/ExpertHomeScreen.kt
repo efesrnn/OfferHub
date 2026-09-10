@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,6 +27,7 @@ import com.example.offerhub.R
 import com.example.offerhub.components.ExpertBottomBar
 import com.example.offerhub.components.ExpertCaseCard
 import com.example.offerhub.components.OfferHubTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.campaign.OptimizationCase
 import com.example.offerhub.data.model.campaign.Priority
 import com.example.offerhub.data.model.campaign.CaseStatus
@@ -37,6 +38,8 @@ fun ExpertHomeScreen(
     isLoading: Boolean,
     errorMessage: String?,
     onRetryClick: () -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onCaseClick: (String) -> Unit,
     onOperationsClick: () -> Unit,
     onCriticalCasesClick: () -> Unit,
@@ -55,14 +58,19 @@ fun ExpertHomeScreen(
             )
         }
     ) { padding ->
+        RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         when {
-            isLoading -> Column(
-                Modifier.fillMaxSize().padding(padding),
+            isLoading && cases.isEmpty() -> Column(
+                Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) { CircularProgressIndicator() }
             errorMessage != null -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                Modifier.fillMaxSize().padding(24.dp),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(errorMessage, color = MaterialTheme.colorScheme.error)
@@ -71,7 +79,7 @@ fun ExpertHomeScreen(
                 }
             }
             cases.isEmpty() -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -87,7 +95,7 @@ fun ExpertHomeScreen(
                 )
             }
             else -> LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 item {
@@ -127,6 +135,7 @@ fun ExpertHomeScreen(
                 }
             }
         }
+        }
     }
 }
 
@@ -147,7 +156,7 @@ private fun ExpertMetricCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(120.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 120.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

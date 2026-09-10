@@ -20,17 +20,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,12 +39,16 @@ import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.SupervisorBottomBar
 import com.example.offerhub.components.OfferHubTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.supervisor.SupervisorDashboard
 import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 import com.example.offerhub.data.model.supervisor.SupervisorCaseSummary
 import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.campaign.Priority
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -52,8 +57,12 @@ fun SupervisorDashboardScreen(
     isLoading: Boolean,
     errorMessage: String?,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
+    selectedConversionTrendPeriod: String?,
+    onConversionTrendPointSelected: (String) -> Unit,
     onActiveCasesClick: () -> Unit,
     onPendingAssignmentClick: () -> Unit,
+    onAttentionCaseClick: (String) -> Unit,
     onExpertsClick: () -> Unit,
     onCasesClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -64,29 +73,39 @@ fun SupervisorDashboardScreen(
             SupervisorBottomBar("home", {}, onCasesClick, onProfileClick)
         }
     ) { padding ->
-        when {
-            isLoading && dashboard == null -> Column(
-                Modifier.fillMaxSize().padding(padding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) { CircularProgressIndicator() }
-            errorMessage != null && dashboard == null -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(errorMessage, color = MaterialTheme.colorScheme.error)
-                Button(onClick = onRetryClick, modifier = Modifier.padding(top = 12.dp)) {
-                    Text(stringResource(R.string.admin_try_again))
+        RefreshableContent(
+            isRefreshing = isLoading && dashboard != null,
+            onRefresh = onRefresh,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            when {
+                isLoading && dashboard == null -> Column(
+                    Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) { CircularProgressIndicator() }
+                errorMessage != null && dashboard == null -> Column(
+                    Modifier.fillMaxSize().padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(errorMessage, color = MaterialTheme.colorScheme.error)
+                    Button(onClick = onRetryClick, modifier = Modifier.padding(top = 12.dp)) {
+                        Text(stringResource(R.string.admin_try_again))
+                    }
                 }
+                dashboard != null -> DashboardContent(
+                    dashboard = dashboard,
+                    onActiveCasesClick = onActiveCasesClick,
+                    onPendingAssignmentClick = onPendingAssignmentClick,
+                    onAttentionCaseClick = onAttentionCaseClick,
+                    onExpertsClick = onExpertsClick,
+                    selectedConversionTrendPeriod = selectedConversionTrendPeriod,
+                    onConversionTrendPointSelected = onConversionTrendPointSelected
+                )
             }
-            dashboard != null -> DashboardContent(
-                dashboard = dashboard,
-                onActiveCasesClick = onActiveCasesClick,
-                onPendingAssignmentClick = onPendingAssignmentClick,
-                onExpertsClick = onExpertsClick,
-                modifier = Modifier.padding(padding)
-            )
         }
     }
 }
@@ -96,7 +115,10 @@ private fun DashboardContent(
     dashboard: SupervisorDashboard,
     onActiveCasesClick: () -> Unit,
     onPendingAssignmentClick: () -> Unit,
+    onAttentionCaseClick: (String) -> Unit,
     onExpertsClick: () -> Unit,
+    selectedConversionTrendPeriod: String?,
+    onConversionTrendPointSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val attentionCases = dashboard.attentionCases
@@ -150,12 +172,24 @@ private fun DashboardContent(
         }
         item { SectionTitle(stringResource(R.string.supervisor_segment_distribution)) }
         item {
-            SegmentBarChart(dashboard)
+            if (dashboard.segmentDistribution.isEmpty()) {
+                EmptyMessage(
+                    stringResource(R.string.supervisor_no_segment_distribution)
+                )
+            } else {
+                SegmentBarChart(dashboard)
+            }
         }
-        if (dashboard.conversionTrend.isNotEmpty()) {
-            item { SectionTitle(stringResource(R.string.supervisor_conversion_trend)) }
-            item {
-                ConversionLineChart(dashboard)
+        item { SectionTitle(stringResource(R.string.supervisor_conversion_trend)) }
+        item {
+            if (dashboard.conversionTrend.isEmpty()) {
+                EmptyMessage(stringResource(R.string.supervisor_no_conversion_trend))
+            } else {
+                ConversionLineChart(
+                    dashboard = dashboard,
+                    selectedPeriod = selectedConversionTrendPeriod,
+                    onPointSelected = onConversionTrendPointSelected
+                )
             }
         }
         item { SectionTitle(stringResource(R.string.supervisor_attention_cases)) }
@@ -165,6 +199,7 @@ private fun DashboardContent(
         items(attentionCases, key = { it.caseId }) { item ->
             val hasBreachedSla = item.slaRemainingSeconds != null && item.slaRemainingSeconds < 0
             Card(
+                onClick = { onAttentionCaseClick(item.caseId) },
                 colors = CardDefaults.cardColors(
                     containerColor = if (hasBreachedSla) {
                         MaterialTheme.colorScheme.errorContainer
@@ -174,7 +209,16 @@ private fun DashboardContent(
                 )
             ) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(item.title, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(item.title, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = stringResource(R.string.common_view_details)
+                        )
+                    }
                     Text(item.priority.displayName(), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment))
                     Text(
@@ -199,6 +243,7 @@ private fun DashboardContent(
             }
         }
     }
+
 }
 
 private val activeCaseStatuses = setOf(
@@ -347,20 +392,30 @@ private fun Priority.displayName(): String = stringResource(
 )
 
 @Composable
-private fun ConversionLineChart(dashboard: SupervisorDashboard) {
+private fun ConversionLineChart(
+    dashboard: SupervisorDashboard,
+    selectedPeriod: String?,
+    onPointSelected: (String) -> Unit
+) {
     val points = dashboard.conversionTrend
     val lineColor = MaterialTheme.colorScheme.primary
-    var selectedIndex by remember(points) { mutableStateOf<Int?>(null) }
+    val guideColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
+    val horizontalInsetPx = with(LocalDensity.current) { 16.dp.toPx() }
+    val selectedIndex = points.indexOfFirst { it.period == selectedPeriod }
+        .takeIf { it >= 0 }
+        ?: points.indices.lastOrNull()
 
     fun selectNearestPoint(x: Float, width: Int) {
         if (points.isEmpty() || width <= 0) return
-        selectedIndex = if (points.size == 1) {
+        val usableWidth = (width - horizontalInsetPx * 2).coerceAtLeast(1f)
+        val nearestIndex = if (points.size == 1) {
             0
         } else {
-            (x.coerceIn(0f, width.toFloat()) / width * points.lastIndex)
+            ((x - horizontalInsetPx).coerceIn(0f, usableWidth) / usableWidth * points.lastIndex)
                 .roundToInt()
                 .coerceIn(points.indices)
         }
+        onPointSelected(points[nearestIndex].period)
     }
 
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
@@ -388,9 +443,23 @@ private fun ConversionLineChart(dashboard: SupervisorDashboard) {
                     val min = points.minOf { it.conversionPercent }
                     val max = points.maxOf { it.conversionPercent }
                     val range = (max - min).takeIf { it > 0 } ?: 1.0
+                    val usableWidth = (size.width - horizontalInsetPx * 2).coerceAtLeast(1f)
+                    listOf(0.25f, 0.5f, 0.75f).forEach { fraction ->
+                        val y = size.height * fraction
+                        drawLine(
+                            color = guideColor,
+                            start = androidx.compose.ui.geometry.Offset(horizontalInsetPx, y),
+                            end = androidx.compose.ui.geometry.Offset(size.width - horizontalInsetPx, y),
+                            strokeWidth = 2f
+                        )
+                    }
                     val coordinates = points.mapIndexed { index, point ->
                         androidx.compose.ui.geometry.Offset(
-                            x = if (points.size == 1) size.width / 2 else size.width * index / points.lastIndex,
+                            x = if (points.size == 1) {
+                                size.width / 2
+                            } else {
+                                horizontalInsetPx + usableWidth * index / points.lastIndex
+                            },
                             y = if (points.size == 1 || min == max) {
                                 size.height / 2
                             } else {
@@ -399,10 +468,28 @@ private fun ConversionLineChart(dashboard: SupervisorDashboard) {
                         )
                     }
                     coordinates.zipWithNext().forEach { (start, end) -> drawLine(lineColor, start, end, strokeWidth = 6f) }
+                    selectedIndex?.let { index ->
+                        coordinates.getOrNull(index)?.let { coordinate ->
+                            drawLine(
+                                color = guideColor,
+                                start = androidx.compose.ui.geometry.Offset(coordinate.x, 0f),
+                                end = androidx.compose.ui.geometry.Offset(coordinate.x, size.height),
+                                strokeWidth = 3f
+                            )
+                        }
+                    }
                     coordinates.forEachIndexed { index, coordinate ->
+                        if (selectedIndex == index) {
+                            drawCircle(
+                                color = lineColor,
+                                radius = 14f,
+                                center = coordinate,
+                                style = Stroke(width = 4f)
+                            )
+                        }
                         drawCircle(
                             color = lineColor,
-                            radius = if (selectedIndex == index) 13f else 8f,
+                            radius = if (selectedIndex == index) 9f else 7f,
                             center = coordinate
                         )
                     }
@@ -414,13 +501,18 @@ private fun ConversionLineChart(dashboard: SupervisorDashboard) {
                         points.size <= 4 -> points
                         else -> listOf(points.first(), points[points.lastIndex / 2], points.last())
                     }
-                    labels.forEach { Text("${it.period}\n${it.conversionPercent}%", style = MaterialTheme.typography.labelSmall) }
+                    labels.forEach {
+                        Text(
+                            "${it.period.toTrendDateLabel()}\n${it.conversionPercent}%",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
             }
             selectedIndex?.let { index ->
                 val selectedPoint = points.getOrNull(index) ?: return@let
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(selectedPoint.period, fontWeight = FontWeight.Bold)
+                    Text(selectedPoint.period.toTrendDateLabel(), fontWeight = FontWeight.Bold)
                     Text(
                         stringResource(
                             R.string.supervisor_trend_conversion_value,
@@ -443,3 +535,8 @@ private fun ConversionLineChart(dashboard: SupervisorDashboard) {
     }
 }
 
+private fun String.toTrendDateLabel(): String = runCatching {
+    LocalDate.parse(this).format(
+        DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
+    )
+}.getOrDefault(this)

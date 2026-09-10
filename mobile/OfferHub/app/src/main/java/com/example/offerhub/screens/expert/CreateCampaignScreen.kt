@@ -18,10 +18,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +35,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
+import com.example.offerhub.ui.text.localizedLabel
 import com.example.offerhub.components.OfferHubDetailTopBar
 import com.example.offerhub.data.model.campaign.CampaignType
 import com.example.offerhub.data.model.campaign.Segment
@@ -44,6 +48,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateCampaignScreen(
+    snackbarHostState: SnackbarHostState,
     isSubmitting: Boolean,
     errorMessage: String?,
     createdCampaignNo: String?,
@@ -64,7 +69,21 @@ fun CreateCampaignScreen(
     val dateValid = selectedDate?.isAfter(LocalDate.now()) == true
     val formValid = titleValid && type != null && segment != null && discount in 0..100 && dateValid
 
-    Scaffold(topBar = { OfferHubDetailTopBar(stringResource(R.string.expert_create_campaign), onBackClick) }) { padding ->
+    LaunchedEffect(createdCampaignNo) {
+        if (createdCampaignNo != null) {
+            title = ""
+            type = null
+            segment = null
+            discountText = ""
+            selectedDate = null
+            submitAttempted = false
+        }
+    }
+
+    Scaffold(
+        topBar = { OfferHubDetailTopBar(stringResource(R.string.expert_create_campaign), onBackClick) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -76,7 +95,7 @@ fun CreateCampaignScreen(
                 isError = submitAttempted && !titleValid,
                 supportingText = {
                     if (submitAttempted && !titleValid) Text(stringResource(R.string.error_campaign_title))
-                    else Text("${title.length}/200")
+                    else Text(stringResource(R.string.common_character_count, title.length, 200))
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -84,7 +103,7 @@ fun CreateCampaignScreen(
             CampaignType.entries.filterNot { it == CampaignType.UNKNOWN }.chunked(2).forEach { values ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     values.forEach { value ->
-                        FilterChip(selected = type == value, onClick = { type = value }, label = { Text(value.name.displayName()) })
+                        FilterChip(selected = type == value, onClick = { type = value }, label = { Text(value.localizedLabel()) })
                     }
                 }
             }
@@ -94,7 +113,7 @@ fun CreateCampaignScreen(
             Segment.entries.filterNot { it == Segment.UNKNOWN }.chunked(3).forEach { values ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     values.forEach { value ->
-                        FilterChip(selected = segment == value, onClick = { segment = value }, label = { Text(value.name.displayName()) })
+                        FilterChip(selected = segment == value, onClick = { segment = value }, label = { Text(value.localizedLabel()) })
                     }
                 }
             }
@@ -122,9 +141,6 @@ fun CreateCampaignScreen(
                 Text(stringResource(R.string.error_campaign_date), color = MaterialTheme.colorScheme.error)
             }
             errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            createdCampaignNo?.let {
-                Text(stringResource(R.string.expert_campaign_created, it), color = MaterialTheme.colorScheme.primary)
-            }
             Button(
                 onClick = {
                     submitAttempted = true

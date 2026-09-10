@@ -18,8 +18,8 @@ import com.example.offerhub.screens.subscriber.SubscriberHomeScreen
 import com.example.offerhub.screens.subscriber.SubscriberProfileScreen
 import com.example.offerhub.viewModel.AuthViewModel
 import com.example.offerhub.viewModel.SubscriberViewModel
+import com.example.offerhub.viewModel.buildSubscriberHomeSummary
 import com.example.offerhub.ui.text.asString
-import com.example.offerhub.components.RefreshableContent
 
 fun NavGraphBuilder.subscriberGraph(
     navController: NavHostController,
@@ -34,25 +34,33 @@ fun NavGraphBuilder.subscriberGraph(
         val latestAcceptedOffer = offers
             .filter { it.status == OfferStatus.ACCEPTED }
             .maxByOrNull { it.acceptedAt.orEmpty() }
+        val homeSummary = buildSubscriberHomeSummary(offers)
         SubscriberHomeScreen(
-            firstName = "Test",
-            recommendedOffers = offers.filter {
-                it.status == OfferStatus.PENDING
-            },
+            firstName = "",
+            recommendedOffers = offers
+                .filter { it.status == OfferStatus.PENDING }
+                .sortedByDescending { it.score }
+                .take(3),
             latestAcceptedOffer = latestAcceptedOffer,
+            homeSummary = homeSummary,
             isLoading = subscriberState.isLoading,
             errorMessage = subscriberState.loadErrorMessage?.asString(),
             onRetryClick = subscriberViewModel::loadOffers,
             onRefresh = subscriberViewModel::loadOffers,
             onOfferClick = openOfferDetail,
-            onCategoryClick = { type ->
-                navController.navigate(Routes.offerCategory(type.name)) {
-                    launchSingleTop = true
-                }
-            },
             onHomeClick = {},
             onOffersClick = {
                 navController.navigate(Routes.OFFERS) {
+                    launchSingleTop = true
+                }
+            },
+            onAcceptedOffersClick = {
+                navController.navigate(Routes.ACCEPTED_OFFERS) {
+                    launchSingleTop = true
+                }
+            },
+            onRatedOffersClick = {
+                navController.navigate(Routes.RATED_OFFERS) {
                     launchSingleTop = true
                 }
             },
@@ -109,28 +117,20 @@ fun NavGraphBuilder.subscriberGraph(
         val acceptedOffers = subscriberState.offers.filter {
             it.status == OfferStatus.ACCEPTED
         }
-        RefreshableContent(
-            isRefreshing = subscriberState.isLoading,
-            onRefresh = subscriberViewModel::loadOffers
-        ) {
         OfferCategoryScreen(
             title = stringResource(R.string.offers_my_accepted),
             offers = acceptedOffers,
-            showAcceptedTag = true,
             emptyMessage = stringResource(R.string.subscriber_no_accepted_offer),
+            isRefreshing = subscriberState.isLoading,
+            onRefresh = subscriberViewModel::loadOffers,
             onBackClick = navController::popBackStack,
             onOfferClick = openOfferDetail
         )
-        }
     }
 
     composable(Routes.RATED_OFFERS) {
         val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val ratedOffers = subscriberState.offers.filter { it.rating != null }
-        RefreshableContent(
-            isRefreshing = subscriberState.isLoading,
-            onRefresh = subscriberViewModel::loadOffers
-        ) {
         OfferCategoryScreen(
             title = stringResource(R.string.offers_my_rated),
             offers = ratedOffers,
@@ -138,10 +138,11 @@ fun NavGraphBuilder.subscriberGraph(
                 it.offerId to requireNotNull(it.rating)
             },
             emptyMessage = stringResource(R.string.offers_no_rated),
+            isRefreshing = subscriberState.isLoading,
+            onRefresh = subscriberViewModel::loadOffers,
             onBackClick = navController::popBackStack,
             onOfferClick = openOfferDetail
         )
-        }
     }
 
     composable(Routes.PROFILE) {
@@ -155,10 +156,10 @@ fun NavGraphBuilder.subscriberGraph(
             ?: stringResource(R.string.profile_not_available)
 
         SubscriberProfileScreen(
-            firstName = "Test",
-            lastName = "Subscriber",
+            firstName = "",
+            lastName = "",
             phone = profilePhone,
-            email = "test@offerhub.com",
+            email = stringResource(R.string.profile_not_available),
             onRetryClick = {},
             onLogoutClick = {
                 authViewModel.logout {
@@ -206,16 +207,13 @@ fun NavGraphBuilder.subscriberGraph(
             it.type == selectedType && it.status == OfferStatus.PENDING
         }
 
-        RefreshableContent(
-            isRefreshing = subscriberState.isLoading,
-            onRefresh = subscriberViewModel::loadOffers
-        ) {
         OfferCategoryScreen(
             title = title,
             offers = categoryOffers,
+            isRefreshing = subscriberState.isLoading,
+            onRefresh = subscriberViewModel::loadOffers,
             onBackClick = navController::popBackStack,
             onOfferClick = openOfferDetail
         )
-        }
     }
 }

@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
@@ -14,15 +16,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.AlertDialog
@@ -37,6 +44,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -44,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.supervisor.SupervisorCaseSummary
 import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 import com.example.offerhub.data.model.campaign.Priority
@@ -67,6 +77,7 @@ private enum class ActiveCaseTab(val status: CaseStatus) {
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun SupervisorCaseListScreen(
+    snackbarHostState: SnackbarHostState,
     title: String,
     cases: List<SupervisorCaseSummary>,
     mode: SupervisorCaseListMode,
@@ -76,12 +87,15 @@ fun SupervisorCaseListScreen(
     isSubmitting: Boolean,
     actionError: String?,
     actionSuccessVersion: Long,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onAssignCase: (String, String) -> Unit,
     onPublishCase: (String) -> Unit,
     onUpdateClassification: (String, Segment, Priority, String) -> Unit,
     onClearActionError: () -> Unit,
     onRetryClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    focusedCaseId: String? = null
 ) {
     var selectedCase by remember { mutableStateOf<SupervisorCaseSummary?>(null) }
     var editingCase by remember { mutableStateOf<SupervisorCaseSummary?>(null) }
@@ -90,6 +104,9 @@ fun SupervisorCaseListScreen(
     var pendingClassification by remember { mutableStateOf<PendingClassification?>(null) }
     var activeCaseTab by remember { mutableStateOf(ActiveCaseTab.ASSIGNED) }
     var handledActionSuccessVersion by remember { mutableStateOf(actionSuccessVersion) }
+    val listState = rememberLazyListState()
+    val editCaseSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val assignmentSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val displayedCases = if (mode == SupervisorCaseListMode.ACTIVE) {
         cases.filter { it.status == activeCaseTab.status }
     } else {
@@ -109,17 +126,43 @@ fun SupervisorCaseListScreen(
             handledActionSuccessVersion = actionSuccessVersion
         }
     }
+    LaunchedEffect(focusedCaseId, cases) {
+        val focusedCase = cases.firstOrNull { it.caseId == focusedCaseId }
+            ?: return@LaunchedEffect
+        if (mode == SupervisorCaseListMode.ACTIVE) {
+            activeCaseTab = ActiveCaseTab.entries.firstOrNull {
+                it.status == focusedCase.status
+            } ?: activeCaseTab
+        }
+    }
+    LaunchedEffect(focusedCaseId, cases, activeCaseTab) {
+        val focusedCase = cases.firstOrNull { it.caseId == focusedCaseId }
+            ?: return@LaunchedEffect
+        if (
+            mode == SupervisorCaseListMode.ACTIVE &&
+            activeCaseTab.status == focusedCase.status
+        ) {
+            val focusedIndex = displayedCases.indexOfFirst {
+                it.caseId == focusedCase.caseId
+            }
+            if (focusedIndex >= 0) listState.animateScrollToItem(focusedIndex + 1)
+        }
+    }
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { OfferHubDetailTopBar(title, onBackClick) }
     ) { padding ->
+        RefreshableContent(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.padding(padding)
+        ) {
         LazyColumn(
-            Modifier.fillMaxSize().padding(padding),
+            Modifier.fillMaxSize(),
+            state = listState,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            }
             if (mode == SupervisorCaseListMode.ACTIVE) {
                 item {
                     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
@@ -181,7 +224,20 @@ fun SupervisorCaseListScreen(
                         )
                     ) {
                         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                            Text(item.title, fontWeight = FontWeight.Bold)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = item.title,
+                                    modifier = Modifier.weight(1f),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = stringResource(R.string.common_view_details)
+                                )
+                            }
                             Text(item.priority.displayName())
                             Text(item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment))
                             Text(
@@ -214,39 +270,22 @@ fun SupervisorCaseListScreen(
                 }
             }
         }
+        }
     }
     selectedCase?.let { item ->
-        ModalBottomSheet(onDismissRequest = {
+        SupervisorCaseDetailBottomSheet(
+            item = item,
+            isSubmitting = isSubmitting,
+            actionError = actionError,
+            showPublishAction = mode == SupervisorCaseListMode.APPROVAL,
+            onPublishCase = onPublishCase,
+            onDismiss = {
             if (!isSubmitting) {
                 selectedCase = null
                 onClearActionError()
             }
-        }) {
-            Column(
-                Modifier.fillMaxWidth().heightIn(max = 650.dp).verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp).padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                CaseDetailRow(stringResource(R.string.supervisor_case_id), item.caseId)
-                CaseDetailRow(stringResource(R.string.supervisor_priority), item.priority.displayName())
-                CaseDetailRow(stringResource(R.string.supervisor_status), item.status.displayName())
-                CaseDetailRow(stringResource(R.string.supervisor_segment), item.segment.displayName())
-                CaseDetailRow(
-                    stringResource(R.string.supervisor_assigned_expert),
-                    item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment)
-                )
-                CaseDetailRow(stringResource(R.string.supervisor_sla_remaining), item.slaRemainingSeconds.toSlaText())
-                if (mode == SupervisorCaseListMode.APPROVAL) {
-                    Button(
-                        onClick = { onPublishCase(item.caseId) },
-                        enabled = !isSubmitting,
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.supervisor_publish_case)) }
-                }
-                actionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             }
-        }
+        )
     }
     editingCase?.let { item ->
         var selectedSegment by remember(item.caseId, item.segment) { mutableStateOf(item.segment) }
@@ -258,9 +297,11 @@ fun SupervisorCaseListScreen(
                 editingCase = null
                 onClearActionError()
             }
-        }) {
+        }, sheetState = editCaseSheetState) {
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
+                Modifier.fillMaxWidth().imePadding().navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(stringResource(R.string.supervisor_update_classification), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -331,9 +372,10 @@ fun SupervisorCaseListScreen(
                 assignmentCase = null
                 onClearActionError()
             }
-        }) {
+        }, sheetState = assignmentSheetState) {
             Column(
-                Modifier.fillMaxWidth().heightIn(max = 650.dp).verticalScroll(rememberScrollState())
+                Modifier.fillMaxWidth().imePadding().navigationBarsPadding()
+                    .heightIn(max = 650.dp).verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -392,6 +434,50 @@ fun SupervisorCaseListScreen(
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
+internal fun SupervisorCaseDetailBottomSheet(
+    item: SupervisorCaseSummary,
+    isSubmitting: Boolean = false,
+    actionError: String? = null,
+    showPublishAction: Boolean = false,
+    onPublishCase: (String) -> Unit = {},
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            Modifier.fillMaxWidth().navigationBarsPadding()
+                .heightIn(max = 650.dp).verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp).padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            CaseDetailRow(stringResource(R.string.supervisor_case_id), item.caseId)
+            CaseDetailRow(stringResource(R.string.supervisor_priority), item.priority.displayName())
+            CaseDetailRow(stringResource(R.string.supervisor_status), item.status.displayName())
+            CaseDetailRow(stringResource(R.string.supervisor_segment), item.segment.displayName())
+            CaseDetailRow(
+                stringResource(R.string.supervisor_assigned_expert),
+                item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment)
+            )
+            CaseDetailRow(stringResource(R.string.supervisor_sla_remaining), item.slaRemainingSeconds.toSlaText())
+            if (showPublishAction) {
+                Button(
+                    onClick = { onPublishCase(item.caseId) },
+                    enabled = !isSubmitting,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(stringResource(R.string.supervisor_publish_case)) }
+            }
+            actionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        }
+    }
+}
+
+@Composable
 private fun SupervisorCaseListMode.emptyMessage(): String = stringResource(
     when (this) {
         SupervisorCaseListMode.PENDING_ASSIGNMENT -> R.string.supervisor_empty_pending_cases
@@ -415,7 +501,7 @@ private fun ActiveCaseTab.label(count: Int): String = stringResource(
 private fun CompactActionButton(text: String, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier.width(78.dp).height(36.dp),
+        modifier = Modifier.width(84.dp).height(48.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
     ) {
         Text(text, style = MaterialTheme.typography.labelMedium)

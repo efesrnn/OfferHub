@@ -14,7 +14,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,15 +28,11 @@ import com.example.offerhub.components.NavigationActionCard
 import com.example.offerhub.components.OfferCard
 import com.example.offerhub.components.SubscriberBottomBar
 import com.example.offerhub.components.OfferHubTopBar
+import com.example.offerhub.components.RefreshableContent
+import com.example.offerhub.components.SeeAllButton
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferType
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import com.example.offerhub.components.SeeAllButton
 import com.example.offerhub.data.model.OfferStatus
 import com.example.offerhub.R
 import com.example.offerhub.data.mock.MockOfferData
@@ -79,7 +74,7 @@ fun OffersScreen(
             )
         }
     ) { innerPadding ->
-        PullToRefreshBox(
+        RefreshableContent(
             isRefreshing = isLoading && offers.isNotEmpty(),
             onRefresh = onRefresh,
             modifier = Modifier
@@ -163,31 +158,6 @@ private fun OffersContent(
         verticalArrangement =
             Arrangement.spacedBy(22.dp)
     ) {
-        item {
-            Column(
-                modifier =
-                    Modifier.padding(horizontal = 24.dp),
-
-                verticalArrangement =
-                    Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.nav_offers),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color =
-                        MaterialTheme.colorScheme.onBackground
-                )
-
-                Text(
-                    text = stringResource(R.string.offers_subtitle),
-                    fontSize = 15.sp,
-                    color =
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
         item {
             OfferCategorySection(
                 title = stringResource(R.string.offers_add_on_packages),

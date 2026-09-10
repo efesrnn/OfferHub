@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offerhub.R
 import com.example.offerhub.components.OfferHubDetailTopBar
+import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.gamification.ExpertLevel
 import com.example.offerhub.data.model.gamification.GamificationProfile
 import com.example.offerhub.data.model.gamification.RankingEntry
@@ -39,9 +40,11 @@ fun ExpertProgressScreen(
     selectedPeriod: RankingPeriod,
     isLoading: Boolean,
     isLoadingRanking: Boolean,
+    isRefreshing: Boolean,
     errorMessage: String?,
     onBackClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onRefresh: () -> Unit,
     onPeriodSelected: (RankingPeriod) -> Unit
 ) {
     Scaffold(
@@ -52,12 +55,13 @@ fun ExpertProgressScreen(
             )
         }
     ) { padding ->
+        RefreshableContent(isRefreshing, onRefresh, Modifier.padding(padding)) {
         when {
-            isLoading && profile == null -> ProgressLoading(Modifier.padding(padding))
+            isLoading && profile == null -> ProgressLoading()
             profile == null -> ProgressError(
                 message = errorMessage ?: stringResource(R.string.error_gamification),
                 onRetryClick = onRetryClick,
-                modifier = Modifier.padding(padding)
+                modifier = Modifier
             )
             else -> ProgressContent(
                 profile = profile,
@@ -67,8 +71,9 @@ fun ExpertProgressScreen(
                 errorMessage = errorMessage,
                 onRetryClick = onRetryClick,
                 onPeriodSelected = onPeriodSelected,
-                modifier = Modifier.padding(padding)
+                modifier = Modifier
             )
+        }
         }
     }
 }
@@ -108,8 +113,18 @@ private fun ProgressContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MetricCard(stringResource(R.string.expert_daily_short), profile.dailyRank.asRank(), Modifier.weight(1f))
-                MetricCard(stringResource(R.string.expert_weekly_short), profile.weeklyRank.asRank(), Modifier.weight(1f))
+                MetricCard(
+                    stringResource(R.string.expert_daily_short),
+                    profile.dailyRank?.let { stringResource(R.string.common_rank_value, it) }
+                        ?: stringResource(R.string.common_not_available_short),
+                    Modifier.weight(1f)
+                )
+                MetricCard(
+                    stringResource(R.string.expert_weekly_short),
+                    profile.weeklyRank?.let { stringResource(R.string.common_rank_value, it) }
+                        ?: stringResource(R.string.common_not_available_short),
+                    Modifier.weight(1f)
+                )
             }
         }
         item {
@@ -260,7 +275,7 @@ private fun RankingCard(entry: RankingEntry, isCurrentUser: Boolean) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("#${entry.rank}", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.common_rank_value, entry.rank), fontWeight = FontWeight.Bold)
             Text(entry.displayName, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
             Text(stringResource(R.string.expert_points_value, entry.points))
         }
@@ -301,5 +316,3 @@ private fun ExpertLevel.displayName(): String = stringResource(
         ExpertLevel.PLATINUM -> R.string.expert_level_platinum
     }
 )
-
-private fun Int?.asRank(): String = this?.let { "#$it" } ?: "—"
