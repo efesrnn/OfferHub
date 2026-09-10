@@ -8,6 +8,10 @@ import com.offerhub.campaign.dto.PagedResult;
 import com.offerhub.campaign.security.CallerIdentity;
 import com.offerhub.campaign.security.Role;
 import com.offerhub.campaign.service.OfferService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +30,7 @@ import java.util.UUID;
  * always comes from the token, so there is nothing for a caller to swap.
  */
 @RestController
+@Tag(name = "Offers", description = "Subscriber offers, the team contract shape")
 @RequestMapping("/api/v1/offers")
 @RequiredArgsConstructor
 public class OfferController {
@@ -35,6 +40,15 @@ public class OfferController {
 
     private final OfferService offerService;
 
+    @Operation(summary = "List the caller's offers",
+            description = """
+                    Section 6.1: a campaign scored below 0.60 is never shown, and one above 0.80 is
+                    marked highlighted so the client can lift it to the top.
+
+                    The subscriber is read from the token, never from the request, so there is no id
+                    to tamper with and no IDOR to defend against here.
+
+                    Roles: SUBSCRIBER.""")
     @GetMapping
     public ApiResponse<PagedResult<OfferResponse>> list(
             @RequestParam(defaultValue = "0") int page,
@@ -46,6 +60,24 @@ public class OfferController {
         return ApiResponse.ok(offerService.listFor(caller.userId(), pageable));
     }
 
+    @Operation(summary = "Accept or decline an offer",
+            description = """
+                    The answer feeds the conversion figures and publishes offer.responded, which AI
+                    uses to lower the score of similar campaigns after a decline.
+
+                    An offer can only be answered once.
+
+                    Roles: SUBSCRIBER.""")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "Answer recorded"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403",
+                    description = "The offer belongs to another subscriber",
+                    content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409",
+                    description = "Already answered, error.code OFFER_ALREADY_RESPONDED",
+                    content = @Content)
+    })
     @PostMapping("/{offerId}/respond")
     public ApiResponse<OfferResponse> respond(@PathVariable UUID offerId,
                                               @Valid @RequestBody OfferRespondRequest request,
@@ -54,6 +86,22 @@ public class OfferController {
         return ApiResponse.ok(offerService.respond(offerId, request, caller.userId()));
     }
 
+    @Operation(summary = "Rate the experience from 1 to 5",
+            description = """
+                    Section 5.6: rating is once only. A rating of 1 or 2 means the offer was
+                    irrelevant and publishes offer.rated, which costs the expert 3 points.
+
+                    Roles: SUBSCRIBER.""")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "Rating recorded"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
+                    description = "Outside 1 to 5, error.code VALIDATION_ERROR",
+                    content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409",
+                    description = "Already rated, error.code OFFER_ALREADY_RATED",
+                    content = @Content)
+    })
     @PostMapping("/{offerId}/rate")
     public ApiResponse<OfferResponse> rate(@PathVariable UUID offerId,
                                            @Valid @RequestBody OfferRateRequest request,

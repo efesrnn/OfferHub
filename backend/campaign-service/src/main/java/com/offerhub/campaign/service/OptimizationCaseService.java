@@ -62,12 +62,15 @@ public class OptimizationCaseService {
      * A null probability means AI Service never answered. The contract puts that campaign
      * in the manual optimization queue, so null counts as low - the fallback path is the
      * only path until AI Service is wired in.
+     *
+     * Returns whether a case was opened. The caller needs it because a campaign with no
+     * case has no workflow to carry it out of YENI.
      */
     @Transactional
-    public void openIfLowConversion(Campaign campaign) {
+    public boolean openIfLowConversion(Campaign campaign) {
         BigDecimal probability = campaign.getConversionProbability();
         if (probability != null && probability.compareTo(LOW_CONVERSION_THRESHOLD) >= 0) {
-            return;
+            return false;
         }
 
         // The SLA clock starts here, so the deadline is stamped from the same instant the
@@ -85,6 +88,7 @@ public class OptimizationCaseService {
                 optimizationCase.getSlaDeadline());
 
         autoAssign(optimizationCase, campaign);
+        return true;
     }
 
     /**

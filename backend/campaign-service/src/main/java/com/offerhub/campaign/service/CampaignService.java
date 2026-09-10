@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -71,7 +73,15 @@ public class CampaignService {
         Campaign saved = campaignRepository.saveAndFlush(campaign);
 
         // Same transaction: a campaign that should be optimized never exists without its case.
-        caseService.openIfLowConversion(saved);
+        boolean underOptimization = caseService.openIfLowConversion(saved);
+
+        // YENI means "an expert is going to look at this". A campaign AI scored above the
+        // threshold has no case and therefore nobody to wait for, so it goes live straight
+        // away. Leaving it in YENI stranded it: only a case moves a campaign forward, so a
+        // campaign without one could never be published or archived.
+        if (!underOptimization) {
+            saved.setStatus(CampaignStatus.YAYINDA);
+        }
 
         eventPublisher.publishEvent(new OutboundEvent(
                 OutboundEvent.CAMPAIGN_CREATED, CampaignCreatedPayload.from(saved)));
@@ -183,6 +193,26 @@ public class CampaignService {
                 campaign.getCampaignNo(), campaign.getPriority());
         campaign.setPriority(Priority.YUKSEK);
         caseService.recalculateSlaDeadline(campaign);
+    }
+
+    /**
+     * Retires campaigns that never got a case. Their status cannot come from a case, so
+     * validity is the only thing left that can end them.
+     *
+     * Campaigns that do have a case are deliberately excluded: archiving one behind an open
+     * case would contradict the state machine, where a campaign is retired only once its
+     * case reaches ARSIVLENDI.
+     */
+    @Transactional
+    public int archiveExpiredWithoutCase() {
+        List<Campaign> expired = campaignRepository.findExpiredWithoutCase(Instant.now());
+
+        for (Campaign campaign : expired) {
+            log.info("Campaign {} archived, validity expired and it has no case",
+                    campaign.getCampaignNo());
+            campaign.setStatus(CampaignStatus.ARSIVLENDI);
+        }
+        return expired.size();
     }
 
     private Campaign load(String campaignNo) {

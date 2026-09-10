@@ -4,9 +4,17 @@ WORKDIR /app
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+
+# The cache mount keeps ~/.m2 outside the image layer. Without it every pom.xml change
+# baked a fresh ~450MB copy of the whole dependency tree into the build cache and left the
+# previous one behind, which is how that cache reached 19GB. Here the jars live in one
+# shared cache instead, reused across rebuilds and across services.
+RUN --mount=type=cache,target=/root/.m2 \
+    chmod +x mvnw && ./mvnw dependency:go-offline -B
+
 COPY src ./src
-RUN ./mvnw package -DskipTests -B
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw package -DskipTests -B
 
 # --- Runtime stage: sadece JRE + üretilen jar ---
 FROM eclipse-temurin:25-jre
