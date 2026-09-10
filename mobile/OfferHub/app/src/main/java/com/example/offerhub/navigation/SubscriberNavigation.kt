@@ -1,5 +1,6 @@
 package com.example.offerhub.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +31,7 @@ fun NavGraphBuilder.subscriberGraph(
 
     composable(Routes.SUBSCRIBER_HOME) {
         val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
+        LaunchedEffect(Unit) { subscriberViewModel.loadOffers() }
         val offers = subscriberState.offers
         val latestAcceptedOffer = offers
             .filter { it.status == OfferStatus.ACCEPTED }

@@ -92,9 +92,7 @@ fun NavGraphBuilder.staffRoleGraphs(
     composable(Routes.EXPERT_HOME) {
         val expertState by expertViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
-            if (expertState.caseStatusFilter != null) {
-                expertViewModel.loadCases(reset = true, status = null)
-            }
+            expertViewModel.loadCases(reset = true, status = null)
         }
         ExpertHomeScreen(
             cases = expertState.cases,

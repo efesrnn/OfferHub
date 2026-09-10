@@ -61,8 +61,10 @@ class ExpertViewModel(private val repository: ExpertRepository) : ViewModel() {
     val snackbarEvents: SharedFlow<UiText> = _snackbarEvents
     val uiState: StateFlow<ExpertUiState> = _uiState.asStateFlow()
 
-    init { loadCases() }
-
+    // Not: kasitli olarak init{} icinde otomatik yukleme yok - bu ViewModel uygulama
+    // acilisinda, giris yapilmadan once olusturuluyor (OfferHubApp kok composable'inda),
+    // yani buradaki bir cagri token yokken basarisiz olur. Yukleme EXPERT_HOME
+    // composable'indaki LaunchedEffect(Unit) ile tetikleniyor.
     fun loadCases(
         reset: Boolean = true,
         status: CaseStatus? = _uiState.value.caseStatusFilter

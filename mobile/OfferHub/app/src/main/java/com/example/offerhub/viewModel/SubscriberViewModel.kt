@@ -49,10 +49,12 @@ class SubscriberViewModel(
     val uiState: StateFlow<SubscriberUiState> =
         _uiState.asStateFlow()
 
-    init {
-        loadOffers()
-    }
-
+    // Not: burada init{} icinde otomatik yukleme yapilmiyor kasitli olarak - bu ViewModel
+    // uygulama acilisinda, kullanici henuz giris yapmadan once olusturuluyor (OfferHubApp
+    // kok composable'inda), yani init{} icinde bir cagri token yokken 401/hata alir ve
+    // login sonrasi ekrana hicbir zaman dogru veri gelmez (sadece manuel refresh duzeltir).
+    // Yukleme, SUBSCRIBER_HOME composable'inda LaunchedEffect(Unit) ile tetikleniyor -
+    // boylece her giriste (login sonrasi dahil) taze bir cagri yapilir.
     fun loadOffers() {
         if (_uiState.value.isLoading) return
         viewModelScope.launch {
