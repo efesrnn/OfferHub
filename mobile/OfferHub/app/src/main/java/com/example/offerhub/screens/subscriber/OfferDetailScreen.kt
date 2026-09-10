@@ -142,6 +142,29 @@ fun OfferDetailBottomSheet(
                 )
             }
 
+            if (offer.previousAcceptedCount > 0) {
+                DetailRow(
+                    label = stringResource(R.string.offer_accepted_by_label),
+                    value = stringResource(
+                        R.string.offer_accepted_by_value,
+                        offer.previousAcceptedCount
+                    )
+                )
+            }
+
+            DetailRow(
+                label = stringResource(R.string.offer_average_rating_label),
+                value = if (offer.ratingCount > 0 && offer.averageRating != null) {
+                    stringResource(
+                        R.string.offer_average_rating_value,
+                        offer.averageRating.toDisplayNumber(),
+                        offer.ratingCount
+                    )
+                } else {
+                    stringResource(R.string.offer_no_ratings_yet)
+                }
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             actionError?.let { message ->

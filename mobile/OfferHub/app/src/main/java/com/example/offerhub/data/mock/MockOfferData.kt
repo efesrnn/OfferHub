@@ -16,7 +16,10 @@ object MockOfferData {
             score = 0.83,
             highlighted = true,
             status = OfferStatus.PENDING,
-            type = OfferType.ADD_ON
+            type = OfferType.ADD_ON,
+            previousAcceptedCount = 128,
+            averageRating = 4.3,
+            ratingCount = 52
         ),
         Offer(
             offerId = "f1a3",
@@ -53,7 +56,10 @@ object MockOfferData {
             status = OfferStatus.ACCEPTED,
             type = OfferType.ADD_ON,
             acceptedAt = "2026-08-24T10:30:00Z",
-            rating = 4
+            rating = 4,
+            previousAcceptedCount = 340,
+            averageRating = 4.6,
+            ratingCount = 210
         ),
         Offer(
             offerId = "f1a6",

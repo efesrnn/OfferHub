@@ -10,6 +10,11 @@
     <string name="offer_valid_until_label">Valid until</string>
     <string name="offer_status_label">Status</string>
     <string name="offer_accepted_on_label">Accepted on</string>
+    <string name="offer_accepted_by_label">Accepted by</string>
+    <string name="offer_accepted_by_value">%1$d people</string>
+    <string name="offer_average_rating_label">Average rating</string>
+    <string name="offer_average_rating_value">%1$s ★ (%2$d ratings)</string>
+    <string name="offer_no_ratings_yet">No ratings yet</string>
     <string name="offer_rate_experience">Rate your experience</string>
     <string name="offer_accept">Accept</string>
     <string name="offer_accept_confirmation_title">Accept offer?</string>

@@ -75,6 +75,9 @@ class SubscriberViewModel(
     }
 
     fun selectOffer(offerId: String) {
+        // Opens instantly with what the list already has, then fills in the social proof
+        // (previousAcceptedCount / averageRating) that only the detail call carries - the
+        // list endpoint skips it to avoid a query per row.
         _uiState.update { state ->
             state.copy(
                 selectedOffer =
@@ -82,6 +85,23 @@ class SubscriberViewModel(
                         it.offerId == offerId
                     }
             )
+        }
+        viewModelScope.launch {
+            when (val result = repository.getOfferDetail(offerId)) {
+                is SubscriberResult.Success -> _uiState.update { state ->
+                    // The subscriber may have dismissed the sheet, or opened a different
+                    // offer, before this returned - only apply it if it's still relevant.
+                    if (state.selectedOffer?.offerId == offerId) {
+                        state.copy(selectedOffer = result.value)
+                    } else {
+                        state
+                    }
+                }
+                is SubscriberResult.Failure -> {
+                    // Silent: the list-cached offer is already showing, just without the
+                    // social proof numbers - not worth an error banner for an enrichment call.
+                }
+            }
         }
     }
 

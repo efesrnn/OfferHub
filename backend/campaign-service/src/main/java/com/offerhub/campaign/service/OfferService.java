@@ -6,6 +6,7 @@ import com.offerhub.campaign.dto.OfferRateRequest;
 import com.offerhub.campaign.dto.OfferRespondRequest;
 import com.offerhub.campaign.dto.OfferResponse;
 import com.offerhub.campaign.dto.PagedResult;
+import com.offerhub.campaign.dto.SubscriberOfferResponse;
 import com.offerhub.campaign.entity.Campaign;
 import com.offerhub.campaign.entity.Offer;
 import com.offerhub.campaign.entity.OfferStatus;
@@ -81,6 +82,26 @@ public class OfferService {
     @Transactional(readOnly = true)
     public Offer offerOf(UUID offerId, UUID subscriberId) {
         return load(offerId, subscriberId);
+    }
+
+    /**
+     * The detail screen's social proof: how many people accepted this same campaign and
+     * what they rated it. Two extra queries, paid once here rather than on every row of
+     * the list endpoint.
+     */
+    @Transactional(readOnly = true)
+    public SubscriberOfferResponse subscriberOfferDetail(UUID offerId, UUID subscriberId) {
+        Offer offer = load(offerId, subscriberId);
+        UUID campaignId = offer.getCampaign().getId();
+
+        long accepted = offerRepository.countByCampaignIdAndStatus(campaignId, OfferStatus.ACCEPTED);
+        long ratingCount = offerRepository.countByCampaignIdAndStarsIsNotNull(campaignId);
+        BigDecimal averageRating = ratingCount == 0
+                ? null
+                : BigDecimal.valueOf(offerRepository.averageStarsForCampaign(campaignId))
+                        .setScale(1, java.math.RoundingMode.HALF_UP);
+
+        return SubscriberOfferResponse.from(offer, accepted, averageRating, ratingCount);
     }
 
     /** Both offer endpoints answer with the row itself; only the mapping differs. */

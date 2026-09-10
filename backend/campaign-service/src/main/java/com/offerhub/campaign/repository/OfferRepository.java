@@ -58,4 +58,17 @@ public interface OfferRepository extends JpaRepository<Offer, UUID> {
     long countByStatusNot(OfferStatus status);
 
     long countByStatus(OfferStatus status);
+
+    /**
+     * Social proof for the offer detail screen: how many other subscribers accepted this
+     * same campaign. Counted across everybody who was offered it, not just the caller.
+     */
+    long countByCampaignIdAndStatus(UUID campaignId, OfferStatus status);
+
+    /** How many of those acceptances went on to be rated - the denominator for the average. */
+    long countByCampaignIdAndStarsIsNotNull(UUID campaignId);
+
+    /** Null when nobody has rated this campaign yet, never zero - zero would be a real, bad score. */
+    @Query("select avg(o.stars) from Offer o where o.campaign.id = :campaignId and o.stars is not null")
+    Double averageStarsForCampaign(@Param("campaignId") UUID campaignId);
 }

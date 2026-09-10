@@ -1,0 +1,642 @@
+﻿[
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000029",
+        "title":  "Riskli Kayip - Cihaz Firsati (Uzman4)",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.870,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000020",
+        "title":  "Yeni Abone - Cihaz Taksit Firsati",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.870,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000018",
+        "title":  "Riskli Kayip - Cihaz Firsati",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.870,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000014",
+        "title":  "Yuksek Deger - Cihaz Yenileme",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.870,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000010",
+        "title":  "Smoke cihaz 211219",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.870,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000006",
+        "title":  "Smoke cihaz 205720",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.870,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000013",
+        "title":  "Yuksek Deger - Sadakat Bonusu",
+        "type":  "SADAKAT",
+        "score":  0.860,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000021",
+        "title":  "Yeni Abone - Sadakat Programi Girisi",
+        "type":  "SADAKAT",
+        "score":  0.860,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000022",
+        "title":  "Pasif - Geri Kazanim Sadakat",
+        "type":  "SADAKAT",
+        "score":  0.860,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000009",
+        "title":  "Smoke churn 211219",
+        "type":  "SADAKAT",
+        "score":  0.860,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000005",
+        "title":  "Smoke churn 205720",
+        "type":  "SADAKAT",
+        "score":  0.860,
+        "highlighted":  true,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000028",
+        "title":  "Riskli Kayip - Tarife Teklifi (Uzman4)",
+        "type":  "TARIFE_YUKSELTME",
+        "score":  0.760,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000017",
+        "title":  "Riskli Kayip - Tarife Yukseltme Teklifi",
+        "type":  "TARIFE_YUKSELTME",
+        "score":  0.760,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000030",
+        "title":  "Pasif - Tarife Yukseltme (Uzman4)",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000027",
+        "title":  "Yeni Abone - Sadakat Baslangici (Uzman3)",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000026",
+        "title":  "Pasif - Ek Paket Denemesi (Uzman3)",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000025",
+        "title":  "Riskli Kayip - Ek Paket (Uzman3)",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000024",
+        "title":  "Pasif - Ek Paket Hatirlatma",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000019",
+        "title":  "Yeni Abone - Hosgeldin Ek Paketi",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000016",
+        "title":  "Riskli Kayip - Ozel Ek Paket",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000015",
+        "title":  "Yuksek Deger - Ek Paket Firsati",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000001",
+        "title":  "5GB EK PAKET",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000012",
+        "title":  "x\u0027); DROP TABLE campaigns;--",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000011",
+        "title":  "\u0027 OR 1=1 --",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000008",
+        "title":  "x\u0027); DROP TABLE campaigns;--",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000007",
+        "title":  "\u0027 OR 1=1 --",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000004",
+        "title":  "AI Down Resilience Test",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000002",
+        "title":  "10GB EK PAKET",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 1 (SUB-0006)",
+        "phone":  "5550000001",
+        "campaignNo":  "CMP-2026-000003",
+        "title":  "20GB EK PAKET",
+        "type":  "EK_PAKET",
+        "score":  0.720,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000029",
+        "title":  "Riskli Kayip - Cihaz Firsati (Uzman4)",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.79,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000020",
+        "title":  "Yeni Abone - Cihaz Taksit Firsati",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.79,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000018",
+        "title":  "Riskli Kayip - Cihaz Firsati",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.79,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000014",
+        "title":  "Yuksek Deger - Cihaz Yenileme",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.79,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000010",
+        "title":  "Smoke cihaz 211219",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.79,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000006",
+        "title":  "Smoke cihaz 205720",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.79,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000013",
+        "title":  "Yuksek Deger - Sadakat Bonusu",
+        "type":  "SADAKAT",
+        "score":  0.77,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000021",
+        "title":  "Yeni Abone - Sadakat Programi Girisi",
+        "type":  "SADAKAT",
+        "score":  0.77,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000022",
+        "title":  "Pasif - Geri Kazanim Sadakat",
+        "type":  "SADAKAT",
+        "score":  0.77,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000009",
+        "title":  "Smoke churn 211219",
+        "type":  "SADAKAT",
+        "score":  0.77,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000005",
+        "title":  "Smoke churn 205720",
+        "type":  "SADAKAT",
+        "score":  0.77,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000028",
+        "title":  "Riskli Kayip - Tarife Teklifi (Uzman4)",
+        "type":  "TARIFE_YUKSELTME",
+        "score":  0.63,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Yuksek Deger 2 (SUB-0046)",
+        "phone":  "5550000002",
+        "campaignNo":  "CMP-2026-000017",
+        "title":  "Riskli Kayip - Tarife Yukseltme Teklifi",
+        "type":  "TARIFE_YUKSELTME",
+        "score":  0.63,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000029",
+        "title":  "Riskli Kayip - Cihaz Firsati (Uzman4)",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000020",
+        "title":  "Yeni Abone - Cihaz Taksit Firsati",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000018",
+        "title":  "Riskli Kayip - Cihaz Firsati",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000014",
+        "title":  "Yuksek Deger - Cihaz Yenileme",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000010",
+        "title":  "Smoke cihaz 211219",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000006",
+        "title":  "Smoke cihaz 205720",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000013",
+        "title":  "Yuksek Deger - Sadakat Bonusu",
+        "type":  "SADAKAT",
+        "score":  0.69,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000021",
+        "title":  "Yeni Abone - Sadakat Programi Girisi",
+        "type":  "SADAKAT",
+        "score":  0.69,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000022",
+        "title":  "Pasif - Geri Kazanim Sadakat",
+        "type":  "SADAKAT",
+        "score":  0.69,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000009",
+        "title":  "Smoke churn 211219",
+        "type":  "SADAKAT",
+        "score":  0.69,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 1 (SUB-0043)",
+        "phone":  "5550000007",
+        "campaignNo":  "CMP-2026-000005",
+        "title":  "Smoke churn 205720",
+        "type":  "SADAKAT",
+        "score":  0.69,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000029",
+        "title":  "Riskli Kayip - Cihaz Firsati (Uzman4)",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.73,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000020",
+        "title":  "Yeni Abone - Cihaz Taksit Firsati",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.73,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000018",
+        "title":  "Riskli Kayip - Cihaz Firsati",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.73,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000014",
+        "title":  "Yuksek Deger - Cihaz Yenileme",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.73,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000010",
+        "title":  "Smoke cihaz 211219",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.73,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000006",
+        "title":  "Smoke cihaz 205720",
+        "type":  "CIHAZ_FIRSATI",
+        "score":  0.73,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000013",
+        "title":  "Yuksek Deger - Sadakat Bonusu",
+        "type":  "SADAKAT",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000021",
+        "title":  "Yeni Abone - Sadakat Programi Girisi",
+        "type":  "SADAKAT",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000022",
+        "title":  "Pasif - Geri Kazanim Sadakat",
+        "type":  "SADAKAT",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000009",
+        "title":  "Smoke churn 211219",
+        "type":  "SADAKAT",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    },
+    {
+        "subscriber":  "Pasif 2 (SUB-0032)",
+        "phone":  "5550000008",
+        "campaignNo":  "CMP-2026-000005",
+        "title":  "Smoke churn 205720",
+        "type":  "SADAKAT",
+        "score":  0.71,
+        "highlighted":  false,
+        "status":  "PENDING"
+    }
+]

@@ -14,7 +14,10 @@ data class Offer(
     val status: OfferStatus,
     val type: OfferType,
     val acceptedAt: String? = null,
-    val rating: Int? = null
+    val rating: Int? = null,
+    val previousAcceptedCount: Long = 0,
+    val averageRating: Double? = null,
+    val ratingCount: Long = 0
 )
 
 enum class OfferStatus{

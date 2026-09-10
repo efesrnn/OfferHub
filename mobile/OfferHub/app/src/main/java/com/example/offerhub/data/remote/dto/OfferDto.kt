@@ -16,7 +16,10 @@ data class OfferDto(
     val status: String,
     val type: String,
     val acceptedAt: String? = null,
-    val rating: Int? = null
+    val rating: Int? = null,
+    val previousAcceptedCount: Long = 0,
+    val averageRating: Double? = null,
+    val ratingCount: Long = 0
 )
 
 fun OfferDto.toDomain(): Offer? {
@@ -42,7 +45,10 @@ fun OfferDto.toDomain(): Offer? {
         status = offerStatus,
         type = offerType,
         acceptedAt = acceptedAt,
-        rating = rating
+        rating = rating,
+        previousAcceptedCount = previousAcceptedCount,
+        averageRating = averageRating,
+        ratingCount = ratingCount
     )
 }
 

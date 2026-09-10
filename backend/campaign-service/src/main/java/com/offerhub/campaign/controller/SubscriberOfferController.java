@@ -70,6 +70,9 @@ public class SubscriberOfferController {
                     checked against the caller in the token, so changing the id in the path gets
                     nothing.
 
+                    Unlike the list, this carries social proof: how many subscribers accepted the
+                    same campaign and its average rating, null when nobody has rated it yet.
+
                     Roles: SUBSCRIBER.""")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
@@ -81,7 +84,7 @@ public class SubscriberOfferController {
     @GetMapping("/{offerId}")
     public ApiResponse<SubscriberOfferResponse> get(@PathVariable UUID offerId, CallerIdentity caller) {
         caller.requireAnyOf(Role.SUBSCRIBER);
-        return ApiResponse.ok(SubscriberOfferResponse.from(offerService.offerOf(offerId, caller.userId())));
+        return ApiResponse.ok(offerService.subscriberOfferDetail(offerId, caller.userId()));
     }
 
     @Operation(summary = "Accept an offer",

@@ -10,6 +10,11 @@
     <string name="offer_valid_until_label">Son geçerlilik tarihi</string>
     <string name="offer_status_label">Durum</string>
     <string name="offer_accepted_on_label">Kabul tarihi</string>
+    <string name="offer_accepted_by_label">Kabul eden</string>
+    <string name="offer_accepted_by_value">%1$d kişi</string>
+    <string name="offer_average_rating_label">Ortalama puan</string>
+    <string name="offer_average_rating_value">%1$s ★ (%2$d değerlendirme)</string>
+    <string name="offer_no_ratings_yet">Henüz değerlendirme yok</string>
     <string name="offer_rate_experience">Deneyiminizi puanlayın</string>
     <string name="offer_accept">Kabul et</string>
     <string name="offer_accept_confirmation_title">Teklif kabul edilsin mi?</string>
