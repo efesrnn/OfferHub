@@ -6,6 +6,7 @@ import com.example.offerhub.data.remote.dto.AssignCaseRequest
 import com.example.offerhub.data.remote.dto.CaseDto
 import com.example.offerhub.data.remote.dto.StatusChangeRequest
 import com.example.offerhub.data.remote.dto.CampaignDto
+import com.example.offerhub.data.remote.dto.ClassificationRequest
 import com.example.offerhub.data.remote.dto.CreateCampaignRequest
 import retrofit2.Response
 import retrofit2.http.Body
@@ -32,6 +33,12 @@ interface ExpertApi {
     @GET("api/v1/campaigns/{campaignNo}")
     suspend fun getCampaignDetail(
         @Path("campaignNo") campaignNo: String
+    ): Response<ApiResponse<CampaignDto>>
+
+    @PATCH("api/v1/campaigns/{campaignNo}/classification")
+    suspend fun reclassifyCampaign(
+        @Path("campaignNo") campaignNo: String,
+        @Body request: ClassificationRequest
     ): Response<ApiResponse<CampaignDto>>
 
     @GET("api/v1/cases")

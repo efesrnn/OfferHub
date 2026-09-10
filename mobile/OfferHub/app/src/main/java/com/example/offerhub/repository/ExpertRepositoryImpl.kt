@@ -12,6 +12,7 @@ import com.example.offerhub.data.network.PagedResult
 import com.example.offerhub.data.remote.ExpertApi
 import com.example.offerhub.data.remote.dto.CaseDto
 import com.example.offerhub.data.remote.dto.CampaignDto
+import com.example.offerhub.data.remote.dto.ClassificationRequest
 import com.example.offerhub.data.remote.dto.CreateCampaignRequest
 import com.example.offerhub.data.remote.dto.StatusChangeRequest
 import com.example.offerhub.data.remote.dto.toDomain
@@ -111,6 +112,20 @@ class ExpertRepositoryImpl(
             request = StatusChangeRequest(
                 targetStatus = targetStatus.name,
                 optimizationNote = optimizationNote?.trim()?.takeIf { it.isNotEmpty() }
+            )
+        )
+    }
+
+    override suspend fun overrideSegment(
+        campaignNo: String,
+        segment: Segment,
+        reason: String
+    ): ExpertResult<Campaign> = campaignCall {
+        api.reclassifyCampaign(
+            campaignNo = campaignNo,
+            request = ClassificationRequest(
+                segment = segment.name,
+                reason = reason.trim()
             )
         )
     }

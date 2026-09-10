@@ -9,6 +9,7 @@ import com.example.offerhub.data.model.auth.ChangePasswordRequest
 import com.example.offerhub.data.model.auth.OtpRequestData
 import com.example.offerhub.data.model.auth.OtpRequestRequest
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
+import com.example.offerhub.data.model.auth.RefreshRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
 import com.example.offerhub.data.model.auth.SubscriberRegisterRequest
@@ -78,7 +79,53 @@ class AuthRepository(
             is AuthResult.Failure -> this
         }
 
+    /**
+     * The refresh response never carries a phone (identity's AuthUserResponse has no such
+     * field, only login/otp-verify get one). Without this, a subscriber's phone number would
+     * silently disappear from the session the first time their access token refreshes.
+     */
+    private fun AuthResult<AuthData>.withPreservedPhone(phone: String?): AuthResult<AuthData> =
+        when {
+            this is AuthResult.Success && phone != null ->
+                AuthResult.Success(value.copy(user = value.user.copy(phone = phone)))
+            else -> this
+        }
+
     suspend fun clearLocalSession() {
+        tokenStorage.clear()
+    }
+
+    /**
+     * Spends the stored refresh token for a new access/refresh pair. Called by
+     * TokenAuthenticator when a request comes back 401, never directly by a screen - this is
+     * what makes the access token's 15-minute expiry invisible to the rest of the app.
+     *
+     * On failure the local session is cleared: a rejected refresh token means the session is
+     * over server-side (expired, or logged out from elsewhere), so holding onto the old
+     * tokens would only produce more 401s.
+     */
+    suspend fun refresh(): AuthResult<AuthData> {
+        val stored = tokenStorage.read() ?: return AuthResult.Failure(ApiError("SESSION_EXPIRED"))
+
+        val result = call { api.refresh(RefreshRequest(stored.refreshToken)) }
+            .withPreservedPhone(stored.phone)
+            .saveTokensOnSuccess()
+
+        if (result is AuthResult.Failure) {
+            tokenStorage.clear()
+        }
+        return result
+    }
+
+    /**
+     * Best-effort: tells the server to revoke the refresh token so it cannot be replayed,
+     * but the local session is cleared either way. A logout that "fails" because the network
+     * is down should still log the user out on this device.
+     */
+    suspend fun logout() {
+        tokenStorage.read()?.let { stored ->
+            runCatching { api.logout(RefreshRequest(stored.refreshToken)) }
+        }
         tokenStorage.clear()
     }
 

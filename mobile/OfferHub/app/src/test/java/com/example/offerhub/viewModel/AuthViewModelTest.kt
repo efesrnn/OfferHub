@@ -149,6 +149,18 @@ class AuthViewModelTest {
         ): Response<ApiResponse<Unit>> {
             error("Not required for this test")
         }
+
+        override suspend fun refresh(
+            request: com.example.offerhub.data.model.auth.RefreshRequest
+        ): Response<ApiResponse<AuthData>> {
+            error("Not required for this test")
+        }
+
+        override suspend fun logout(
+            request: com.example.offerhub.data.model.auth.RefreshRequest
+        ): Response<ApiResponse<Unit>> {
+            error("Not required for this test")
+        }
     }
     @Test
     fun `failed otp delivery shows error without opening verification`() =

@@ -399,6 +399,15 @@
     <string name="error_invalid_state_transition">Bu işlem mevcut vaka durumunda kullanılamaz.</string>
     <string name="error_optimization_note_required">Vakayı tamamlamak için optimizasyon notu girin.</string>
     <string name="error_invalid_optimization_note">Not en fazla 1000 karakter olmalı ve açılı parantez içermemelidir.</string>
+    <string name="expert_override_segment">Segmenti düzelt</string>
+    <string name="expert_override_segment_hint">Yapay zekanın bu kampanyanın segmentini yanlış belirlediğini düşünüyorsanız doğru segmenti seçip nedenini açıklayın.</string>
+    <string name="expert_override_segment_reason">Neden</string>
+    <string name="expert_override_segment_submit">Düzeltmeyi kaydet</string>
+    <string name="expert_override_segment_submitting">Kaydediliyor…</string>
+    <string name="expert_segment_override_success">Segment güncellendi</string>
+    <string name="error_segment_override_segment_required">Bir segment seçin.</string>
+    <string name="error_segment_override_reason_required">Düzeltme için bir neden girin.</string>
+    <string name="error_invalid_segment_override_reason">Neden en fazla 500 karakter olmalı ve açılı parantez içermemelidir.</string>
     <string name="expert_profile">Uzman Profili</string>
     <string name="expert_completed_cases">Tamamlanan Vakalar</string>
     <string name="expert_status_filter">Durum</string>

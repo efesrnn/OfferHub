@@ -14,6 +14,8 @@
 - Yazılı güvenlik testi notu artık var, spec'in istediğinin çok ötesinde: `docs/GUVENLIK-TESTLERI.md` + `scripts/test/security.sh` — 35 otomatik kontrol (SQL injection, XSS, token manipülasyonu, IDOR, brute-force).
 - Resilience/servis kapatma testi eklendi: `scripts/test/resilience.sh` — AI ve Gamification kapatılınca kampanya akışının ayakta kaldığı, AI kapalıyken BELIRSIZ/ORTA fallback'in çalıştığı otomatik doğrulanıyor.
 - `TEST_EDILIYOR→OPTIMIZE_EDILIYOR` geçişinin hâlâ sadece Süpervizör'de olması artık bilinçli/dokümante edilmiş bir tasarım kararı ("Sistem" satırlarının arkasında henüz scheduler yok) — unutulmuş bir eksik değil.
+- **Kritik madde #5 kapatıldı: mobilde segment override.** Uzman ekranında vaka detayına "Segmenti düzelt" aksiyonu eklendi (`ExpertApi.reclassifyCampaign` → backend'in mevcut `PATCH /api/v1/campaigns/{campaignNo}/classification` endpoint'i). Yeni bir bottom sheet (`SegmentOverrideSheet`) segment seçimi + zorunlu neden alanı (max 500 karakter, `<`/`>` yasak — backend'in `@Pattern` kuralıyla birebir) sunuyor; başarılı gönderimde vaka detayı yeniden çekiliyor (vaka'nın segmenti backend'de kampanyadan canlı okunduğu için bu yeterli). `ExpertRepository`/`ExpertRepositoryImpl`/`ExpertViewModel`/`MockExpertRepository` güncellendi, iki yeni birim testi eklendi.
+- **Kritik madde #6 kapatıldı: mobilde şeffaf (silent) token yenileme.** Uygulama genelinde tek bir `TokenAuthenticator` (OkHttp `Authenticator`) eklendi — 401 alan herhangi bir istekte otomatik olarak `/api/v1/auth/refresh`'i dener, `Mutex` ile eşzamanlı yenileme denemelerini seri hale getirir (backend'in tek kullanımlık rotating refresh token'ları nedeniyle paralel refresh çağrısı "çalıntı token" sayılıp tüm oturumları iptal ederdi). Yenileme başarısız olursa `SessionEvents` üzerinden uygulama genelinde oturum sonlandırma tetiklenip kullanıcı login ekranına düşüyor. `AuthRepository.refresh()`/`logout()` eklendi, abonenin telefon numarası refresh sonrası kaybolmasın diye `withPreservedPhone` eklendi (backend `/refresh` yanıtı telefon içermiyor).
 
 ## 🔴 Demoyu veya çalışmayı doğrudan riske atan kritik maddeler
 
@@ -21,10 +23,10 @@
 2. ~~Gamification kapalıyken gateway 500 dönüyor, 503 değil~~ ✅ **kapatıldı** — `GatewayErrorHandler.isUnreachable` artık `ConnectException` yerine `SocketException`'a bakıyor, hem `AnnotatedConnectException` hem `AnnotatedNoRouteToHostException` yakalanıyor. `resilience.sh`'deki "BİLİNEN AÇIK" notu kaldırıldı.
 3. ~~Identity Service'te `application.yml` bulunamadı~~ ❌ **yanlış alarm** — `application.yaml` zaten var (ilk taramada `.yaml` uzantısı gözden kaçmış), `jwt.secret`/token süreleri/admin seed/SMS key hepsi doğru bağlanmış, `JWT_SECRET` de kök `.env` dosyasında zaten set. Servis sorunsuz açılıyor olmalı, yapılacak bir şey yok.
 4. ~~Refresh token akışı yok~~ ✅ **kapatıldı** — `/api/v1/auth/refresh` ve `/api/v1/auth/logout` eklendi, yeni `refresh_tokens` tablosunda saklanıyor, rotation ve theft-protection (tekrar kullanılan token → kullanıcının tüm oturumları sonlandırılır) çalışıyor. Ayrıntı için aşağıya bakın.
-5. **Mobilde segment override özelliği tamamen yok** (spec'te açıkça zorunlu, AI doğruluk takibini tetikliyor). Kod içinde `override` diye aratınca sadece Kotlin'in `override fun` anahtar kelimesi çıkıyor.
-6. **Mobilde token yenileme "şeffaf" değil, tam tersi.** Spec "access token dolunca kullanıcı atılmamalı" diyor; kodda süre dolunca oturum siliniyor ve kullanıcı login ekranına düşüyor. `AuthRepository`'de `refresh()` metodu bile yok — artık backend'de `/refresh` endpoint'i hazır olduğu için bu sadece mobil tarafında kalan bir kablolama işi.
+5. ~~Mobilde segment override özelliği tamamen yok~~ ✅ **kapatıldı** — vaka detayında "Segmenti düzelt" aksiyonu, backend'in mevcut classification endpoint'ine bağlandı. Ayrıntı için yukarıdaki "Düzeltilenler" bölümüne bakın.
+6. ~~Mobilde token yenileme "şeffaf" değil~~ ✅ **kapatıldı** — app genelinde tek `TokenAuthenticator` + `Mutex` ile 401'de otomatik/güvenli refresh, başarısızlıkta otomatik logout. Ayrıntı için yukarıdaki "Düzeltilenler" bölümüne bakın.
 
-Not: 5-6 maddeler Mobil'e ait, backend2'nin push'u kapsamıyor. `mvn` ile derleme bu ortamda çalıştırılamadı (sandbox kapalıydı) — repoyu senkronlarken bir `mvn compile` ile teyit etmen iyi olur.
+Not: Bu oturumda shell/derleme sandbox'ı çöktüğü için (`mvn compile` / `./gradlew build` hiç çalıştırılamadı) hem backend hem mobil değişiklikler yalnızca dikkatli manuel kod okumasıyla doğrulandı, gerçek bir derleme doğrulaması yapılamadı. Repoyu senkronlarken hem `mvn compile` hem `./gradlew build` (veya Android Studio'da bir build) ile teyit etmen önemli.
 
 ---
 
@@ -129,7 +131,7 @@ Mock data sadece `@Preview` composable'larında kullanılıyor; production build
 | SLA renk kodlaması (kırmızı/turuncu/normal) | KISMİ — sadece süpervizör panelinde var, uzman listesinde yok |
 | Vaka detayı (AI segment, tahmin, skor) | TAM |
 | Durum geçişi, geçersiz buton pasif | KISMİ — geçersiz geçişler engelleniyor ama "pasif buton" yerine metin gösteriliyor |
-| Segment override | **YOK** — kritik madde #4 |
+| Segment override | ✅ TAM (düzeltildi) — kritik madde #5 |
 | Optimizasyon notuyla tamamlama | TAM |
 | Gamification profili | TAM |
 | Liderlik tablosu (günlük/haftalık) | TAM |
@@ -144,7 +146,7 @@ Mock data sadece `@Preview` composable'larında kullanılıyor; production build
 |---|---|
 | Tutarlı tasarım sistemi | TAM |
 | Loading/error/empty state | TAM |
-| Şeffaf token yenileme | **YOK** — kritik madde #5, `refresh()` metodu yok |
+| Şeffaf token yenileme | ✅ TAM (düzeltildi) — kritik madde #6, app-wide `TokenAuthenticator` |
 | Rol bazlı navigasyon | KISMİ — giriş sonrası doğru role yönleniyor ama nav graph'ta runtime rol koruması yok |
 | Mobil ölçekli grafikler | TAM |
 | Offline/ağ hatası mesajı | TAM |
@@ -204,11 +206,11 @@ Mock data sadece `@Preview` composable'larında kullanılıyor; production build
 ## Öncelik sıralı yapılacaklar listesi (demo öncesi)
 
 1. ~~`docker-compose.yml`'de identity/campaign/ai/gamification portlarını host'a açma~~ ✅ **yapıldı** — portlar kaldırıldı, `security.sh` ve `resilience.sh` buna göre güncellendi.
-2. Gamification kapalıyken gateway'in 500 yerine 503 dönmesi için `GatewayErrorHandler.isUnreachable`'ı `SocketException`'a göre kontrol edecek şekilde düzelt (kritik madde #2, backend2 tarafından bulundu).
+2. ~~Gamification kapalıyken gateway'in 500 yerine 503 dönmesi~~ ✅ **yapıldı** — `GatewayErrorHandler.isUnreachable` artık `SocketException`'a göre kontrol ediyor.
 3. ~~Identity Service'in config dosyasını (`application.yml`) doğrula/oluştur~~ ✅ **gerek yokmuş** — zaten vardı.
 4. ~~Refresh token akışını ekle~~ ✅ **yapıldı** — `/refresh`, `/logout`, DB'de saklama, rotation, theft-protection.
-5. Mobilde segment override ekranı/aksiyonu ekle.
-6. Mobilde token yenileme mantığını gerçek "silent refresh"e çevir (401 alınca `/api/v1/auth/refresh`'i dene, olmazsa logout) — backend tarafı artık hazır.
+5. ~~Mobilde segment override ekranı/aksiyonu ekle~~ ✅ **yapıldı**.
+6. ~~Mobilde token yenileme mantığını gerçek "silent refresh"e çevir~~ ✅ **yapıldı** — app-wide `TokenAuthenticator` + `Mutex`, başarısızlıkta otomatik logout.
 7. Şifre politikası validasyonunu Identity Service'e ekle (kural bazlı hata mesajlarıyla).
 8. Identity Service ve AI Service README'lerini, `docs/architecture.md` ve `docs/ai-approach.md` dosyalarını doldur — içerik zaten kodda var, sadece yazılması gerekiyor (Campaign+Gamification için bu zaten yapıldı, örnek alınabilir).
 

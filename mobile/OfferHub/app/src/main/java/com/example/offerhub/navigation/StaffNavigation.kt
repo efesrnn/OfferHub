@@ -288,6 +288,8 @@ fun NavGraphBuilder.staffRoleGraphs(
             errorMessage = expertState.detailErrorMessage?.asString(),
             isNotFound = expertState.isDetailNotFound,
             actionErrorMessage = expertState.actionErrorMessage?.asString(),
+            isOverridingSegment = expertState.isOverridingSegment,
+            segmentOverrideError = expertState.segmentOverrideError?.asString(),
             onBackClick = navController::popBackStack,
             onRetryClick = {
                 if (expertState.isDetailNotFound) {
@@ -298,7 +300,9 @@ fun NavGraphBuilder.staffRoleGraphs(
             },
             onRefresh = { expertViewModel.loadCaseDetail(caseId) },
             onChangeStatus = expertViewModel::changeCaseStatus,
-            onClearActionError = expertViewModel::clearActionError
+            onClearActionError = expertViewModel::clearActionError,
+            onOverrideSegment = expertViewModel::overrideSegment,
+            onClearSegmentOverrideError = expertViewModel::clearSegmentOverrideError
         )
     }
     composable(Routes.SUPERVISOR_HOME) {

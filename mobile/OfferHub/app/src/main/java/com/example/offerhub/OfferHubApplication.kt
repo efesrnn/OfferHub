@@ -2,9 +2,11 @@ package com.example.offerhub
 
 import android.app.Application
 import com.example.offerhub.data.local.KeystoreTokenStorage
+import com.example.offerhub.data.local.SessionEvents
 import com.example.offerhub.data.local.SessionTokenProvider
 import com.example.offerhub.data.mock.MockOfferData
 import com.example.offerhub.data.remote.ApiClient
+import com.example.offerhub.data.remote.TokenAuthenticator
 import com.example.offerhub.repository.AuthRepository
 import com.example.offerhub.repository.MockSubscriberRepository
 import com.example.offerhub.repository.SubscriberRepositoryImpl
@@ -27,6 +29,9 @@ class OfferHubApplication : Application() {
         KeystoreTokenStorage(applicationContext, sessionTokenProvider)
     }
 
+    /** Fires when a silent token refresh fails, so the UI can fall back to a real logout. */
+    val sessionEvents = SessionEvents()
+
     val authRepository: AuthRepository by lazy {
         AuthRepository(
             ApiClient.createAuthApi(sessionTokenProvider),
@@ -34,9 +39,18 @@ class OfferHubApplication : Application() {
         )
     }
 
+    /**
+     * Shared by every API client below except AuthApi's own (see ApiClient.createAuthApi for
+     * why). One instance app-wide so its mutex actually serializes refresh attempts across
+     * every screen instead of each client racing its own copy.
+     */
+    private val tokenAuthenticator by lazy {
+        TokenAuthenticator(authRepository, sessionTokenProvider, sessionEvents)
+    }
+
     val realSubscriberRepository by lazy {
         SubscriberRepositoryImpl(
-            ApiClient.createSubscriberApi(sessionTokenProvider)
+            ApiClient.createSubscriberApi(sessionTokenProvider, tokenAuthenticator)
         )
     }
 
@@ -53,7 +67,7 @@ class OfferHubApplication : Application() {
             MockAdminRepository()
         } else {
             AdminRepositoryImpl(
-                ApiClient.createAdminApi(sessionTokenProvider)
+                ApiClient.createAdminApi(sessionTokenProvider, tokenAuthenticator)
             )
         }
     }
@@ -63,7 +77,7 @@ class OfferHubApplication : Application() {
             MockExpertRepository()
         } else {
             ExpertRepositoryImpl(
-                ApiClient.createExpertApi(sessionTokenProvider)
+                ApiClient.createExpertApi(sessionTokenProvider, tokenAuthenticator)
             )
         }
     }
@@ -73,7 +87,7 @@ class OfferHubApplication : Application() {
             MockGamificationRepository()
         } else {
             GamificationRepositoryImpl(
-                ApiClient.createGamificationApi(sessionTokenProvider)
+                ApiClient.createGamificationApi(sessionTokenProvider, tokenAuthenticator)
             )
         }
     }
@@ -83,7 +97,7 @@ class OfferHubApplication : Application() {
             MockSupervisorRepository()
         } else {
             SupervisorRepositoryImpl(
-                ApiClient.createSupervisorApi(sessionTokenProvider)
+                ApiClient.createSupervisorApi(sessionTokenProvider, tokenAuthenticator)
             )
         }
     }

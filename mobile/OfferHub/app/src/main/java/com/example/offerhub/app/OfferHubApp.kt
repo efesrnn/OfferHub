@@ -16,7 +16,7 @@ import com.example.offerhub.viewModel.SupervisorViewModel
 fun OfferHubApp() {
     val application = LocalContext.current.applicationContext as OfferHubApplication
     val authViewModel: AuthViewModel = viewModel(
-        factory = AuthViewModel.Factory(application.authRepository)
+        factory = AuthViewModel.Factory(application.authRepository, application.sessionEvents)
     )
     val subscriberViewModel: SubscriberViewModel = viewModel(
         factory = SubscriberViewModel.Factory(application.subscriberRepository)

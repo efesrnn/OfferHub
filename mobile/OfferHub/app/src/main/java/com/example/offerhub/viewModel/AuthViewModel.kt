@@ -3,6 +3,7 @@ package com.example.offerhub.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.offerhub.data.local.SessionEvents
 import com.example.offerhub.data.model.auth.AuthMode
 import com.example.offerhub.data.model.auth.AuthUser
 import com.example.offerhub.data.network.ApiError
@@ -35,7 +36,10 @@ data class AuthUiState(
     val lockRemainingSeconds: Long = 0
 )
 
-class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
+class AuthViewModel(
+    private val repository: AuthRepository,
+    private val sessionEvents: SessionEvents = SessionEvents()
+) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
     private var lockJob: Job? = null
@@ -44,6 +48,15 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     init {
         restoreSession()
+        viewModelScope.launch {
+            sessionEvents.expired.collect {
+                // A silent refresh failed somewhere in the app: the server no longer
+                // recognizes this session, so drop back to the login screen the same way a
+                // manual logout would rather than leaving stale screens up that just fail
+                // every request from here on.
+                logout()
+            }
+        }
     }
 
     private fun restoreSession() {
@@ -253,7 +266,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     fun logout(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             pendingCurrentPassword = null
-            repository.clearLocalSession()
+            repository.logout()
             lockJob?.cancel()
             resendCooldownJob?.cancel()
             _uiState.value = AuthUiState(isSessionChecking = false)
@@ -369,9 +382,13 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         else -> R.string.error_unknown
     })
 
-    class Factory(private val repository: AuthRepository) : ViewModelProvider.Factory {
+    class Factory(
+        private val repository: AuthRepository,
+        private val sessionEvents: SessionEvents = SessionEvents()
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = AuthViewModel(repository) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            AuthViewModel(repository, sessionEvents) as T
     }
 
     private companion object {

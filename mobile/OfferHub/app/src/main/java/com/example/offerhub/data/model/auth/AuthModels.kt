@@ -14,6 +14,7 @@ data class OtpRequestData(val otpSent: Boolean)
 data class OtpVerifyRequest(val authMode: AuthMode, val phone: String, val credential: String)
 data class StaffLoginRequest(val email: String, val password: String)
 data class ChangePasswordRequest(val currentPassword: String, val newPassword: String)
+data class RefreshRequest(val refreshToken: String)
 
 data class AuthData(
     val accessToken: String,

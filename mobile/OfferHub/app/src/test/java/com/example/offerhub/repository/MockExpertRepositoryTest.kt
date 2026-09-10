@@ -74,4 +74,39 @@ class MockExpertRepositoryTest {
 
         assertTrue(result.value.items.isEmpty())
     }
+
+    @Test
+    fun `overriding segment updates the campaign and its cases`() = runBlocking {
+        val repository = MockExpertRepository()
+        val cases = (repository.getAssignedCases(0, 20) as ExpertResult.Success).value.items
+        val target = cases.first()
+
+        val result = repository.overrideSegment(
+            campaignNo = target.campaignNo,
+            segment = Segment.PASIF,
+            reason = "AI misread churn signal"
+        )
+
+        assertTrue(result is ExpertResult.Success)
+        assertEquals(Segment.PASIF, (result as ExpertResult.Success).value.segment)
+
+        val refreshedCase = (repository.getCaseDetail(target.caseId) as ExpertResult.Success).value
+        assertEquals(Segment.PASIF, refreshedCase.segment)
+    }
+
+    @Test
+    fun `overriding segment with blank reason is rejected`() = runBlocking {
+        val repository = MockExpertRepository()
+        val cases = (repository.getAssignedCases(0, 20) as ExpertResult.Success).value.items
+        val target = cases.first()
+
+        val result = repository.overrideSegment(
+            campaignNo = target.campaignNo,
+            segment = Segment.PASIF,
+            reason = "   "
+        )
+
+        assertTrue(result is ExpertResult.Failure)
+        assertEquals("VALIDATION_ERROR", (result as ExpertResult.Failure).error.code)
+    }
 }

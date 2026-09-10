@@ -45,4 +45,15 @@ interface ExpertRepository {
         targetStatus: CaseStatus,
         optimizationNote: String? = null
     ): ExpertResult<OptimizationCase>
+
+    /**
+     * Corrects the AI's segment call on the campaign behind a case. Returns the Campaign,
+     * not the case - the caller should refetch the case detail afterward to see the change
+     * reflected there (the case's segment is read live off the campaign, not copied).
+     */
+    suspend fun overrideSegment(
+        campaignNo: String,
+        segment: Segment,
+        reason: String
+    ): ExpertResult<Campaign>
 }

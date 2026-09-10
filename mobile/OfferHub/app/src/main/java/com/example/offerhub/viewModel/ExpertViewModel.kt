@@ -35,6 +35,8 @@ data class ExpertUiState(
     val isDetailNotFound: Boolean = false,
     val isSubmittingAction: Boolean = false,
     val actionErrorMessage: UiText? = null,
+    val isOverridingSegment: Boolean = false,
+    val segmentOverrideError: UiText? = null,
     val campaigns: List<Campaign> = emptyList(),
     val campaignPage: Int = 0,
     val campaignTotal: Long = 0,
@@ -177,6 +179,43 @@ class ExpertViewModel(private val repository: ExpertRepository) : ViewModel() {
     }
 
     fun clearActionError() = _uiState.update { it.copy(actionErrorMessage = null) }
+
+    fun overrideSegment(segment: Segment, reason: String) {
+        val selectedCase = _uiState.value.selectedCase ?: return
+        if (_uiState.value.isOverridingSegment) return
+
+        val normalizedReason = reason.trim()
+        if (normalizedReason.isEmpty()) {
+            _uiState.update { it.copy(segmentOverrideError = UiText.Resource(R.string.error_segment_override_reason_required)) }
+            return
+        }
+        if (normalizedReason.length > 500 || '<' in normalizedReason || '>' in normalizedReason) {
+            _uiState.update { it.copy(segmentOverrideError = UiText.Resource(R.string.error_invalid_segment_override_reason)) }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isOverridingSegment = true, segmentOverrideError = null) }
+            when (val result = repository.overrideSegment(selectedCase.campaignNo, segment, normalizedReason)) {
+                is ExpertResult.Success -> {
+                    _uiState.update { it.copy(isOverridingSegment = false) }
+                    _snackbarEvents.tryEmit(UiText.Resource(R.string.expert_segment_override_success))
+                    // Case's segment is read live off the campaign server-side, so refetch to see it.
+                    loadCaseDetail(selectedCase.caseId)
+                }
+                is ExpertResult.Failure -> _uiState.update {
+                    it.copy(
+                        isOverridingSegment = false,
+                        segmentOverrideError = if (result.error.code == "VALIDATION_ERROR") {
+                            UiText.Resource(R.string.error_invalid_segment_override_reason)
+                        } else campaignErrorMessage(result.error.code)
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearSegmentOverrideError() = _uiState.update { it.copy(segmentOverrideError = null) }
 
     fun loadCampaigns(
         reset: Boolean = true,

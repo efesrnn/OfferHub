@@ -168,6 +168,31 @@ class MockExpertRepository : ExpertRepository {
         return ExpertResult.Success(updated)
     }
 
+    override suspend fun overrideSegment(
+        campaignNo: String,
+        segment: Segment,
+        reason: String
+    ): ExpertResult<Campaign> {
+        delay(300)
+        val normalizedReason = reason.trim()
+        if (segment == Segment.UNKNOWN || normalizedReason.isEmpty() ||
+            normalizedReason.length > 500 || '<' in normalizedReason || '>' in normalizedReason
+        ) return ExpertResult.Failure(ApiError("VALIDATION_ERROR"))
+
+        val campaignIndex = campaigns.indexOfFirst { it.campaignNo == campaignNo }
+        if (campaignIndex == -1) return ExpertResult.Failure(ApiError("NOT_FOUND"))
+
+        val updatedCampaign = campaigns[campaignIndex].copy(segment = segment)
+        campaigns[campaignIndex] = updatedCampaign
+
+        // Mirrors the real backend: a case's segment is read live off its campaign.
+        cases.forEachIndexed { index, case ->
+            if (case.campaignNo == campaignNo) cases[index] = case.copy(segment = segment)
+        }
+
+        return ExpertResult.Success(updatedCampaign)
+    }
+
     private fun priorityRank(priority: Priority): Int = when (priority) {
         Priority.KRITIK -> 0
         Priority.YUKSEK -> 1

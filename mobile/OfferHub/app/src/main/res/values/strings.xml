@@ -396,6 +396,15 @@
     <string name="error_invalid_state_transition">This action is not allowed for the current case status.</string>
     <string name="error_optimization_note_required">Enter an optimization note to complete the case.</string>
     <string name="error_invalid_optimization_note">The note must be at most 1000 characters and cannot contain angle brackets.</string>
+    <string name="expert_override_segment">Correct segment</string>
+    <string name="expert_override_segment_hint">If the AI misclassified this campaign\'s segment, choose the correct one and explain why.</string>
+    <string name="expert_override_segment_reason">Reason</string>
+    <string name="expert_override_segment_submit">Save correction</string>
+    <string name="expert_override_segment_submitting">Saving…</string>
+    <string name="expert_segment_override_success">Segment updated</string>
+    <string name="error_segment_override_segment_required">Select a segment.</string>
+    <string name="error_segment_override_reason_required">Enter a reason for the correction.</string>
+    <string name="error_invalid_segment_override_reason">The reason must be at most 500 characters and cannot contain angle brackets.</string>
     <string name="expert_profile">Expert Profile</string>
     <string name="expert_completed_cases">Completed Cases</string>
     <string name="expert_status_filter">Status</string>

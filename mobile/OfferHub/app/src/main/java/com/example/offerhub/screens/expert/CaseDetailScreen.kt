@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -39,6 +40,7 @@ import com.example.offerhub.components.OfferHubDetailTopBar
 import com.example.offerhub.components.RefreshableContent
 import com.example.offerhub.data.model.campaign.CaseStatus
 import com.example.offerhub.data.model.campaign.OptimizationCase
+import com.example.offerhub.data.model.campaign.Segment
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -56,16 +58,27 @@ fun ExpertCaseDetailScreen(
     errorMessage: String?,
     isNotFound: Boolean,
     actionErrorMessage: String?,
+    isOverridingSegment: Boolean,
+    segmentOverrideError: String?,
     onBackClick: () -> Unit,
     onRetryClick: () -> Unit,
     onRefresh: () -> Unit,
     onChangeStatus: (CaseStatus, String?) -> Unit,
-    onClearActionError: () -> Unit
+    onClearActionError: () -> Unit,
+    onOverrideSegment: (Segment, String) -> Unit,
+    onClearSegmentOverrideError: () -> Unit
 ) {
     var showCompletionSheet by remember { mutableStateOf(false) }
+    var showSegmentOverrideSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(optimizationCase?.status) {
         if (optimizationCase?.status == CaseStatus.TAMAMLANDI) showCompletionSheet = false
+    }
+
+    LaunchedEffect(isOverridingSegment) {
+        if (!isOverridingSegment && segmentOverrideError == null && showSegmentOverrideSheet) {
+            showSegmentOverrideSheet = false
+        }
     }
 
     Scaffold(
@@ -105,6 +118,10 @@ fun ExpertCaseDetailScreen(
                     onClearActionError()
                     showCompletionSheet = true
                 },
+                onOverrideSegmentClick = {
+                    onClearSegmentOverrideError()
+                    showSegmentOverrideSheet = true
+                },
                 modifier = Modifier
             )
         }
@@ -122,6 +139,19 @@ fun ExpertCaseDetailScreen(
             onSubmit = { note -> onChangeStatus(CaseStatus.TAMAMLANDI, note) }
         )
     }
+
+    if (showSegmentOverrideSheet && optimizationCase != null) {
+        SegmentOverrideSheet(
+            currentSegment = optimizationCase.segment,
+            isSubmitting = isOverridingSegment,
+            backendError = segmentOverrideError,
+            onDismiss = {
+                onClearSegmentOverrideError()
+                showSegmentOverrideSheet = false
+            },
+            onSubmit = { segment, reason -> onOverrideSegment(segment, reason) }
+        )
+    }
 }
 
 @Composable
@@ -131,6 +161,7 @@ private fun CaseDetailContent(
     actionErrorMessage: String?,
     onChangeStatus: (CaseStatus) -> Unit,
     onCompleteClick: () -> Unit,
+    onOverrideSegmentClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -153,6 +184,10 @@ private fun CaseDetailContent(
         DetailRow(stringResource(R.string.expert_ai_segment), optimizationCase.aiSegment.localizedLabel())
         DetailRow(stringResource(R.string.expert_conversion_probability), optimizationCase.conversionProbability.toPercentage())
         DetailRow(stringResource(R.string.expert_recommendation_score), optimizationCase.recommendationScore?.let { "%.2f".format(it) } ?: stringResource(R.string.common_not_available))
+        OutlinedButton(
+            onClick = onOverrideSegmentClick,
+            modifier = Modifier.fillMaxWidth()
+        ) { Text(stringResource(R.string.expert_override_segment)) }
 
         Text(stringResource(R.string.expert_case_information), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         DetailRow(stringResource(R.string.expert_assigned_expert), optimizationCase.assignedExpertId ?: stringResource(R.string.common_not_available))
@@ -261,6 +296,92 @@ private fun OptimizationNoteSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(if (isSubmitting) stringResource(R.string.expert_completing) else stringResource(R.string.expert_complete))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SegmentOverrideSheet(
+    currentSegment: Segment,
+    isSubmitting: Boolean,
+    backendError: String?,
+    onDismiss: () -> Unit,
+    onSubmit: (Segment, String) -> Unit
+) {
+    var selectedSegment by remember { mutableStateOf<Segment?>(null) }
+    var reason by remember { mutableStateOf("") }
+    var submitAttempted by remember { mutableStateOf(false) }
+    val normalizedReason = reason.trim()
+    val containsInvalidCharacters = '<' in reason || '>' in reason
+    val isValid = selectedSegment != null && normalizedReason.isNotEmpty() && reason.length <= 500 && !containsInvalidCharacters
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            if (!isSubmitting) onDismiss()
+        },
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().imePadding().navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(stringResource(R.string.expert_override_segment), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.expert_override_segment_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            Text(stringResource(R.string.expert_current_segment) + ": " + currentSegment.localizedLabel())
+
+            Segment.entries.filterNot { it == Segment.UNKNOWN }.chunked(3).forEach { values ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    values.forEach { value ->
+                        FilterChip(
+                            selected = selectedSegment == value,
+                            onClick = { selectedSegment = value },
+                            label = { Text(value.localizedLabel()) }
+                        )
+                    }
+                }
+            }
+            if (submitAttempted && selectedSegment == null) {
+                Text(stringResource(R.string.error_segment_override_segment_required), color = MaterialTheme.colorScheme.error)
+            }
+
+            OutlinedTextField(
+                value = reason,
+                onValueChange = { if (it.length <= 500) reason = it },
+                label = { Text(stringResource(R.string.expert_override_segment_reason)) },
+                minLines = 3,
+                maxLines = 6,
+                isError = submitAttempted && (normalizedReason.isEmpty() || containsInvalidCharacters),
+                supportingText = {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        if (submitAttempted && normalizedReason.isEmpty()) {
+                            Text(stringResource(R.string.error_segment_override_reason_required))
+                        } else if (submitAttempted && containsInvalidCharacters) {
+                            Text(stringResource(R.string.error_invalid_segment_override_reason))
+                        } else {
+                            Text("")
+                        }
+                        Text(stringResource(R.string.common_character_count, reason.length, 500))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            backendError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            Button(
+                onClick = {
+                    submitAttempted = true
+                    val segment = selectedSegment
+                    if (isValid && segment != null) onSubmit(segment, normalizedReason)
+                },
+                enabled = !isSubmitting,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (isSubmitting) stringResource(R.string.expert_override_segment_submitting) else stringResource(R.string.expert_override_segment_submit))
             }
         }
     }

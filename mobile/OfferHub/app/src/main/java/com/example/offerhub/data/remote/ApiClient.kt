@@ -2,6 +2,7 @@ package com.example.offerhub.data.remote
 
 import com.example.offerhub.BuildConfig
 import com.example.offerhub.data.local.AccessTokenProvider
+import okhttp3.Authenticator
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -28,6 +29,11 @@ object ApiClient {
             )
             .build()
 
+    /**
+     * No authenticator on this one, deliberately: TokenAuthenticator's refresh call goes
+     * through this exact client (see AuthRepository/OfferHubApplication), so if this client
+     * authenticated itself, a failing /refresh would try to refresh its way out of failing.
+     */
     fun createAuthApi(tokenProvider: AccessTokenProvider): AuthApi {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(tokenProvider))
@@ -36,42 +42,47 @@ object ApiClient {
         return createRetrofit(client).create(AuthApi::class.java)
     }
 
-    fun createAdminApi(tokenProvider: AccessTokenProvider): AdminApi {
+    fun createAdminApi(tokenProvider: AccessTokenProvider, authenticator: Authenticator): AdminApi {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(tokenProvider))
             .addInterceptor(loggingInterceptor)
+            .authenticator(authenticator)
             .build()
         return createRetrofit(client).create(AdminApi::class.java)
     }
 
-    fun createSubscriberApi(tokenProvider: AccessTokenProvider): SubscriberApi {
+    fun createSubscriberApi(tokenProvider: AccessTokenProvider, authenticator: Authenticator): SubscriberApi {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(tokenProvider))
             .addInterceptor(loggingInterceptor)
+            .authenticator(authenticator)
             .build()
         return createRetrofit(client).create(SubscriberApi::class.java)
     }
 
-    fun createExpertApi(tokenProvider: AccessTokenProvider): ExpertApi {
+    fun createExpertApi(tokenProvider: AccessTokenProvider, authenticator: Authenticator): ExpertApi {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(tokenProvider))
             .addInterceptor(loggingInterceptor)
+            .authenticator(authenticator)
             .build()
         return createRetrofit(client).create(ExpertApi::class.java)
     }
 
-    fun createGamificationApi(tokenProvider: AccessTokenProvider): GamificationApi {
+    fun createGamificationApi(tokenProvider: AccessTokenProvider, authenticator: Authenticator): GamificationApi {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(tokenProvider))
             .addInterceptor(loggingInterceptor)
+            .authenticator(authenticator)
             .build()
         return createRetrofit(client).create(GamificationApi::class.java)
     }
 
-    fun createSupervisorApi(tokenProvider: AccessTokenProvider): SupervisorApi {
+    fun createSupervisorApi(tokenProvider: AccessTokenProvider, authenticator: Authenticator): SupervisorApi {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(tokenProvider))
             .addInterceptor(loggingInterceptor)
+            .authenticator(authenticator)
             .build()
         return createRetrofit(client).create(SupervisorApi::class.java)
     }

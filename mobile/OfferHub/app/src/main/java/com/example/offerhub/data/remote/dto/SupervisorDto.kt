@@ -32,10 +32,16 @@ data class ExpertPerformanceDto(
     val activeCaseCount: Long?
 )
 
+/**
+ * Mirrors campaign-service's ClassificationRequest: segment/type/priority are each optional
+ * (only send the one being corrected), reason is mandatory - it is what feeds AI's accuracy
+ * metric, not decoration. Shared by both Supervisor (segment+priority) and Expert (segment only)
+ * classification-correction flows.
+ */
 data class ClassificationRequest(
-    val segment: String?,
+    val segment: String? = null,
     val type: String? = null,
-    val priority: String?,
+    val priority: String? = null,
     val reason: String
 )
 
