@@ -12,6 +12,10 @@ import com.offerhub.campaign.security.CallerIdentity;
 import com.offerhub.campaign.security.Role;
 import com.offerhub.campaign.service.CaseSort;
 import com.offerhub.campaign.service.OptimizationCaseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+/**
+ * The documented responses spell out io.swagger...ApiResponse in full: this project already
+ * has an ApiResponse of its own, the response envelope imported above, so the short name is
+ * taken.
+ */
 @RestController
+@Tag(name = "Optimization cases", description = "The case state machine of section 5.2, assignment and SLA")
 @RequestMapping("/api/v1/cases")
 @RequiredArgsConstructor
 public class CaseController {
@@ -41,6 +51,16 @@ public class CaseController {
      * Admin is included because the role matrix grants them every record, and the detail
      * endpoint already did - being able to open a case but not list them made no sense.
      */
+    @Operation(summary = "List optimization cases",
+            description = """
+                    Ordered by priority by default. sort=sla puts whatever runs out first on top,
+                    which is the order a supervisor watches breaches in.
+
+                    assignedTo accepts a user id or the literal me. An expert is always narrowed to
+                    their own cases whatever they pass, since for them it is a rule rather than a
+                    preference. size is clamped to 100 and a negative page becomes 0.
+
+                    Roles: EXPERT, SUPERVISOR, ADMIN.""")
     @GetMapping
     public ApiResponse<PagedResult<CaseResponse>> list(
             @RequestParam(required = false) CaseStatus status,
@@ -56,12 +76,35 @@ public class CaseController {
                 CaseSort.fromParam(sort), pageable));
     }
 
+    @Operation(summary = "Get one case",
+            description = """
+                    Carries the AI segment, the conversion estimate, the recommendation score and
+                    the remaining SLA in seconds, which is what the expert and supervisor screens
+                    colour their rows by.
+
+                    Roles: EXPERT, SUPERVISOR, ADMIN.""")
     @GetMapping("/{caseId}")
     public ApiResponse<CaseResponse> get(@PathVariable UUID caseId, CallerIdentity caller) {
         caller.requireAnyOf(Role.EXPERT, Role.SUPERVISOR, Role.ADMIN);
         return ApiResponse.ok(caseService.getById(caseId, caller));
     }
 
+    @Operation(summary = "Assign a case to an expert",
+            description = """
+                    The supervisor override of the automatic assignment. Not a transition of its
+                    own, but a case still in YENI moves to ATANDI as a side effect, because an
+                    assigned case is by definition no longer unassigned.
+
+                    A case that is already closed cannot be assigned.
+
+                    Roles: SUPERVISOR.""")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "Assigned"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422",
+                    description = "The case is already closed, error.code INVALID_STATE_TRANSITION",
+                    content = @Content)
+    })
     @PostMapping("/{caseId}/assign")
     public ApiResponse<CaseResponse> assign(@PathVariable UUID caseId,
                                             @Valid @RequestBody AssignRequest request,
@@ -70,6 +113,28 @@ public class CaseController {
         return ApiResponse.ok(caseService.assign(caseId, request));
     }
 
+    @Operation(summary = "Move a case to another status",
+            description = """
+                    The state machine of section 5.2. Only these moves are allowed:
+
+                    YENI to ATANDI, ATANDI to OPTIMIZE_EDILIYOR, OPTIMIZE_EDILIYOR to
+                    TEST_EDILIYOR, TEST_EDILIYOR back to OPTIMIZE_EDILIYOR, OPTIMIZE_EDILIYOR to
+                    TAMAMLANDI, TAMAMLANDI to YAYINDA, YAYINDA to ARSIVLENDI.
+
+                    Anything else is refused with 422. Completing a case requires optimizationNote
+                    and publishes campaign.optimized, which is what Gamification scores.
+
+                    Roles: EXPERT, SUPERVISOR.""")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "Moved"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
+                    description = "Completing without a note, error.code OPTIMIZATION_NOTE_REQUIRED",
+                    content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422",
+                    description = "A move outside the table, error.code INVALID_STATE_TRANSITION",
+                    content = @Content)
+    })
     @PatchMapping("/{caseId}/status")
     public ApiResponse<CaseResponse> changeStatus(@PathVariable UUID caseId,
                                                   @Valid @RequestBody StatusChangeRequest request,

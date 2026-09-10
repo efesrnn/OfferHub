@@ -8,6 +8,10 @@ import com.offerhub.campaign.entity.OfferStatus;
 import com.offerhub.campaign.security.CallerIdentity;
 import com.offerhub.campaign.security.Role;
 import com.offerhub.campaign.service.OfferService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +38,7 @@ import java.util.UUID;
  * rating is called "rating".
  */
 @RestController
+@Tag(name = "Subscriber offers", description = "The same offers under the paths the mobile client calls")
 @RequestMapping("/api/v1/subscribers/me/offers")
 @RequiredArgsConstructor
 public class SubscriberOfferController {
@@ -43,6 +48,13 @@ public class SubscriberOfferController {
 
     private final OfferService offerService;
 
+    @Operation(summary = "List the caller's offers",
+            description = """
+                    The same rules as GET /api/v1/offers, returned as a plain array because that is
+                    what the client expects. Scored below 0.60 is not shown, above 0.80 is
+                    highlighted, and the list arrives score ordered.
+
+                    Roles: SUBSCRIBER.""")
     @GetMapping
     public ApiResponse<List<SubscriberOfferResponse>> list(CallerIdentity caller) {
         caller.requireAnyOf(Role.SUBSCRIBER);
@@ -52,12 +64,39 @@ public class SubscriberOfferController {
                 .toList());
     }
 
+    @Operation(summary = "Get one offer",
+            description = """
+                    Reading someone else's offer id returns 403 rather than 404: ownership is
+                    checked against the caller in the token, so changing the id in the path gets
+                    nothing.
+
+                    Roles: SUBSCRIBER.""")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "The offer"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403",
+                    description = "The offer belongs to another subscriber",
+                    content = @Content)
+    })
     @GetMapping("/{offerId}")
     public ApiResponse<SubscriberOfferResponse> get(@PathVariable UUID offerId, CallerIdentity caller) {
         caller.requireAnyOf(Role.SUBSCRIBER);
         return ApiResponse.ok(SubscriberOfferResponse.from(offerService.offerOf(offerId, caller.userId())));
     }
 
+    @Operation(summary = "Accept an offer",
+            description = """
+                    Records the conversion and publishes offer.responded. An offer can only be
+                    answered once.
+
+                    Roles: SUBSCRIBER.""")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "Accepted"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409",
+                    description = "Already answered, error.code OFFER_ALREADY_RESPONDED",
+                    content = @Content)
+    })
     @PostMapping("/{offerId}/accept")
     public ApiResponse<OfferActionResponse> accept(@PathVariable UUID offerId, CallerIdentity caller) {
         caller.requireAnyOf(Role.SUBSCRIBER);
@@ -65,6 +104,19 @@ public class SubscriberOfferController {
                 offerService.respondReturningOffer(offerId, OfferStatus.ACCEPTED, caller.userId())));
     }
 
+    @Operation(summary = "Decline an offer",
+            description = """
+                    Section 5.5: a decline lowers the recommendation score of similar campaigns,
+                    which is what offer.responded carries to AI.
+
+                    Roles: SUBSCRIBER.""")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "Declined"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409",
+                    description = "Already answered, error.code OFFER_ALREADY_RESPONDED",
+                    content = @Content)
+    })
     @PostMapping("/{offerId}/decline")
     public ApiResponse<OfferActionResponse> decline(@PathVariable UUID offerId, CallerIdentity caller) {
         caller.requireAnyOf(Role.SUBSCRIBER);
@@ -72,6 +124,23 @@ public class SubscriberOfferController {
                 offerService.respondReturningOffer(offerId, OfferStatus.DECLINED, caller.userId())));
     }
 
+    @Operation(summary = "Rate the experience from 1 to 5",
+            description = """
+                    Section 5.6: rating is once only. A rating of 1 or 2 publishes offer.rated and
+                    costs the expert 3 points, which is how an irrelevant offer reaches the person
+                    who targeted it.
+
+                    Roles: SUBSCRIBER.""")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
+                    description = "Rating recorded"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
+                    description = "Outside 1 to 5, error.code VALIDATION_ERROR",
+                    content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409",
+                    description = "Already rated, error.code OFFER_ALREADY_RATED",
+                    content = @Content)
+    })
     @PostMapping("/{offerId}/rating")
     public ApiResponse<OfferActionResponse> rate(@PathVariable UUID offerId,
                                                  @Valid @RequestBody RateOfferRequest request,
