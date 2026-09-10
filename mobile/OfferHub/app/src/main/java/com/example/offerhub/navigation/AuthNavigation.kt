@@ -13,6 +13,7 @@ import com.example.offerhub.screens.auth.AuthChoiceScreen
 import com.example.offerhub.screens.auth.AuthHelpScreen
 import com.example.offerhub.screens.auth.ForgotPasswordScreen
 import com.example.offerhub.screens.auth.OtpVerificationScreen
+import com.example.offerhub.screens.auth.ResetPasswordScreen
 import com.example.offerhub.screens.auth.SplashScreen
 import com.example.offerhub.screens.auth.StaffLoginScreen
 import com.example.offerhub.screens.auth.StaffChangePasswordScreen
@@ -69,10 +70,43 @@ fun NavGraphBuilder.authGraph(
     }
 
     composable(Routes.FORGOT_PASSWORD) {
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+        LaunchedEffect(Unit) {
+            authViewModel.clearError()
+        }
+        LaunchedEffect(authState.forgotPasswordCodeSent) {
+            if (authState.forgotPasswordCodeSent) {
+                navController.navigate(Routes.RESET_PASSWORD)
+                authViewModel.consumeForgotPasswordNavigation()
+            }
+        }
         ForgotPasswordScreen(
             onBackClick = navController::popBackStack,
-            onRequestCodeClick = {},
-            isRequestAvailable = false
+            onRequestCodeClick = authViewModel::requestPasswordReset,
+            isRequestAvailable = true,
+            isLoading = authState.isForgotPasswordLoading,
+            backendError = authState.errorMessage?.asString()
+        )
+    }
+
+    composable(Routes.RESET_PASSWORD) {
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+        val returnToStaffLogin = {
+            authViewModel.finishResetPasswordFlow()
+            navController.navigate(Routes.STAFF_LOGIN) {
+                popUpTo(Routes.FORGOT_PASSWORD) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+        BackHandler(onBack = returnToStaffLogin)
+        ResetPasswordScreen(
+            email = authState.forgotPasswordEmail.orEmpty(),
+            onBackClick = returnToStaffLogin,
+            onResetClick = authViewModel::resetPassword,
+            isLoading = authState.isResettingPassword,
+            isCompleted = authState.resetPasswordCompleted,
+            backendError = authState.errorMessage?.asString(),
+            onBackToLoginClick = returnToStaffLogin
         )
     }
 
@@ -191,11 +225,11 @@ fun NavGraphBuilder.authGraph(
 
         OtpVerificationScreen(
             phoneNumber = phone,
-            onVerifyClick = { otp, useFirebase ->
-                authViewModel.verifyOtp(phone, otp, useFirebase)
+            onVerifyClick = { otp ->
+                authViewModel.verifyOtp(phone, otp)
             },
-            onResendClick = { useFirebase ->
-                authViewModel.resendOtp(phone, useFirebase)
+            onResendClick = {
+                authViewModel.resendOtp(phone)
             },
             onBackClick = navController::popBackStack,
             isVerifying = authState.isLoading,

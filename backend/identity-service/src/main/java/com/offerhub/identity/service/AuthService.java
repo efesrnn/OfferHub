@@ -8,6 +8,7 @@ import com.offerhub.identity.exception.AccountLockedException;
 import com.offerhub.identity.exception.DuplicateResourceException;
 import com.offerhub.identity.exception.InvalidCredentialsException;
 import com.offerhub.identity.exception.InvalidOtpException;
+import com.offerhub.identity.exception.NotFoundException;
 import com.offerhub.identity.repository.RefreshTokenRepository;
 import com.offerhub.identity.repository.StaffUserRepository;
 import com.offerhub.identity.repository.SubscriberRepository;
@@ -16,20 +17,26 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class AuthService {
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final long LOCK_DURATION_MINUTES = 15;
+    private static final long RESET_CODE_VALID_MINUTES = 15;
+    private static final SecureRandom RESET_CODE_RANDOM = new SecureRandom();
 
     private final SubscriberRepository subscriberRepository;
     private final Map<String, PhoneVerificationStrategy> verificationStrategies;
@@ -258,6 +265,59 @@ public class AuthService {
     }
 
     private record TokenPair(String accessToken, String refreshToken) {
+    }
+
+    /**
+     * Sifre unuttum akisinin ilk adimi. Aboneler icin telefona giden OTP'nin (bkz.
+     * MockPhoneVerification) personel/e-posta karsiligi: 6 haneli bir kod uretilir, hash'i
+     * ve son gecerlilik zamani StaffUser uzerinde tutulur, gercek gonderim yerine (SMTP
+     * entegrasyonu yok) log'a yazilir - projedeki OTP simulasyonuyla ayni yaklasim.
+     */
+    public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
+        StaffUser staff = staffUserRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new NotFoundException("Bu e-posta ile kayitli bir personel bulunamadi"));
+
+        String code = generateResetCode();
+        staff.setResetCodeHash(passwordEncoder.encode(code));
+        staff.setResetCodeExpiresAt(Instant.now().plus(RESET_CODE_VALID_MINUTES, ChronoUnit.MINUTES));
+        staffUserRepository.save(staff);
+
+        log.info(">>> SIFRE SIFIRLAMA KODU GONDERILDI (simulasyon) -> e-posta: {}, kod: {}",
+                staff.getEmail(), code);
+
+        return new ForgotPasswordResponse(true);
+    }
+
+    /**
+     * Kodu ve yeni sifreyi dogrulayip sifreyi degistirir. Basarili sifirlama, o hesabin
+     * tum aktif refresh token'larini iptal eder - kod calindiysa dahi eski oturumlar
+     * gecersiz kilinmis olur, tipki sifre degistirmede oldugu gibi.
+     */
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        StaffUser staff = staffUserRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new NotFoundException("Bu e-posta ile kayitli bir personel bulunamadi"));
+
+        if (staff.getResetCodeExpiresAt() == null || staff.getResetCodeExpiresAt().isBefore(Instant.now())) {
+            throw new InvalidOtpException("Kodun suresi dolmus, yeniden talep edin");
+        }
+        if (staff.getResetCodeHash() == null || !passwordEncoder.matches(request.getCode(), staff.getResetCodeHash())) {
+            throw new InvalidOtpException("Kod hatali");
+        }
+
+        staff.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        staff.setResetCodeHash(null);
+        staff.setResetCodeExpiresAt(null);
+        staff.setFailedLoginAttempts(0);
+        staff.setLockedUntil(null);
+        staffUserRepository.save(staff);
+
+        refreshTokenRepository.revokeAllForUser(staff.getId());
+    }
+
+    private String generateResetCode() {
+        int code = 100000 + RESET_CODE_RANDOM.nextInt(900000); // 6 haneli
+        return String.valueOf(code);
     }
 
     public void changePassword(String staffId, ChangePasswordRequest request) {

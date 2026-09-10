@@ -74,6 +74,10 @@ public class StaffUser {
     @Column(nullable = false)
     private boolean mustChangePassword = true;
 
+    /** Sifre unuttum akisi icin - abonelerdeki otpCodeHash/otpExpiresAt ile ayni desen. */
+    private String resetCodeHash;
+    private Instant resetCodeExpiresAt;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;

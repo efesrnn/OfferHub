@@ -5,6 +5,7 @@ object Routes{
     const val AUTH_CHOICE="auth_choice"
     const val AUTH_HELP="auth_help"
     const val FORGOT_PASSWORD = "forgot_password"
+    const val RESET_PASSWORD = "reset_password"
     const val STAFF_LOGIN="staff_login"
     const val STAFF_CHANGE_PASSWORD = "staff_change_password"
     const val SUBSCRIBER_LOGIN="subscriber_login"

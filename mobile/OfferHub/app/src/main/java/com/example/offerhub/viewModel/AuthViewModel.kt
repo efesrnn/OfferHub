@@ -33,7 +33,12 @@ data class AuthUiState(
     val otpReady: Boolean = false,
     val isOtpRequestLoading: Boolean = false,
     val resendCooldownSeconds: Int = 0,
-    val lockRemainingSeconds: Long = 0
+    val lockRemainingSeconds: Long = 0,
+    val forgotPasswordEmail: String? = null,
+    val forgotPasswordCodeSent: Boolean = false,
+    val isForgotPasswordLoading: Boolean = false,
+    val isResettingPassword: Boolean = false,
+    val resetPasswordCompleted: Boolean = false
 )
 
 class AuthViewModel(
@@ -100,17 +105,14 @@ class AuthViewModel(
         navigateToVerification = true
     )
 
-    fun resendOtp(phone: String, useFirebase: Boolean) = requestOtp(
+    fun resendOtp(phone: String) = requestOtp(
         phone = phone,
-        authMode = if (useFirebase) AuthMode.FIREBASE else AuthMode.MOCK,
+        authMode = AuthMode.MOCK,
         navigateToVerification = false
     )
 
-    fun verifyOtp(phone: String, otp: String, useFirebase: Boolean) = execute(
-        operation = {
-            val mode = if (useFirebase) AuthMode.FIREBASE else AuthMode.MOCK
-            repository.verifyOtp(mode, phone, otp)
-        },
+    fun verifyOtp(phone: String, otp: String) = execute(
+        operation = { repository.verifyOtp(AuthMode.MOCK, phone, otp) },
         onSuccess = { data ->
             _uiState.update {
                 it.copy(
@@ -159,6 +161,55 @@ class AuthViewModel(
                     )
                 }
             }
+        )
+    }
+
+    fun requestPasswordReset(email: String) {
+        if (_uiState.value.isForgotPasswordLoading) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isForgotPasswordLoading = true, errorMessage = null) }
+            when (val result = repository.forgotPassword(email)) {
+                is AuthResult.Success -> _uiState.update {
+                    it.copy(
+                        isForgotPasswordLoading = false,
+                        forgotPasswordEmail = email,
+                        forgotPasswordCodeSent = true
+                    )
+                }
+                is AuthResult.Failure -> {
+                    _uiState.update { it.copy(isForgotPasswordLoading = false) }
+                    handleError(result.error)
+                }
+            }
+        }
+    }
+
+    fun consumeForgotPasswordNavigation() =
+        _uiState.update { it.copy(forgotPasswordCodeSent = false) }
+
+    fun resetPassword(code: String, newPassword: String) {
+        val email = _uiState.value.forgotPasswordEmail ?: return
+        if (_uiState.value.isResettingPassword) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isResettingPassword = true, errorMessage = null) }
+            when (val result = repository.resetPassword(email, code, newPassword)) {
+                is AuthResult.Success -> _uiState.update {
+                    it.copy(isResettingPassword = false, resetPasswordCompleted = true)
+                }
+                is AuthResult.Failure -> {
+                    _uiState.update { it.copy(isResettingPassword = false) }
+                    handleError(result.error)
+                }
+            }
+        }
+    }
+
+    fun finishResetPasswordFlow() = _uiState.update {
+        it.copy(
+            resetPasswordCompleted = false,
+            forgotPasswordEmail = null,
+            forgotPasswordCodeSent = false,
+            errorMessage = null
         )
     }
 
@@ -376,7 +427,7 @@ class AuthViewModel(
             R.string.error_phone_exists
         "EMAIL_ALREADY_EXISTS" -> R.string.error_email_exists
         "SUBSCRIBER_NOT_FOUND" -> R.string.error_subscriber_phone_not_found
-        "USER_NOT_FOUND" -> R.string.error_user_not_found
+        "USER_NOT_FOUND", "NOT_FOUND" -> R.string.error_user_not_found
         "RATE_LIMITED", "TOO_MANY_REQUESTS" -> R.string.error_too_many_requests
         "NETWORK_ERROR" -> R.string.error_network
         else -> R.string.error_unknown

@@ -3,17 +3,13 @@ package com.example.offerhub.screens.auth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,8 +33,8 @@ import com.example.offerhub.R
 @Composable
 fun OtpVerificationScreen(
     phoneNumber: String,
-    onVerifyClick:(otp:String,useFirebase: Boolean)->Unit,
-    onResendClick:(useFirebase: Boolean)->Unit,
+    onVerifyClick:(otp:String)->Unit,
+    onResendClick:()->Unit,
     onBackClick:()->Unit,
     isVerifying: Boolean = false,
     isResending: Boolean = false,
@@ -54,7 +50,6 @@ fun OtpVerificationScreen(
     {
         var otp by remember { mutableStateOf("") }
         var otpTouched by remember { mutableStateOf(false) }
-        var useFirebase by remember { mutableStateOf(false) }
         val otpIsInvalid = otp.isBlank() || otp.length != 4
 
         Box(
@@ -76,39 +71,6 @@ fun OtpVerificationScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ){
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment=Alignment.CenterVertically
-            ) {
-                Text(
-                    text = if (useFirebase) {
-                        stringResource(R.string.auth_firebase_otp)
-                    } else {
-                        stringResource(R.string.auth_mock_otp)
-                    },
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(
-                    modifier = Modifier.width(8.dp)
-                )
-                Switch(
-                    checked = useFirebase,
-                    enabled = false,
-                    onCheckedChange = {
-                        useFirebase = it
-                        otp = ""
-                        otpTouched = false
-                    }
-                )
-            }
-            Text(
-                text = stringResource(R.string.auth_firebase_otp_unavailable),
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier=Modifier.height(50.dp))
             Text(
                 text = stringResource(R.string.auth_verify_phone),
                 fontSize = 27.sp,
@@ -161,7 +123,7 @@ fun OtpVerificationScreen(
                     otpTouched = true
 
                     if (!otpIsInvalid) {
-                        onVerifyClick(otp,useFirebase)
+                        onVerifyClick(otp)
                     }
                 }
             )
@@ -180,7 +142,7 @@ fun OtpVerificationScreen(
                 )
                 else -> ClickableText(
                     text = stringResource(R.string.auth_resend_code),
-                    onClick = { onResendClick(useFirebase) }
+                    onClick = onResendClick
                 )
             }
         }
@@ -194,7 +156,7 @@ fun OtpVerificationPreview()
 {
     OtpVerificationScreen(
         phoneNumber="+90 *** *** ** **",
-        onVerifyClick = {_,_->},
+        onVerifyClick = {},
         onResendClick = {},
         onBackClick = {}
     )

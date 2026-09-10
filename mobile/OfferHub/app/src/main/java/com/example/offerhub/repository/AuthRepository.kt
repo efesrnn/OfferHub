@@ -6,10 +6,13 @@ import com.example.offerhub.data.model.auth.AuthData
 import com.example.offerhub.data.model.auth.AuthMode
 import com.example.offerhub.data.model.auth.AuthUser
 import com.example.offerhub.data.model.auth.ChangePasswordRequest
+import com.example.offerhub.data.model.auth.ForgotPasswordData
+import com.example.offerhub.data.model.auth.ForgotPasswordRequest
 import com.example.offerhub.data.model.auth.OtpRequestData
 import com.example.offerhub.data.model.auth.OtpRequestRequest
 import com.example.offerhub.data.model.auth.OtpVerifyRequest
 import com.example.offerhub.data.model.auth.RefreshRequest
+import com.example.offerhub.data.model.auth.ResetPasswordRequest
 import com.example.offerhub.data.model.auth.StaffLoginRequest
 import com.example.offerhub.data.model.auth.SubscriberRegisterData
 import com.example.offerhub.data.model.auth.SubscriberRegisterRequest
@@ -139,6 +142,25 @@ class AuthRepository(
         val envelope = response.body()
         if (response.isSuccessful && envelope?.success == true) {
             tokenStorage.clear()
+            AuthResult.Success(Unit)
+        } else {
+            AuthResult.Failure(
+                envelope?.error ?: parseError(response) ?: ApiError("UNKNOWN_ERROR")
+            )
+        }
+    } catch (_: IOException) {
+        AuthResult.Failure(ApiError("NETWORK_ERROR"))
+    } catch (_: Exception) {
+        AuthResult.Failure(ApiError("UNKNOWN_ERROR"))
+    }
+
+    suspend fun forgotPassword(email: String): AuthResult<ForgotPasswordData> =
+        call { api.forgotPassword(ForgotPasswordRequest(email)) }
+
+    suspend fun resetPassword(email: String, code: String, newPassword: String): AuthResult<Unit> = try {
+        val response = api.resetPassword(ResetPasswordRequest(email, code, newPassword))
+        val envelope = response.body()
+        if (response.isSuccessful && envelope?.success == true) {
             AuthResult.Success(Unit)
         } else {
             AuthResult.Failure(
