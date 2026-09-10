@@ -100,12 +100,10 @@ probe "gamification kapali"
 # Kendi endpoint'i cevap veremiyor ama 500 degil 503 donmeli: kapali bir bilesen ile bozuk
 # bir sistem farkli iki cevaptir ve dayaniklilik gereksiniminin butun anlami bu ayrimda.
 #
-# BILINEN ACIK (Backend1): su an 500 donuyor. GatewayErrorHandler.isUnreachable sebep
-# zincirinde ConnectException ariyor. Netty durdurulmus container icin bazen
-# AnnotatedConnectException (ConnectException'in alt sinifi, yakalaniyor) bazen
-# AnnotatedNoRouteToHostException (NoRouteToHostException'dan turuyor, yakalanmiyor)
-# firlatiyor. Ikisinin ortak atasi java.net.SocketException, kontrol ona cevrilirse
-# ikisi de kapsanir. Test bilerek 503 bekliyor, gecmesi duzeltmenin geldigini gosterir.
+# Duzeltildi (Backend1): GatewayErrorHandler.isUnreachable artik ConnectException yerine
+# SocketException'a bakiyor, o yuzden AnnotatedConnectException ve
+# AnnotatedNoRouteToHostException'in ikisi de (ikisi de SocketException'dan turuyor)
+# yakalaniyor ve 503 donuyor.
 check "gamification endpointi 503" "503" "$(status GET /api/v1/game/profile "$EXPERT")"
 start_service offerhub-gamification-service-1
 

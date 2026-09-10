@@ -17,7 +17,7 @@
 ## 🔴 Demoyu veya çalışmayı doğrudan riske atan kritik maddeler
 
 1. ~~Gateway bypass açığı~~ ✅ **kapatıldı** — yukarıdaki "Düzeltilenler" bölümüne bakın.
-2. **Gamification kapalıyken gateway 500 dönüyor, 503 değil.** `resilience.sh` içinde backend2 tarafından bulunup açıkça "BİLİNEN AÇIK (Backend1)" diye işaretlenmiş: `GatewayErrorHandler.isUnreachable` yalnızca `AnnotatedConnectException`'ı yakalıyor, container durunca bazen fırlatılan `AnnotatedNoRouteToHostException`'ı yakalamıyor. Ortak atası `SocketException` — kontrol ona çevrilmeli. Bu senin (backend1) tarafında düzeltilmesi gereken bir madde.
+2. ~~Gamification kapalıyken gateway 500 dönüyor, 503 değil~~ ✅ **kapatıldı** — `GatewayErrorHandler.isUnreachable` artık `ConnectException` yerine `SocketException`'a bakıyor, hem `AnnotatedConnectException` hem `AnnotatedNoRouteToHostException` yakalanıyor. `resilience.sh`'deki "BİLİNEN AÇIK" notu kaldırıldı.
 3. **Identity Service'te `application.yml`/`.properties` bulunamadı** (`src/main/resources` içinde sadece `.gitkeep` var). `jwt.secret`, token süreleri, admin seed, SMS key gibi `@Value` bağlamaları için config kaynağı yok — servis bu haliyle **açılmayabilir**. İlk iş bunu doğrulamak/eklemek.
 4. **Refresh token akışı yok (spec 4.2'nin çekirdeği).** `/refresh` ve `/logout` endpoint'leri hiç yok. Refresh token DB'de saklanmıyor, rotation/theft-protection yok. Access token 15 dk dolunca kullanıcı tekrar login olmak zorunda.
 5. **Mobilde segment override özelliği tamamen yok** (spec'te açıkça zorunlu, AI doğruluk takibini tetikliyor). Kod içinde `override` diye aratınca sadece Kotlin'in `override fun` anahtar kelimesi çıkıyor.

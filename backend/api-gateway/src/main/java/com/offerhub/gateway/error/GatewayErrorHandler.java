@@ -14,7 +14,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
 
-import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.channels.UnresolvedAddressException;
 import java.nio.charset.StandardCharsets;
@@ -86,10 +86,20 @@ public class GatewayErrorHandler implements WebExceptionHandler {
      * Walks the cause chain rather than matching one exception type: the reactive client
      * wraps a refused connection several layers deep, and the wrapper differs between a
      * stopped container (connection refused) and a removed one (name no longer resolves).
+     *
+     * Checked against SocketException rather than ConnectException specifically: Netty
+     * throws its own annotated subclasses of the standard java.net exceptions, and which
+     * one shows up depends on how the container went away. A stopped container usually
+     * gives AnnotatedConnectException (connection refused), but a container whose network
+     * has already been torn down can give AnnotatedNoRouteToHostException instead -
+     * ConnectException would not match that one, so the gateway used to fall through to a
+     * plain 500 on that specific case even though the real cause was still "the service is
+     * down". Both of those extend SocketException, so matching on that instead covers both
+     * without needing to enumerate every possible annotated variant.
      */
     private static boolean isUnreachable(Throwable error) {
         for (Throwable cause = error; cause != null && cause != cause.getCause(); cause = cause.getCause()) {
-            if (cause instanceof ConnectException
+            if (cause instanceof SocketException
                     || cause instanceof UnknownHostException
                     || cause instanceof UnresolvedAddressException
                     || cause instanceof TimeoutException) {
