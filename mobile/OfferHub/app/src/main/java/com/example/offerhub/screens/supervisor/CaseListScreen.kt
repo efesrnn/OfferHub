@@ -472,18 +472,34 @@ internal fun SupervisorCaseDetailBottomSheet(
         ) {
             Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             CaseDetailRow(stringResource(R.string.supervisor_case_id), item.caseId)
-            CaseDetailRow(stringResource(R.string.supervisor_priority), item.priority.displayName())
-            CaseDetailRow(stringResource(R.string.supervisor_status), item.status.displayName())
-            CaseDetailRow(stringResource(R.string.supervisor_segment), item.segment.displayName())
-            CaseDetailRow(
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                CaseMetricCard(stringResource(R.string.supervisor_priority), item.priority.displayName(), Modifier.weight(1f))
+                CaseMetricCard(stringResource(R.string.supervisor_status), item.status.displayName(), Modifier.weight(1f))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                CaseMetricCard(
+                    stringResource(R.string.supervisor_segment),
+                    item.segment.displayName(),
+                    Modifier.weight(1f)
+                )
+                CaseMetricCard(
+                    stringResource(R.string.supervisor_sla_remaining),
+                    item.slaRemainingSeconds.toSlaText(),
+                    Modifier.weight(1f)
+                )
+            }
+            CaseMetricCard(
                 stringResource(R.string.supervisor_assigned_expert),
                 staffDirectory.displayNameFor(item.assignedExpertId)
-                    ?: stringResource(R.string.supervisor_waiting_assignment)
+                    ?: stringResource(R.string.supervisor_waiting_assignment),
+                Modifier.fillMaxWidth()
             )
             staffDirectory.displayNameFor(item.campaignCreatedBy)?.let { createdByName ->
-                CaseDetailRow(stringResource(R.string.supervisor_created_by_label), createdByName)
+                CaseDetailRow(
+                    stringResource(R.string.supervisor_created_by_label),
+                    createdByName
+                )
             }
-            CaseDetailRow(stringResource(R.string.supervisor_sla_remaining), item.slaRemainingSeconds.toSlaText())
             if (showPublishAction) {
                 Button(
                     onClick = { onPublishCase(item.caseId) },
@@ -528,10 +544,26 @@ private fun CompactActionButton(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun CaseDetailRow(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+private fun CaseDetailRow(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+private fun CaseMetricCard(label: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.heightIn(min = 72.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+        }
     }
 }
 

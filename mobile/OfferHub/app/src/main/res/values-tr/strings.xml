@@ -499,4 +499,9 @@
     <string name="expert_level_platinum">Platin</string>
     <string name="error_gamification">İlerleme bilgileri yüklenemedi.</string>
     <string name="supervisor_no_segment_distribution">Segment verisi bulunmuyor.</string>
+    <string name="admin_identifiers">Kimlik bilgileri</string>
+    <string name="admin_event_information">Olay bilgileri</string>
+    <string name="admin_request_information">İstek bilgileri</string>
+    <string name="admin_personal_information">Kişisel bilgiler</string>
+    <string name="admin_access_information">Yetki bilgileri</string>
 </resources>

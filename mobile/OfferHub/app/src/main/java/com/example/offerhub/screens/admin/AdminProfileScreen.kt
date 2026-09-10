@@ -27,7 +27,6 @@ fun AdminProfileScreen(
     role: String,
     name: String? = null,
     email: String? = null,
-    profileError: String? = null,
     onLogoutClick: () -> Unit,
     onHomeClick: () -> Unit
 ) {
@@ -54,21 +53,17 @@ fun AdminProfileScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (name != null) {
-                        ProfileValue(stringResource(R.string.admin_name), name)
-                    }
-                    if (email != null) {
-                        ProfileValue(stringResource(R.string.admin_email), email)
-                    }
+                    ProfileValue(
+                        stringResource(R.string.admin_name),
+                        name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.common_not_available)
+                    )
+                    ProfileValue(
+                        stringResource(R.string.admin_email),
+                        email?.takeIf { it.isNotBlank() } ?: stringResource(R.string.common_not_available)
+                    )
                     ProfileValue(stringResource(R.string.admin_user_id), userId)
                     ProfileValue(stringResource(R.string.admin_role), adminCodeLabel(role))
                 }
-            }
-            if (profileError != null) {
-                Text(
-                    profileError,
-                    color = MaterialTheme.colorScheme.error
-                )
             }
             OutlinedButton(onClick = onLogoutClick, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.profile_log_out))

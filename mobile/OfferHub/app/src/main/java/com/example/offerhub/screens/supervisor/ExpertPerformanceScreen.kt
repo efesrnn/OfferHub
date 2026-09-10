@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -124,18 +125,29 @@ fun SupervisorExpertPerformanceScreen(
             ) {
                 Text(expert.displayName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 ExpertDetailRow(stringResource(R.string.supervisor_expert_id), expert.expertId)
-                ExpertDetailRow(stringResource(R.string.supervisor_completed_cases), expert.completedCases.toString())
-                ExpertDetailRow(
-                    stringResource(R.string.supervisor_average_conversion_increase),
-                    expert.averageConversionIncrease?.let {
-                        stringResource(R.string.common_percentage_value, it.toString())
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ExpertMetricRow(stringResource(R.string.supervisor_completed_cases), expert.completedCases.toString())
+                        HorizontalDivider()
+                        ExpertMetricRow(
+                            stringResource(R.string.supervisor_average_conversion_increase),
+                            expert.averageConversionIncrease?.let {
+                                stringResource(R.string.common_percentage_value, it.toString())
+                            } ?: stringResource(R.string.common_not_available)
+                        )
+                        HorizontalDivider()
+                        ExpertMetricRow(
+                            stringResource(R.string.supervisor_average_completion_time),
+                            stringResource(R.string.common_hours_value, expert.averageCompletionHours.toString())
+                        )
                     }
-                        ?: stringResource(R.string.common_not_available)
-                )
-                ExpertDetailRow(
-                    stringResource(R.string.supervisor_average_completion_time),
-                    stringResource(R.string.common_hours_value, expert.averageCompletionHours.toString())
-                )
+                }
             }
         }
     }
@@ -146,5 +158,22 @@ private fun ExpertDetailRow(label: String, value: String) {
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+private fun ExpertMetricRow(label: String, value: String) {
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
     }
 }

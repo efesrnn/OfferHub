@@ -358,24 +358,39 @@ fun UpdateStaffRoleScreen(
             ) {
                 Text(stringResource(R.string.admin_staff_information), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 CopyableStaffId(id = staff.id)
-                StaffDetailValue(stringResource(R.string.admin_first_name), staff.firstName)
-                StaffDetailValue(stringResource(R.string.admin_last_name), staff.lastName)
-                StaffDetailValue(stringResource(R.string.admin_email), staff.email)
-                StaffDetailValue(stringResource(R.string.admin_current_role), adminCodeLabel(staff.role))
-                StaffDetailValue(
-                    stringResource(R.string.admin_specialties),
-                    staff.specialties
-                        .map { adminCodeLabel(it) }
-                        .joinToString()
-                        .ifBlank { stringResource(R.string.common_not_available) }
-                )
-                StaffDetailValue(
-                    stringResource(R.string.admin_regions),
-                    staff.regions
-                        .map { adminCodeLabel(it) }
-                        .joinToString()
-                        .ifBlank { stringResource(R.string.common_not_available) }
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            StaffDetailValue(stringResource(R.string.admin_first_name), staff.firstName, Modifier.weight(1f))
+                            StaffDetailValue(stringResource(R.string.admin_last_name), staff.lastName, Modifier.weight(1f))
+                        }
+                        StaffDetailValue(stringResource(R.string.admin_email), staff.email)
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            StaffDetailValue(stringResource(R.string.admin_current_role), adminCodeLabel(staff.role), Modifier.weight(1f))
+                            StaffDetailValue(
+                                stringResource(R.string.admin_regions),
+                                staff.regions
+                                    .map { adminCodeLabel(it) }
+                                    .joinToString()
+                                    .ifBlank { stringResource(R.string.common_not_available) },
+                                Modifier.weight(1f)
+                            )
+                        }
+                        StaffDetailValue(
+                            stringResource(R.string.admin_specialties),
+                            staff.specialties
+                                .map { adminCodeLabel(it) }
+                                .joinToString()
+                                .ifBlank { stringResource(R.string.common_not_available) }
+                        )
+                    }
+                }
                 Text(stringResource(R.string.admin_new_role), fontWeight = FontWeight.SemiBold)
                 ChoiceRow(
                     options = availableRoles,
@@ -400,8 +415,8 @@ fun UpdateStaffRoleScreen(
 }
 
 @Composable
-private fun StaffDetailValue(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+private fun StaffDetailValue(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value)
     }
