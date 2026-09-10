@@ -80,8 +80,18 @@ else
 fi
 
 section "Gateway atlatma"
-check "campaign servisine dogrudan" "403" "$(curl -s -o /dev/null -w '%{http_code}' $CAMPAIGN_DIRECT/api/v1/campaigns)"
-check "gamification servisine dogrudan" "403" "$(curl -s -o /dev/null -w '%{http_code}' $GAMIFICATION_DIRECT/api/v1/game/profile)"
+# docker-compose artik bu servislerin host portlarini yayinlamiyor (kritik madde #1'in
+# duzeltmesi), o yuzden burada beklenen sey 403 degil baglanti hic kurulamamasi: curl
+# '%{http_code}' baglanamadiginda "000" yazar. Eskiden 403 donuyordu cunku header'siz istek
+# CallerIdentityArgumentResolver tarafindan reddediliyordu - ama o kontrol imza dogrulamiyor,
+# sahte X-User-Id/X-User-Role header'iyla gelen istegi kabul ederdi. Simdi o istek servise
+# hic ulasamiyor, port disariya acik degil.
+check "campaign servisine dogrudan (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 $CAMPAIGN_DIRECT/api/v1/campaigns 2>/dev/null || echo 000)"
+check "gamification servisine dogrudan (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 $GAMIFICATION_DIRECT/api/v1/game/profile 2>/dev/null || echo 000)"
+# Asil kritik olan senaryo buydu: sahte header'la dogrudan servise gitmek. Port kapali oldugu
+# icin artik denenemiyor bile, ki tam olarak istenen sonuc bu.
+check "campaign servisine sahte header ile dogrudan (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 \
+    -H "X-User-Id: $EXPERT_ID" -H 'X-User-Role: ADMIN' $CAMPAIGN_DIRECT/api/v1/campaigns/dashboard 2>/dev/null || echo 000)"
 check "uydurma X-User-Id basligi" "401" "$(curl -s -o /dev/null -w '%{http_code}' \
     -H "X-User-Id: $EXPERT_ID" -H 'X-User-Role: ADMIN' $GATEWAY/api/v1/campaigns)"
 # Token gecerli ama rol basligi elle ADMIN'e cekilmis: gateway kendi cozdugu rolu yaziyor,

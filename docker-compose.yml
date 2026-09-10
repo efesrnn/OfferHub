@@ -35,8 +35,10 @@ services:
 
   identity-service:
     build: ./backend/identity-service
-    ports:
-      - "8081:8080"
+    # No host port: the gateway is the only entry point. Reach it at
+    # http://identity-service:8080 from inside the compose network (e.g. `docker compose
+    # exec` or another container), or temporarily add a "127.0.0.1:8081:8080" mapping back
+    # here if you need local Swagger UI access while debugging.
     environment:
       DB_URL: jdbc:postgresql://identity-db:5432/identity
       DB_USERNAME: postgres
@@ -69,8 +71,8 @@ services:
 
   campaign-service:
     build: ./backend/campaign-service
-    ports:
-      - "8082:8080"
+    # No host port: the gateway is the only entry point (see identity-service above for how
+    # to reach it directly for local debugging if you need to).
     environment:
       DB_URL: jdbc:postgresql://campaign-db:5432/campaign
       DB_USERNAME: postgres
@@ -120,8 +122,8 @@ services:
 
   ai-service:
     build: ./backend/ai-service
-    ports:
-      - "8083:8080"
+    # No host port: the gateway is the only entry point (see identity-service above for how
+    # to reach it directly for local debugging if you need to).
     environment:
       DB_URL: jdbc:postgresql://ai-db:5432/ai
       DB_USERNAME: postgres
@@ -167,8 +169,8 @@ services:
 
   gamification-service:
     build: ./backend/gamification-service
-    ports:
-      - "8084:8080"
+    # No host port: the gateway is the only entry point (see identity-service above for how
+    # to reach it directly for local debugging if you need to).
     environment:
       DB_URL: jdbc:postgresql://gamification-db:5432/gamification
       DB_USERNAME: postgres

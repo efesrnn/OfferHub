@@ -45,10 +45,14 @@ wait_for_gateway() {
 }
 
 # Durdurulup baslatilan bir servisin actuator'unun yesile donmesini bekler.
+#
+# docker-compose artik bu servislerin host portlarini yayinlamiyor (gateway-bypass acigini
+# kapatmanin bir parcasi), o yuzden actuator'a curl ile disaridan ulasilamiyor. Bunun yerine
+# compose'un zaten takip ettigi container healthcheck durumuna bakiyoruz.
 wait_for_service() {
-    local base="$1" i=0
+    local container="$1" i=0
     while [ $i -lt 30 ]; do
-        [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$base/actuator/health")" = "200" ] && return 0
+        [ "$(docker inspect --format='{{.State.Health.Status}}' "$container" 2>/dev/null)" = "healthy" ] && return 0
         i=$((i + 1))
         sleep 2
     done
@@ -120,7 +124,7 @@ else
     check "sistem geri geldi" "200" "zaman asimi"
 fi
 
-if wait_for_service "$GAMIFICATION_DIRECT"; then
+if wait_for_service offerhub-gamification-service-1; then
     check "gamification tekrar hazir" "200" "$(status GET /api/v1/game/profile "$EXPERT")"
 else
     check "gamification tekrar hazir" "200" "zaman asimi"

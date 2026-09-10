@@ -2,8 +2,11 @@
 # Shared helpers for the OfferHub test scripts. Sourced, not executed.
 #
 # Everything goes through the gateway on 8080, because that is the only way a client can
-# reach the system: the services refuse a request that arrives without the headers the
-# gateway adds.
+# reach the system. docker-compose no longer publishes the individual service ports at all
+# (fixed as part of closing the gateway-bypass gap), so CAMPAIGN_DIRECT/GAMIFICATION_DIRECT
+# below are unreachable by default - the security test relies on that (see security.sh).
+# If you need direct access for local debugging, add a "127.0.0.1:8082:8080" style mapping
+# back to that service in docker-compose.yml and these variables will pick it up.
 
 GATEWAY="${GATEWAY:-http://localhost:8080}"
 CAMPAIGN_DIRECT="${CAMPAIGN_DIRECT:-http://localhost:8082}"
