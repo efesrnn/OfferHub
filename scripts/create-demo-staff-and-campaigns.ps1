@@ -52,7 +52,11 @@ function New-DemoStaff($email, $firstName, $lastName, $role, $specialties, $regi
 
 Write-Host "`n=== Personel hesaplari ===" -ForegroundColor Cyan
 New-DemoStaff "deneme1@offerhub.com" "Deneme" "Supervisor" "SUPERVISOR" @() @("Istanbul")
-New-DemoStaff "deneme2@offerhub.com" "Deneme" "Expert" "EXPERT" @("TARIFE_YUKSELTME", "CIHAZ_FIRSATI") @("Istanbul")
+# Not: specialties AI Service'in ExpertAssignmentService'inde campaign.segment (Segment enum:
+# YUKSEK_DEGER/RISKLI_KAYIP/YENI_ABONE/PASIF) ile birebir karsilastiriliyor - kampanya turu
+# (TARIFE_YUKSELTME, CIHAZ_FIRSATI vb.) degil. Deneme2 genel/en cok atanan uzman oldugu icin
+# tum segmentleri kapsiyor.
+New-DemoStaff "deneme2@offerhub.com" "Deneme" "Expert" "EXPERT" @("YUKSEK_DEGER", "RISKLI_KAYIP", "YENI_ABONE", "PASIF") @("Istanbul")
 
 Write-Host "`n=== Supervisor/Expert girisi (demo sifresiyle) ===" -ForegroundColor Cyan
 $supAuth = Login-Staff "deneme1@offerhub.com" $demoPassword

@@ -40,8 +40,11 @@ function New-DemoStaff($email, $firstName, $lastName, $role, $specialties, $regi
 }
 
 Write-Host "`n=== Yeni uzmanlar ===" -ForegroundColor Cyan
-New-DemoStaff "deneme3@offerhub.com" "Deneme" "Uzman3" "EXPERT" @("EK_PAKET","SADAKAT") @("Ankara")
-New-DemoStaff "deneme4@offerhub.com" "Deneme" "Uzman4" "EXPERT" @("CIHAZ_FIRSATI","TARIFE_YUKSELTME") @("Izmir")
+# Not: specialties, kampanya turu degil AI Service'in eslestirmede kullandigi Segment
+# degerleri olmali (YUKSEK_DEGER/RISKLI_KAYIP/YENI_ABONE/PASIF) - asagidaki case atamalariyla
+# (000025-000030) uyumlu segmentler verildi.
+New-DemoStaff "deneme3@offerhub.com" "Deneme" "Uzman3" "EXPERT" @("RISKLI_KAYIP","PASIF","YENI_ABONE") @("Ankara")
+New-DemoStaff "deneme4@offerhub.com" "Deneme" "Uzman4" "EXPERT" @("RISKLI_KAYIP","PASIF") @("Izmir")
 
 Write-Host "`n=== Girisler ===" -ForegroundColor Cyan
 $supToken = (Login-Staff "deneme1@offerhub.com" $password).data.accessToken

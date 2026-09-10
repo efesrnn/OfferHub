@@ -301,8 +301,10 @@
     <string name="admin_role_expert">Expert</string>
     <string name="admin_role_admin">Admin</string>
     <string name="admin_role_supervisor">Supervisor</string>
-    <string name="admin_specialty_churn_prevention">Churn Prevention</string>
     <string name="admin_specialty_high_value">High Value</string>
+    <string name="admin_specialty_churn_risk">Churn Risk</string>
+    <string name="admin_specialty_new_subscriber">New Subscriber</string>
+    <string name="admin_specialty_inactive">Inactive</string>
     <string name="admin_region_istanbul">Istanbul</string>
     <string name="admin_region_ankara">Ankara</string>
     <string name="admin_region_izmir">Izmir</string>

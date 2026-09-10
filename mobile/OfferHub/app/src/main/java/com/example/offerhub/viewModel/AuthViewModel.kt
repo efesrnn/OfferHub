@@ -253,7 +253,7 @@ class AuthViewModel(
         val debugExpert = AuthUser(
             id = "debug-expert",
             role = "EXPERT",
-            specialties = listOf("CHURN_ONLEME"),
+            specialties = listOf("RISKLI_KAYIP"),
             regions = listOf("ISTANBUL")
         )
         _uiState.update {

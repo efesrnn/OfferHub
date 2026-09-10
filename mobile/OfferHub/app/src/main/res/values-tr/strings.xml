@@ -303,8 +303,10 @@
     <string name="admin_role_expert">Uzman</string>
     <string name="admin_role_admin">Yönetici</string>
     <string name="admin_role_supervisor">Süpervizör</string>
-    <string name="admin_specialty_churn_prevention">Müşteri Kaybını Önleme</string>
     <string name="admin_specialty_high_value">Yüksek Değer</string>
+    <string name="admin_specialty_churn_risk">Riskli Kayıp</string>
+    <string name="admin_specialty_new_subscriber">Yeni Abone</string>
+    <string name="admin_specialty_inactive">Pasif</string>
     <string name="admin_region_istanbul">İstanbul</string>
     <string name="admin_region_ankara">Ankara</string>
     <string name="admin_region_izmir">İzmir</string>

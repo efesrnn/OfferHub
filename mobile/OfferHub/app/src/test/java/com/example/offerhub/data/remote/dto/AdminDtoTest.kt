@@ -13,7 +13,7 @@ class AdminDtoTest {
             lastName = "Lovelace",
             email = "ada@offerhub.com",
             role = "EXPERT",
-            specialties = listOf("CHURN_ONLEME"),
+            specialties = listOf("RISKLI_KAYIP"),
             regions = listOf("ISTANBUL")
         ).toDomain()
 
@@ -21,7 +21,7 @@ class AdminDtoTest {
         assertEquals("staff-1", staff.id)
         assertEquals("Ada", staff.firstName)
         assertEquals("EXPERT", staff.role)
-        assertEquals(listOf("CHURN_ONLEME"), staff.specialties)
+        assertEquals(listOf("RISKLI_KAYIP"), staff.specialties)
     }
 
     @Test

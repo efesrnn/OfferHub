@@ -183,7 +183,11 @@ fun CreateStaffScreen(
             ChoiceRow(listOf("EXPERT", "SUPERVISOR"), role) { role = it }
 
             Text(stringResource(R.string.admin_specialties), fontWeight = FontWeight.SemiBold)
-            MultiChoiceRow(listOf("CHURN_ONLEME", "YUKSEK_DEGER"), selectedSpecialties) {
+            // Not: bu degerler AI Service'in vaka-atama eslestirmesiyle (ExpertAssignmentService)
+            // ayni sozlugu kullanmali - orada expert.specialties, campaign.segment (Segment enum)
+            // ile birebir karsilastiriliyor. Kampanya turu (CampaignType) veya baska bir kod
+            // kullanilirsa eslesme hicbir zaman gerceklesmez.
+            MultiChoiceRow(listOf("YUKSEK_DEGER", "RISKLI_KAYIP", "YENI_ABONE", "PASIF"), selectedSpecialties) {
                 selectedSpecialties = selectedSpecialties.toggle(it)
             }
             if (submitAttempted && selectedSpecialties.isEmpty()) {
