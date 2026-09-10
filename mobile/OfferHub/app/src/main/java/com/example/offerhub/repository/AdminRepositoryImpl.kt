@@ -38,10 +38,14 @@ class AdminRepositoryImpl(
             )
         )
         val envelope = response.body()
-        val staffId = envelope?.data?.staffId?.takeIf(String::isNotBlank)
+        val createData = envelope?.data
+        val staffId = createData?.staffId?.takeIf(String::isNotBlank)
+        val tempPassword = createData?.tempPassword?.takeIf(String::isNotBlank)
 
         if (response.isSuccessful && envelope?.success == true && staffId != null) {
-            findStaff(staffId)
+            findStaff(staffId).map { staff ->
+                staff.copy(tempPassword = tempPassword)
+            }
         } else {
             AdminResult.Failure(errorFrom(response, envelope?.error))
         }

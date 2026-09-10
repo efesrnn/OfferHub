@@ -4,10 +4,13 @@ import com.offerhub.identity.dto.AuditLogResponse;
 import com.offerhub.identity.dto.PagedResponse;
 import com.offerhub.identity.entity.AuditLog;
 import com.offerhub.identity.repository.AuditLogRepository;
+import com.offerhub.identity.repository.AuditLogSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -38,15 +41,17 @@ public class AuditLogService {
     @Transactional(readOnly = true)
     public PagedResponse<AuditLogResponse> search(String actionQuery, String action, String result,
                                                     String fromDate, String toDate, int page, int size) {
-        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE),
+                Sort.by(Sort.Direction.DESC, "timestamp"));
 
-        Page<AuditLog> found = auditLogRepository.search(
+        Specification<AuditLog> spec = AuditLogSpecifications.search(
                 blankToNull(actionQuery),
                 blankToNull(action),
                 blankToNull(result),
                 parseStartOfDay(fromDate),
-                parseStartOfNextDay(toDate),
-                pageable);
+                parseStartOfNextDay(toDate));
+
+        Page<AuditLog> found = auditLogRepository.findAll(spec, pageable);
 
         return new PagedResponse<>(
                 found.getContent().stream().map(AuditLogResponse::from).toList(),

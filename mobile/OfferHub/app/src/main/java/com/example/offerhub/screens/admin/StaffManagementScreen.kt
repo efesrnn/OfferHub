@@ -194,9 +194,6 @@ fun CreateStaffScreen(
             successMessage?.let {
                 Text(it, color = MaterialTheme.colorScheme.primary)
             }
-            createdStaffId?.let { id ->
-                CopyableStaffId(id = id)
-            }
             createdStaffTempPassword?.let { password ->
                 CopyableValue(
                     label = stringResource(R.string.admin_created_staff_temp_password),

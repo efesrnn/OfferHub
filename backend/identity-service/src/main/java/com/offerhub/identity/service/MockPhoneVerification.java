@@ -32,14 +32,14 @@ public class MockPhoneVerification implements PhoneVerificationStrategy {
     @Override
     public String verify(String phone, String credential) {
         Subscriber subscriber = subscriberRepository.findByPhone(phone)
-                .orElseThrow(() -> new InvalidOtpException("Telefon numarasi bulunamadi"));
+                .orElseThrow(() -> new InvalidOtpException("Telefon numarası bulunamadı."));
 
         if (subscriber.getOtpExpiresAt() == null || subscriber.getOtpExpiresAt().isBefore(Instant.now())) {
-            throw new InvalidOtpException("OTP kodunun suresi dolmus");
+            throw new InvalidOtpException("OTP kodunun süresi dolmuş!");
         }
 
         if (!passwordEncoder.matches(credential, subscriber.getOtpCodeHash())) {
-            throw new InvalidOtpException("OTP kodu hatali");
+            throw new InvalidOtpException("OTP kodu hatalı!");
         }
 
         return phone;

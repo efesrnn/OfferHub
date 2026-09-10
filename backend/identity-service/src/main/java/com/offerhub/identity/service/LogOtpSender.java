@@ -18,6 +18,7 @@ public class LogOtpSender implements OtpSender {
     public void send(String phone, String code) {
         log.info(">>> OTP GONDERILDI (simulasyon) -> telefon: {}, kod: {}", phone, code);
 
-        //TODO: Firebase ile GoogleAuth kullanılıp gerçek numaraya kod gönderilebilir ama biraz gereksiz gibi.
+        //TODO: Firebase ile GoogleAuth kullanılıp gerçek numaraya kod gönderilebilir ama firebase
+        // kendi backendini kullanıyor.
     }
 }
