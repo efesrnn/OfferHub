@@ -16,13 +16,28 @@ SUBSCRIBER=$(mint SUBSCRIBER "$SUBSCRIBER_ID")
 VALID_UNTIL="2027-12-31T23:59:59Z"
 STAMP=$(date +%H%M%S)
 
+# docker CLI her bash ortamindan gorunmeyebilir (ornegin Docker Desktop'in WSL entegrasyonu
+# o dagitimda acik degilse) - boyle durumlarda ona bagli kontrolleri sert FAIL yerine
+# nazikce atliyoruz, bu ortam eksikligi kodun bozuk oldugu anlamina gelmiyor.
+HAS_DOCKER=0
+command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1 && HAS_DOCKER=1
+
 section "Saglik"
-check "campaign health" "200" "$(curl -s -o /dev/null -w '%{http_code}' $CAMPAIGN_DIRECT/actuator/health)"
-check "gamification health" "200" "$(curl -s -o /dev/null -w '%{http_code}' $GAMIFICATION_DIRECT/actuator/health)"
+# Servis portlari artik host'a acik degil (gateway-bypass duzeltmesi), o yuzden
+# actuator/health'e curl atamiyoruz - container healthcheck'ine bakiyoruz, resilience.sh'deki
+# ile ayni yontem.
+if [ "$HAS_DOCKER" = "1" ]; then
+    check "campaign health" "healthy" "$(docker inspect --format='{{.State.Health.Status}}' offerhub-campaign-service-1 2>/dev/null)"
+    check "gamification health" "healthy" "$(docker inspect --format='{{.State.Health.Status}}' offerhub-gamification-service-1 2>/dev/null)"
+else
+    echo "  atlandi: campaign/gamification health (docker CLI bu kabuktan gorunmuyor)"
+fi
 
 section "Kimlik ve yetki sinirlari"
 check "token yok" "401" "$(curl -s -o /dev/null -w '%{http_code}' $GATEWAY/api/v1/campaigns)"
-check "servise dogrudan istek" "403" "$(curl -s -o /dev/null -w '%{http_code}' $CAMPAIGN_DIRECT/api/v1/campaigns)"
+# Once servisin sahte basliklari reddettigini (403) dogruluyordu. Artik port disariya hic
+# acik degil, o yuzden beklenen sonuc da "hicbir HTTP cevabi alinamadi" (000), 403 degil.
+check "servise dogrudan istek engelli (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 $CAMPAIGN_DIRECT/api/v1/campaigns)"
 check "sahte X-User-Id basligi" "401" "$(curl -s -o /dev/null -w '%{http_code}' \
     -H "X-User-Id: $EXPERT_ID" -H 'X-User-Role: EXPERT' $GATEWAY/api/v1/campaigns)"
 check "gecerli uzman token" "200" "$(status GET /api/v1/campaigns "$EXPERT")"
@@ -138,9 +153,16 @@ for field in segmentDistribution conversionRate slaComplianceRate slaBreachedAct
 done
 
 section "Swagger"
-check "campaign api-docs" "200" "$(curl -s -o /dev/null -w '%{http_code}' $CAMPAIGN_DIRECT/v3/api-docs)"
-check "campaign swagger-ui" "200" "$(curl -s -o /dev/null -w '%{http_code}' -L $CAMPAIGN_DIRECT/swagger-ui.html)"
-check "gamification api-docs" "200" "$(curl -s -o /dev/null -w '%{http_code}' $GAMIFICATION_DIRECT/v3/api-docs)"
-check "gamification swagger-ui" "200" "$(curl -s -o /dev/null -w '%{http_code}' -L $GAMIFICATION_DIRECT/swagger-ui.html)"
+# Port artik host'a acik degil, o yuzden container'in kendi ici uzerinden (localhost:8080,
+# icerideki app'in kendi baglandigi adres) kontrol ediyoruz - lib.sh'nin ustundeki notta
+# anlatilan yontem.
+if [ "$HAS_DOCKER" = "1" ]; then
+    check "campaign api-docs" "200" "$(docker compose exec -T campaign-service curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/v3/api-docs 2>/dev/null)"
+    check "campaign swagger-ui" "200" "$(docker compose exec -T campaign-service curl -s -o /dev/null -w '%{http_code}' -L http://localhost:8080/swagger-ui.html 2>/dev/null)"
+    check "gamification api-docs" "200" "$(docker compose exec -T gamification-service curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/v3/api-docs 2>/dev/null)"
+    check "gamification swagger-ui" "200" "$(docker compose exec -T gamification-service curl -s -o /dev/null -w '%{http_code}' -L http://localhost:8080/swagger-ui.html 2>/dev/null)"
+else
+    echo "  atlandi: Swagger kontrolleri (docker CLI bu kabuktan gorunmuyor)"
+fi
 
 summary "Islevsel test"

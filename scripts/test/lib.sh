@@ -30,7 +30,19 @@ SUBSCRIBER_ID="c4c65416-1458-3cdd-85c9-23904a5b7fd0"
 OTHER_SUBSCRIBER_ID="02d005a4-c563-3ba7-92f2-9b6de66b535c"
 
 python_bin() {
-    if command -v python >/dev/null 2>&1; then echo python; else echo python3; fi
+    # Windows'ta "python"/"python3" adi, gercek bir kurulum olsa bile, Microsoft Store'a
+    # yonlendiren bir App Execution Alias saplamasina denk gelebilir - o saplama PATH'te
+    # gercekmis gibi durur (command -v onu bulur) ama calistirinca "Python was not found..."
+    # yazar ve gercek bir surum numarasi basmaz. "^Python [0-9]" kontrolu bu ikisini ayirt
+    # ediyor. "py" (Windows Python Launcher) genelde bu saplamadan etkilenmiyor, o yuzden
+    # ucuncu secenek olarak da deneniyor.
+    for candidate in python python3 py; do
+        if command -v "$candidate" >/dev/null 2>&1 && "$candidate" --version 2>&1 | grep -qE '^Python [0-9]'; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    echo python
 }
 PYTHON="$(python_bin)"
 

@@ -17,6 +17,10 @@ VALID_UNTIL="2027-12-31T23:59:59Z"
 
 # Tablonun sonunda hala ayakta oldugunu gosterebilmek icin once sayiyi aliyoruz.
 count_campaigns() {
+    # Docker Desktop, WSL entegrasyonu kapali dagitimlarda "docker" adinda calisan ama sahte
+    # bir yardim mesaji basan bir saplama birakiyor - command -v onu bulur (dosya gercekten
+    # var), o yuzden varligi degil calisip calismadigini (docker info) kontrol ediyoruz.
+    command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1 || return 1
     docker exec offerhub-campaign-db-1 psql -U postgres -d campaign -t \
         -c 'select count(*) from campaigns;' 2>/dev/null | tr -d ' \r\n'
 }
@@ -86,12 +90,14 @@ section "Gateway atlatma"
 # CallerIdentityArgumentResolver tarafindan reddediliyordu - ama o kontrol imza dogrulamiyor,
 # sahte X-User-Id/X-User-Role header'iyla gelen istegi kabul ederdi. Simdi o istek servise
 # hic ulasamiyor, port disariya acik degil.
-check "campaign servisine dogrudan (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 $CAMPAIGN_DIRECT/api/v1/campaigns 2>/dev/null || echo 000)"
-check "gamification servisine dogrudan (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 $GAMIFICATION_DIRECT/api/v1/game/profile 2>/dev/null || echo 000)"
+# curl -w '%{http_code}' zaten baglanti kurulamadiginda "000" yazar, ayrica "|| echo 000"
+# eklemek onu iki kere yazdirip "000000" uretiyordu (curl'un kendi cikisi + OR'un ekledigi).
+check "campaign servisine dogrudan (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 $CAMPAIGN_DIRECT/api/v1/campaigns 2>/dev/null)"
+check "gamification servisine dogrudan (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 $GAMIFICATION_DIRECT/api/v1/game/profile 2>/dev/null)"
 # Asil kritik olan senaryo buydu: sahte header'la dogrudan servise gitmek. Port kapali oldugu
 # icin artik denenemiyor bile, ki tam olarak istenen sonuc bu.
 check "campaign servisine sahte header ile dogrudan (port kapali)" "000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 \
-    -H "X-User-Id: $EXPERT_ID" -H 'X-User-Role: ADMIN' $CAMPAIGN_DIRECT/api/v1/campaigns/dashboard 2>/dev/null || echo 000)"
+    -H "X-User-Id: $EXPERT_ID" -H 'X-User-Role: ADMIN' $CAMPAIGN_DIRECT/api/v1/campaigns/dashboard 2>/dev/null)"
 check "uydurma X-User-Id basligi" "401" "$(curl -s -o /dev/null -w '%{http_code}' \
     -H "X-User-Id: $EXPERT_ID" -H 'X-User-Role: ADMIN' $GATEWAY/api/v1/campaigns)"
 # Token gecerli ama rol basligi elle ADMIN'e cekilmis: gateway kendi cozdugu rolu yaziyor,
