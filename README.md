@@ -213,11 +213,11 @@ dosyasında.
 
 ## Ekip
 
-| Kişi          | Sorumluluk                                                             |
-| ------------- | ---------------------------------------------------------------------- |
-| Efe Serin     | Backend1: Gateway, Identity, AI, güvenlik                              |
-| Sergen Yalçın | Backend2: Campaign, Gamification, olay altyapısı, Docker Compose, seed |
-| serra888      | Mobil: Kotlin native Android, dört rolün de arayüzü                    |
+| Kişi              | Sorumluluk                                                             |
+| ----------------- | ---------------------------------------------------------------------- |
+| Efe Serin         | Backend1: Gateway, Identity, AI, güvenlik                              |
+| Sergen Yalçın     | Backend2: Campaign, Gamification, olay altyapısı, Docker Compose, seed |
+| Serranur Türkoğlu | Mobil: Kotlin native Android, dört rolün de arayüzü                    |
 
 ## Bilinen açıklar
 
