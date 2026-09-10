@@ -22,4 +22,5 @@ interface SupervisorRepository {
         reason: String
     ): SupervisorResult<SupervisorDashboard>
     suspend fun getExperts(): SupervisorResult<List<AdminStaff>>
+    suspend fun getStaffDirectory(): SupervisorResult<List<AdminStaff>>
 }

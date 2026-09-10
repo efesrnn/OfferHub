@@ -28,7 +28,8 @@ public record CaseResponse(
         String optimizationNote,
         UUID assignedExpertId,
         Instant createdAt,
-        Instant completedAt
+        Instant completedAt,
+        UUID campaignCreatedBy
 ) {
 
     /** Every field is filled from the case and its campaign; nulls mean AI had no answer. */
@@ -51,6 +52,7 @@ public record CaseResponse(
                 optimizationCase.getOptimizationNote(),
                 optimizationCase.getAssignedExpertId(),
                 optimizationCase.getCreatedAt(),
-                optimizationCase.getCompletedAt());
+                optimizationCase.getCompletedAt(),
+                campaign.getCreatedBy());
     }
 }

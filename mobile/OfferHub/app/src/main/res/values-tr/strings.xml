@@ -176,6 +176,8 @@
     <string name="supervisor_no_attention_cases">Şu anda ilgilenilmesi gereken aktif vaka yok.</string>
     <string name="supervisor_expert_performance">Uzman performansı</string>
     <string name="supervisor_waiting_assignment">Atama bekliyor</string>
+    <string name="supervisor_created_by">Oluşturan: %1$s</string>
+    <string name="supervisor_created_by_label">Oluşturan</string>
     <plurals name="supervisor_expert_summary">
         <item quantity="one">%1$d tamamlanan vaka · +%2$.1f%% · ortalama %3$.1f sa</item>
         <item quantity="other">%1$d tamamlanan vaka · +%2$.1f%% · ortalama %3$.1f sa</item>

@@ -51,4 +51,7 @@ interface SupervisorApi {
     suspend fun getExperts(
         @Query("role") role: String = "EXPERT"
     ): Response<ApiResponse<List<StaffDto>>>
+
+    @GET("api/v1/users/staff")
+    suspend fun getStaffDirectory(): Response<ApiResponse<List<StaffDto>>>
 }

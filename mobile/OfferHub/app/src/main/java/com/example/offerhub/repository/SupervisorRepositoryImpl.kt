@@ -85,6 +85,21 @@ class SupervisorRepositoryImpl(
         SupervisorResult.Failure(ApiError("UNKNOWN_ERROR"))
     }
 
+    override suspend fun getStaffDirectory(): SupervisorResult<List<AdminStaff>> = try {
+        val response = api.getStaffDirectory()
+        val envelope = response.body()
+        val data = envelope?.data
+        if (response.isSuccessful && envelope?.success == true && data != null) {
+            SupervisorResult.Success(data.mapNotNull { it.toDomain() })
+        } else {
+            SupervisorResult.Failure(errorFrom(response, envelope?.error))
+        }
+    } catch (_: IOException) {
+        SupervisorResult.Failure(ApiError("NETWORK_ERROR"))
+    } catch (_: Exception) {
+        SupervisorResult.Failure(ApiError("UNKNOWN_ERROR"))
+    }
+
     private suspend fun <T> actionThenReload(
         action: suspend () -> Response<ApiResponse<T>>
     ): SupervisorResult<SupervisorDashboard> = try {

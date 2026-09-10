@@ -59,6 +59,8 @@ import com.example.offerhub.data.model.supervisor.ExpertPerformanceSummary
 import com.example.offerhub.data.model.campaign.Priority
 import com.example.offerhub.data.model.campaign.Segment
 import com.example.offerhub.data.model.campaign.CaseStatus
+import com.example.offerhub.data.model.admin.AdminStaff
+import com.example.offerhub.data.model.admin.displayNameFor
 
 enum class SupervisorCaseListMode { PENDING_ASSIGNMENT, ACTIVE, APPROVAL, PUBLISHED }
 private data class PendingClassification(
@@ -82,6 +84,7 @@ fun SupervisorCaseListScreen(
     cases: List<SupervisorCaseSummary>,
     mode: SupervisorCaseListMode,
     experts: List<ExpertPerformanceSummary>,
+    staffDirectory: List<AdminStaff> = emptyList(),
     isLoading: Boolean,
     loadError: String?,
     isSubmitting: Boolean,
@@ -239,7 +242,17 @@ fun SupervisorCaseListScreen(
                                 )
                             }
                             Text(item.priority.displayName())
-                            Text(item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment))
+                            Text(
+                                staffDirectory.displayNameFor(item.assignedExpertId)
+                                    ?: stringResource(R.string.supervisor_waiting_assignment)
+                            )
+                            staffDirectory.displayNameFor(item.campaignCreatedBy)?.let { createdByName ->
+                                Text(
+                                    stringResource(R.string.supervisor_created_by, createdByName),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                             Text(
                                 stringResource(R.string.supervisor_sla_card_value, item.slaRemainingSeconds.toSlaText()),
                                 style = MaterialTheme.typography.bodySmall,
@@ -275,6 +288,7 @@ fun SupervisorCaseListScreen(
     selectedCase?.let { item ->
         SupervisorCaseDetailBottomSheet(
             item = item,
+            staffDirectory = staffDirectory,
             isSubmitting = isSubmitting,
             actionError = actionError,
             showPublishAction = mode == SupervisorCaseListMode.APPROVAL,
@@ -437,6 +451,7 @@ fun SupervisorCaseListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 internal fun SupervisorCaseDetailBottomSheet(
     item: SupervisorCaseSummary,
+    staffDirectory: List<AdminStaff> = emptyList(),
     isSubmitting: Boolean = false,
     actionError: String? = null,
     showPublishAction: Boolean = false,
@@ -462,8 +477,12 @@ internal fun SupervisorCaseDetailBottomSheet(
             CaseDetailRow(stringResource(R.string.supervisor_segment), item.segment.displayName())
             CaseDetailRow(
                 stringResource(R.string.supervisor_assigned_expert),
-                item.assignedExpertId ?: stringResource(R.string.supervisor_waiting_assignment)
+                staffDirectory.displayNameFor(item.assignedExpertId)
+                    ?: stringResource(R.string.supervisor_waiting_assignment)
             )
+            staffDirectory.displayNameFor(item.campaignCreatedBy)?.let { createdByName ->
+                CaseDetailRow(stringResource(R.string.supervisor_created_by_label), createdByName)
+            }
             CaseDetailRow(stringResource(R.string.supervisor_sla_remaining), item.slaRemainingSeconds.toSlaText())
             if (showPublishAction) {
                 Button(

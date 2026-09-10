@@ -8,6 +8,7 @@ import com.offerhub.campaign.entity.Segment;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 public record CampaignResponse(
         String campaignNo,
@@ -22,7 +23,8 @@ public record CampaignResponse(
         Priority priority,
         BigDecimal conversionProbability,
         BigDecimal recommendationScore,
-        Instant createdAt
+        Instant createdAt,
+        UUID createdBy
 ) {
 
     public static CampaignResponse from(Campaign campaign) {
@@ -39,6 +41,7 @@ public record CampaignResponse(
                 campaign.getPriority(),
                 campaign.getConversionProbability(),
                 campaign.getRecommendationScore(),
-                campaign.getCreatedAt());
+                campaign.getCreatedAt(),
+                campaign.getCreatedBy());
     }
 }

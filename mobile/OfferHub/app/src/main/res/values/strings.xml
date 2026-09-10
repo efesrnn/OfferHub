@@ -175,6 +175,8 @@
     <string name="supervisor_no_attention_cases">No active cases currently require attention.</string>
     <string name="supervisor_expert_performance">Expert performance</string>
     <string name="supervisor_waiting_assignment">Waiting for assignment</string>
+    <string name="supervisor_created_by">Created by %1$s</string>
+    <string name="supervisor_created_by_label">Created by</string>
     <plurals name="supervisor_expert_summary">
         <item quantity="one">%1$d completed case · +%2$.1f%% · %3$.1f h average</item>
         <item quantity="other">%1$d completed cases · +%2$.1f%% · %3$.1f h average</item>

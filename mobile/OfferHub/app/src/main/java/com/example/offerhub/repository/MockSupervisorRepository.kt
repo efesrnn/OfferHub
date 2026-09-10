@@ -133,4 +133,16 @@ class MockSupervisorRepository : SupervisorRepository {
             )
         )
     }
+
+    override suspend fun getStaffDirectory(): SupervisorResult<List<AdminStaff>> {
+        delay(150)
+        return SupervisorResult.Success(
+            listOf(
+                AdminStaff("sup-1", "Deniz", "Aydin", "deniz@offerhub.com", "SUPERVISOR", emptyList(), emptyList()),
+                AdminStaff("expert-1", "Ayse", "Yilmaz", "ayse@offerhub.com", "EXPERT", emptyList(), emptyList()),
+                AdminStaff("expert-2", "Can", "Demir", "can@offerhub.com", "EXPERT", emptyList(), emptyList()),
+                AdminStaff("expert-3", "Ece", "Kaya", "ece@offerhub.com", "EXPERT", emptyList(), emptyList())
+            )
+        )
+    }
 }

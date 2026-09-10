@@ -34,7 +34,8 @@ data class SupervisorCaseSummary(
     val segment: Segment,
     val assignedExpertId: String?,
     val slaRemainingSeconds: Long?,
-    val campaignNo: String = caseId
+    val campaignNo: String = caseId,
+    val campaignCreatedBy: String? = null
 )
 
 data class ExpertPerformanceSummary(

@@ -18,7 +18,8 @@ data class CampaignDto(
     val status: String?,
     val priority: String?,
     val conversionProbability: Double?,
-    val createdAt: String?
+    val createdAt: String?,
+    val createdBy: String?
 )
 
 data class CreateCampaignRequest(
@@ -48,7 +49,8 @@ fun CampaignDto.toDomain(): Campaign? {
         status = enumOrUnknown(status, CampaignStatus.UNKNOWN),
         priority = enumOrUnknown(priority, Priority.UNKNOWN),
         conversionProbability = conversionProbability,
-        createdAt = safeCreatedAt
+        createdAt = safeCreatedAt,
+        createdBy = createdBy
     )
 }
 

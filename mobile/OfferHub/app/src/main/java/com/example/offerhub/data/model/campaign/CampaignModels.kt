@@ -22,7 +22,8 @@ data class Campaign(
     val priority: Priority,
     val aiSegment: Segment,
     val conversionProbability: Double?,
-    val createdAt: String
+    val createdAt: String,
+    val createdBy: String? = null
 )
 
 data class OptimizationCase(
@@ -40,5 +41,6 @@ data class OptimizationCase(
     val optimizationNote: String?,
     val assignedExpertId: String?,
     val createdAt: String,
-    val completedAt: String?
+    val completedAt: String?,
+    val campaignCreatedBy: String? = null
 )

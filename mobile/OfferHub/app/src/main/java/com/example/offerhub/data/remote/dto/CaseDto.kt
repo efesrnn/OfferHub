@@ -20,7 +20,8 @@ data class CaseDto(
     val optimizationNote: String?,
     val assignedExpertId: String?,
     val createdAt: String?,
-    val completedAt: String?
+    val completedAt: String?,
+    val campaignCreatedBy: String?
 )
 
 fun CaseDto.toDomain(): OptimizationCase? {
@@ -44,7 +45,8 @@ fun CaseDto.toDomain(): OptimizationCase? {
         optimizationNote = optimizationNote,
         assignedExpertId = assignedExpertId,
         createdAt = safeCreatedAt,
-        completedAt = completedAt
+        completedAt = completedAt,
+        campaignCreatedBy = campaignCreatedBy
     )
 }
 

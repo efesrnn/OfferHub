@@ -57,7 +57,8 @@ fun CaseDto.toSupervisorSummary(): SupervisorCaseSummary? {
         segment = segment.toEnumOrUnknown(Segment.UNKNOWN),
         assignedExpertId = assignedExpertId,
         slaRemainingSeconds = slaRemainingSeconds,
-        campaignNo = campaignNo?.takeIf(String::isNotBlank) ?: return null
+        campaignNo = campaignNo?.takeIf(String::isNotBlank) ?: return null,
+        campaignCreatedBy = campaignCreatedBy
     )
 }
 

@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 data class SupervisorUiState(
     val dashboard: SupervisorDashboard? = null,
     val experts: List<AdminStaff> = emptyList(),
+    val staffDirectory: List<AdminStaff> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: UiText? = null,
     val isSubmittingAction: Boolean = false,
@@ -61,12 +62,22 @@ class SupervisorViewModel(
             }
         }
         loadExperts()
+        loadStaffDirectory()
     }
 
     fun loadExperts() {
         viewModelScope.launch {
             when (val result = repository.getExperts()) {
                 is SupervisorResult.Success -> _uiState.update { it.copy(experts = result.value) }
+                is SupervisorResult.Failure -> Unit
+            }
+        }
+    }
+
+    fun loadStaffDirectory() {
+        viewModelScope.launch {
+            when (val result = repository.getStaffDirectory()) {
+                is SupervisorResult.Success -> _uiState.update { it.copy(staffDirectory = result.value) }
                 is SupervisorResult.Failure -> Unit
             }
         }

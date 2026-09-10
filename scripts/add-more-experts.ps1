@@ -78,17 +78,17 @@ function New-Campaign($token, $title, $type, $segment, $discount, $daysValid) {
 }
 
 Write-Host "`n=== deneme3'un kendi kampanyalari (EK_PAKET / SADAKAT) ===" -ForegroundColor Cyan
-$c1 = (New-Campaign $e3Token "Riskli Kayıp - Ek Paket (Uzman3)" "EK_PAKET" "RISKLI_KAYIP" 20 30).data
-$c2 = (New-Campaign $e3Token "Pasif - Ek Paket Denemesi (Uzman3)" "EK_PAKET" "PASIF" 15 30).data
-$c3 = (New-Campaign $e3Token "Yeni Abone - Sadakat Başlangıcı (Uzman3)" "SADAKAT" "YENI_ABONE" 10 45).data
+$c1 = (New-Campaign $e3Token "Riskli Kayıp - Ek Paket Fırsatı" "EK_PAKET" "RISKLI_KAYIP" 20 30).data
+$c2 = (New-Campaign $e3Token "Pasif - Ek Paket Denemesi" "EK_PAKET" "PASIF" 15 30).data
+$c3 = (New-Campaign $e3Token "Yeni Abone - Sadakat Başlangıcı" "SADAKAT" "YENI_ABONE" 10 45).data
 Write-Host "  $($c1.campaignNo) status=$($c1.status) prob=$($c1.conversionProbability)"
 Write-Host "  $($c2.campaignNo) status=$($c2.status) prob=$($c2.conversionProbability)"
 Write-Host "  $($c3.campaignNo) status=$($c3.status) prob=$($c3.conversionProbability)"
 
 Write-Host "`n=== deneme4'un kendi kampanyalari (CIHAZ_FIRSATI / TARIFE_YUKSELTME) ===" -ForegroundColor Cyan
-$c4 = (New-Campaign $e4Token "Riskli Kayıp - Tarife Teklifi (Uzman4)" "TARIFE_YUKSELTME" "RISKLI_KAYIP" 20 30).data
-$c5 = (New-Campaign $e4Token "Riskli Kayıp - Cihaz Fırsatı (Uzman4)" "CIHAZ_FIRSATI" "RISKLI_KAYIP" 30 30).data
-$c6 = (New-Campaign $e4Token "Pasif - Tarife Yükseltme (Uzman4)" "TARIFE_YUKSELTME" "PASIF" 15 30).data
+$c4 = (New-Campaign $e4Token "Riskli Kayıp - Tarife Teklifi" "TARIFE_YUKSELTME" "RISKLI_KAYIP" 20 30).data
+$c5 = (New-Campaign $e4Token "Riskli Kayıp - Cihaz Fırsatı" "CIHAZ_FIRSATI" "RISKLI_KAYIP" 30 30).data
+$c6 = (New-Campaign $e4Token "Pasif - Tarife Yükseltme Fırsatı" "TARIFE_YUKSELTME" "PASIF" 15 30).data
 Write-Host "  $($c4.campaignNo) status=$($c4.status) prob=$($c4.conversionProbability)"
 Write-Host "  $($c5.campaignNo) status=$($c5.status) prob=$($c5.conversionProbability)"
 Write-Host "  $($c6.campaignNo) status=$($c6.status) prob=$($c6.conversionProbability)"
