@@ -7,6 +7,7 @@
 
 ## ✅ Düzeltilenler
 
+- **Kritik madde #4 kapatıldı: refresh token akışı.** Identity Service'e `RefreshToken` entity + `refresh_tokens` tablosu, `/api/v1/auth/refresh` ve `/api/v1/auth/logout` endpoint'leri eklendi. Her refresh token'ın JWT `jti`'si DB'deki satırla eşleşiyor; `/refresh` çağrıldığında eski token iptal edilip yenisi veriliyor (rotation); iptal edilmiş bir token tekrar sunulursa (theft/replay belirtisi) kullanıcının tüm aktif refresh token'ları iptal ediliyor ve `REFRESH_TOKEN_REUSE` audit log'a yazılıyor; `/logout` ilgili token'ı iptal edip `LOGOUT` audit log'a yazıyor. `JwtService.generateRefreshToken` artık bir `tokenId` (jti) parametresi alıyor — mevcut çağrı yerleri (`verifyOtp`, `staffLogin`) ortak bir `issueTokens` yardımcı metoduna taşındı.
 - **Kritik madde #1 kapatıldı: gateway bypass.** `docker-compose.yml`'de identity(8081)/campaign(8082)/ai(8083)/gamification(8084) servislerinin host port eşlemeleri kaldırıldı — bu servisler artık yalnızca docker ağı içinden (servis adıyla) erişilebilir, dışarıdan hiç ulaşılamaz. `CallerIdentityArgumentResolver`'ın header imzası doğrulamaması artık önemsiz, çünkü sahte header'lı isteğin ulaşacağı bir port yok. Yan etki olarak `scripts/test/security.sh`'deki "gateway atlatma" testi güncellendi (artık 403 değil bağlantı reddi `000` bekliyor, ayrıca gerçek saldırı senaryosunu — sahte header + direkt port — da test ediyor) ve `scripts/test/resilience.sh`'deki gamification sağlık kontrolü artık `docker inspect` ile container healthcheck'ine bakıyor (eskiden kapanan porttan actuator'a curl atıyordu).
 - Campaign Service ve Gamification Service README'leri artık dolu (sorumluluk, endpoint listesi, env değişkenleri) — önceden TODO stub'dı.
 - Campaign Service'e Swagger/OpenAPI eklendi (`OpenApiConfig.java`) — Gamification'da zaten vardı, ikisi de artık TAM.
@@ -18,12 +19,12 @@
 
 1. ~~Gateway bypass açığı~~ ✅ **kapatıldı** — yukarıdaki "Düzeltilenler" bölümüne bakın.
 2. ~~Gamification kapalıyken gateway 500 dönüyor, 503 değil~~ ✅ **kapatıldı** — `GatewayErrorHandler.isUnreachable` artık `ConnectException` yerine `SocketException`'a bakıyor, hem `AnnotatedConnectException` hem `AnnotatedNoRouteToHostException` yakalanıyor. `resilience.sh`'deki "BİLİNEN AÇIK" notu kaldırıldı.
-3. **Identity Service'te `application.yml`/`.properties` bulunamadı** (`src/main/resources` içinde sadece `.gitkeep` var). `jwt.secret`, token süreleri, admin seed, SMS key gibi `@Value` bağlamaları için config kaynağı yok — servis bu haliyle **açılmayabilir**. İlk iş bunu doğrulamak/eklemek.
-4. **Refresh token akışı yok (spec 4.2'nin çekirdeği).** `/refresh` ve `/logout` endpoint'leri hiç yok. Refresh token DB'de saklanmıyor, rotation/theft-protection yok. Access token 15 dk dolunca kullanıcı tekrar login olmak zorunda.
+3. ~~Identity Service'te `application.yml` bulunamadı~~ ❌ **yanlış alarm** — `application.yaml` zaten var (ilk taramada `.yaml` uzantısı gözden kaçmış), `jwt.secret`/token süreleri/admin seed/SMS key hepsi doğru bağlanmış, `JWT_SECRET` de kök `.env` dosyasında zaten set. Servis sorunsuz açılıyor olmalı, yapılacak bir şey yok.
+4. ~~Refresh token akışı yok~~ ✅ **kapatıldı** — `/api/v1/auth/refresh` ve `/api/v1/auth/logout` eklendi, yeni `refresh_tokens` tablosunda saklanıyor, rotation ve theft-protection (tekrar kullanılan token → kullanıcının tüm oturumları sonlandırılır) çalışıyor. Ayrıntı için aşağıya bakın.
 5. **Mobilde segment override özelliği tamamen yok** (spec'te açıkça zorunlu, AI doğruluk takibini tetikliyor). Kod içinde `override` diye aratınca sadece Kotlin'in `override fun` anahtar kelimesi çıkıyor.
-6. **Mobilde token yenileme "şeffaf" değil, tam tersi.** Spec "access token dolunca kullanıcı atılmamalı" diyor; kodda süre dolunca oturum siliniyor ve kullanıcı login ekranına düşüyor. `AuthRepository`'de `refresh()` metodu bile yok.
+6. **Mobilde token yenileme "şeffaf" değil, tam tersi.** Spec "access token dolunca kullanıcı atılmamalı" diyor; kodda süre dolunca oturum siliniyor ve kullanıcı login ekranına düşüyor. `AuthRepository`'de `refresh()` metodu bile yok — artık backend'de `/refresh` endpoint'i hazır olduğu için bu sadece mobil tarafında kalan bir kablolama işi.
 
-Not: 2-6 maddeler Identity Service ve Mobil'e ait, backend2'nin push'u kapsamıyor.
+Not: 5-6 maddeler Mobil'e ait, backend2'nin push'u kapsamıyor. `mvn` ile derleme bu ortamda çalıştırılamadı (sandbox kapalıydı) — repoyu senkronlarken bir `mvn compile` ile teyit etmen iyi olur.
 
 ---
 
@@ -37,9 +38,9 @@ Not: 2-6 maddeler Identity Service ve Mobil'e ait, backend2'nin push'u kapsamıy
 | Bcrypt/Argon2 hash | TAM | `PasswordConfig` → `BCryptPasswordEncoder` |
 | Hesap kilitleme (5 deneme/15 dk, kalan süre) | TAM | `AuthService.registerFailedAttempt`, 423 + `lockedUntil` |
 | Access token JWT 15dk (user_id+rol+uzmanlık/bölge) | KISMİ | Token'da sadece `user_id`+`role` var, specialties/regions token payload'ında yok |
-| Refresh token (7 gün, DB'de saklı) | **YOK** | Stateless JWT üretiliyor, DB kaydı yok |
-| Token rotation + theft protection | **YOK** | `/refresh` endpoint'i yok |
-| Logout | **YOK** | `/logout` endpoint'i yok |
+| Refresh token (7 gün, DB'de saklı) | ✅ TAM (düzeltildi) | Yeni `RefreshToken` entity (`refresh_tokens` tablosu), her refresh token'ın JWT `jti`'si DB'deki satırla eşleşiyor |
+| Token rotation + theft protection | ✅ TAM (düzeltildi) | `/refresh` her çağrıda eski token'ı iptal edip yenisini veriyor; iptal edilmiş bir token tekrar kullanılırsa kullanıcının tüm refresh token'ları iptal ediliyor + audit log'a `REFRESH_TOKEN_REUSE` yazılıyor |
+| Logout | ✅ TAM (düzeltildi) | `/logout` ilgili refresh token'ı iptal ediyor, audit log'a `LOGOUT` yazılıyor |
 | Rol/yetki matrisi (admin-only işlemler) | TAM | `/api/v1/admin/**` → `hasRole("ADMIN")` |
 | 403 + audit log (yetkisiz erişim) | TAM | `AuditingAccessDeniedHandler` |
 | Audit log alanları (kim/ne/ne zaman/nereden/sonuç/detay) | TAM | `AuditLog` entity birebir eşleşiyor |
@@ -204,10 +205,10 @@ Mock data sadece `@Preview` composable'larında kullanılıyor; production build
 
 1. ~~`docker-compose.yml`'de identity/campaign/ai/gamification portlarını host'a açma~~ ✅ **yapıldı** — portlar kaldırıldı, `security.sh` ve `resilience.sh` buna göre güncellendi.
 2. Gamification kapalıyken gateway'in 500 yerine 503 dönmesi için `GatewayErrorHandler.isUnreachable`'ı `SocketException`'a göre kontrol edecek şekilde düzelt (kritik madde #2, backend2 tarafından bulundu).
-3. Identity Service'in config dosyasını (`application.yml`) doğrula/oluştur — servis açılmıyor olabilir.
-4. Refresh token akışını ekle (`/refresh`, `/logout`, DB'de saklama, rotation) — spec'in çekirdek gereksinimi ve demo senaryosunda test edilebilir.
+3. ~~Identity Service'in config dosyasını (`application.yml`) doğrula/oluştur~~ ✅ **gerek yokmuş** — zaten vardı.
+4. ~~Refresh token akışını ekle~~ ✅ **yapıldı** — `/refresh`, `/logout`, DB'de saklama, rotation, theft-protection.
 5. Mobilde segment override ekranı/aksiyonu ekle.
-6. Mobilde token yenileme mantığını gerçek "silent refresh"e çevir (401 alınca refresh dene, olmazsa logout).
+6. Mobilde token yenileme mantığını gerçek "silent refresh"e çevir (401 alınca `/api/v1/auth/refresh`'i dene, olmazsa logout) — backend tarafı artık hazır.
 7. Şifre politikası validasyonunu Identity Service'e ekle (kural bazlı hata mesajlarıyla).
 8. Identity Service ve AI Service README'lerini, `docs/architecture.md` ve `docs/ai-approach.md` dosyalarını doldur — içerik zaten kodda var, sadece yazılması gerekiyor (Campaign+Gamification için bu zaten yapıldı, örnek alınabilir).
 

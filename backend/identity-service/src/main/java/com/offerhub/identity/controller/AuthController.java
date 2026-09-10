@@ -50,4 +50,20 @@ public class AuthController {
         authService.changePassword(principal.getName(), request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthDataResponse>> refresh(@RequestBody RefreshRequest request,
+                                                                    jakarta.servlet.http.HttpServletRequest httpRequest) {
+        AuthDataResponse response = authService.refresh(
+                request.getRefreshToken(), com.offerhub.identity.security.ClientIpResolver.resolve(httpRequest));
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody RefreshRequest request,
+                                                       jakarta.servlet.http.HttpServletRequest httpRequest) {
+        authService.logout(
+                request.getRefreshToken(), com.offerhub.identity.security.ClientIpResolver.resolve(httpRequest));
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }
