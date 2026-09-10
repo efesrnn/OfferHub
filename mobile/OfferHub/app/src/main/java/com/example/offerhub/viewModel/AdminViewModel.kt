@@ -36,6 +36,7 @@ data class AdminUiState(
     val isSubmitting: Boolean = false,
     val actionMessage: UiText? = null,
     val actionError: UiText? = null,
+    val createdStaffTempPassword: String? = null,
     val selectedStaff: AdminStaff? = null,
     val staffSearchQuery: String = "",
     val staffSearchResults: List<AdminStaff> = emptyList(),
@@ -154,7 +155,8 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
                 is AdminResult.Success -> {
                     _uiState.update {
                         it.copy(
-                            actionMessage = UiText.Resource(R.string.admin_staff_created_success)
+                            actionMessage = UiText.Resource(R.string.admin_staff_created_success),
+                            createdStaffTempPassword = result.value.tempPassword
                         )
                     }
                     _snackbarEvents.tryEmit(UiText.Resource(R.string.admin_staff_created_success))
@@ -275,7 +277,8 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         _uiState.update {
             it.copy(
                 actionMessage = null,
-                actionError = null
+                actionError = null,
+                createdStaffTempPassword = null
             )
         }
     }
@@ -284,7 +287,8 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
         it.copy(
             isSubmitting = true,
             actionMessage = null,
-            actionError = null
+            actionError = null,
+            createdStaffTempPassword = null
         )
     }
 

@@ -66,7 +66,8 @@ fun CreateStaffScreen(
     onClearClick: () -> Unit,
     isSubmitting: Boolean = false,
     successMessage: String? = null,
-    errorMessage: String? = null
+    errorMessage: String? = null,
+    createdStaffTempPassword: String? = null
 ) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }

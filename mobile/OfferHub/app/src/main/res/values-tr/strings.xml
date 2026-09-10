@@ -327,6 +327,8 @@
     <string name="admin_current_role">Mevcut rol</string>
     <string name="admin_created_staff_id">Personel ID</string>
     <string name="admin_copy_id">Personel ID’sini kopyala</string>
+    <string name="admin_created_staff_temp_password">Geçici şifre</string>
+    <string name="admin_copy_password">Geçici şifreyi kopyala</string>
     <string name="admin_staff_created_success">Personel başarıyla oluşturuldu.</string>
     <string name="admin_role_updated">Rol %1$s olarak güncellendi.</string>
     <string name="admin_staff_create_failed">Personel hesabı oluşturulamadı.</string>

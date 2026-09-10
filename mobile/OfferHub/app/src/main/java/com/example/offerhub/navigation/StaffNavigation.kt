@@ -525,7 +525,8 @@ fun NavGraphBuilder.staffRoleGraphs(
             onClearClick = adminViewModel::clearActionFeedback,
             isSubmitting = adminState.isSubmitting,
             successMessage = adminState.actionMessage?.asString(),
-            errorMessage = adminState.actionError?.asString()
+            errorMessage = adminState.actionError?.asString(),
+            createdStaffTempPassword = adminState.createdStaffTempPassword
         )
     }
 
