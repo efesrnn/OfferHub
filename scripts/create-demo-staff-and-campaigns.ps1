@@ -78,18 +78,18 @@ function New-Campaign($token, $title, $type, $segment, $discount, $daysValid) {
 
 # title, type, segment, discount, gecerlilik(gun), olusturan (sup/exp)
 $campaigns = @(
-    @{ title = "Yuksek Deger - Sadakat Bonusu";        type = "SADAKAT";          segment = "YUKSEK_DEGER"; discount = 15; days = 45; by = "sup" }
-    @{ title = "Yuksek Deger - Cihaz Yenileme";         type = "CIHAZ_FIRSATI";    segment = "YUKSEK_DEGER"; discount = 25; days = 60; by = "exp" }
-    @{ title = "Yuksek Deger - Ek Paket Firsati";       type = "EK_PAKET";         segment = "YUKSEK_DEGER"; discount = 10; days = 30; by = "sup" }
-    @{ title = "Riskli Kayip - Ozel Ek Paket";          type = "EK_PAKET";         segment = "RISKLI_KAYIP"; discount = 30; days = 30; by = "exp" }
-    @{ title = "Riskli Kayip - Tarife Yukseltme Teklifi"; type = "TARIFE_YUKSELTME"; segment = "RISKLI_KAYIP"; discount = 20; days = 30; by = "sup" }
-    @{ title = "Riskli Kayip - Cihaz Firsati";          type = "CIHAZ_FIRSATI";    segment = "RISKLI_KAYIP"; discount = 35; days = 30; by = "exp" }
-    @{ title = "Yeni Abone - Hosgeldin Ek Paketi";      type = "EK_PAKET";         segment = "YENI_ABONE";   discount = 20; days = 45; by = "sup" }
-    @{ title = "Yeni Abone - Cihaz Taksit Firsati";     type = "CIHAZ_FIRSATI";    segment = "YENI_ABONE";   discount = 15; days = 60; by = "exp" }
-    @{ title = "Yeni Abone - Sadakat Programi Girisi";  type = "SADAKAT";          segment = "YENI_ABONE";   discount = 10; days = 45; by = "sup" }
-    @{ title = "Pasif - Geri Kazanim Sadakat";          type = "SADAKAT";          segment = "PASIF";        discount = 25; days = 30; by = "exp" }
-    @{ title = "Pasif - Tarife Yukseltme Denemesi";     type = "TARIFE_YUKSELTME"; segment = "PASIF";        discount = 15; days = 30; by = "sup" }
-    @{ title = "Pasif - Ek Paket Hatirlatma";           type = "EK_PAKET";         segment = "PASIF";        discount = 20; days = 30; by = "exp" }
+    @{ title = "Yüksek Değer - Sadakat Bonusu";           type = "SADAKAT";          segment = "YUKSEK_DEGER"; discount = 15; days = 45; by = "sup" }
+    @{ title = "Yüksek Değer - Cihaz Yenileme";           type = "CIHAZ_FIRSATI";    segment = "YUKSEK_DEGER"; discount = 25; days = 60; by = "exp" }
+    @{ title = "Yüksek Değer - Ek Paket Fırsatı";         type = "EK_PAKET";         segment = "YUKSEK_DEGER"; discount = 10; days = 30; by = "sup" }
+    @{ title = "Riskli Kayıp - Özel Ek Paket";            type = "EK_PAKET";         segment = "RISKLI_KAYIP"; discount = 30; days = 30; by = "exp" }
+    @{ title = "Riskli Kayıp - Tarife Yükseltme Teklifi"; type = "TARIFE_YUKSELTME"; segment = "RISKLI_KAYIP"; discount = 20; days = 30; by = "sup" }
+    @{ title = "Riskli Kayıp - Cihaz Fırsatı";            type = "CIHAZ_FIRSATI";    segment = "RISKLI_KAYIP"; discount = 35; days = 30; by = "exp" }
+    @{ title = "Yeni Abone - Hoşgeldin Ek Paketi";        type = "EK_PAKET";         segment = "YENI_ABONE";   discount = 20; days = 45; by = "sup" }
+    @{ title = "Yeni Abone - Cihaz Taksit Fırsatı";       type = "CIHAZ_FIRSATI";    segment = "YENI_ABONE";   discount = 15; days = 60; by = "exp" }
+    @{ title = "Yeni Abone - Sadakat Programı Girişi";    type = "SADAKAT";          segment = "YENI_ABONE";   discount = 10; days = 45; by = "sup" }
+    @{ title = "Pasif - Geri Kazanım Sadakat";            type = "SADAKAT";          segment = "PASIF";        discount = 25; days = 30; by = "exp" }
+    @{ title = "Pasif - Tarife Yükseltme Denemesi";       type = "TARIFE_YUKSELTME"; segment = "PASIF";        discount = 15; days = 30; by = "sup" }
+    @{ title = "Pasif - Ek Paket Hatırlatma";             type = "EK_PAKET";         segment = "PASIF";        discount = 20; days = 30; by = "exp" }
 )
 
 Write-Host "`n=== Kampanyalar olusturuluyor ===" -ForegroundColor Cyan

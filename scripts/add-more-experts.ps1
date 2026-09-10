@@ -78,17 +78,17 @@ function New-Campaign($token, $title, $type, $segment, $discount, $daysValid) {
 }
 
 Write-Host "`n=== deneme3'un kendi kampanyalari (EK_PAKET / SADAKAT) ===" -ForegroundColor Cyan
-$c1 = (New-Campaign $e3Token "Riskli Kayip - Ek Paket (Uzman3)" "EK_PAKET" "RISKLI_KAYIP" 20 30).data
+$c1 = (New-Campaign $e3Token "Riskli Kayıp - Ek Paket (Uzman3)" "EK_PAKET" "RISKLI_KAYIP" 20 30).data
 $c2 = (New-Campaign $e3Token "Pasif - Ek Paket Denemesi (Uzman3)" "EK_PAKET" "PASIF" 15 30).data
-$c3 = (New-Campaign $e3Token "Yeni Abone - Sadakat Baslangici (Uzman3)" "SADAKAT" "YENI_ABONE" 10 45).data
+$c3 = (New-Campaign $e3Token "Yeni Abone - Sadakat Başlangıcı (Uzman3)" "SADAKAT" "YENI_ABONE" 10 45).data
 Write-Host "  $($c1.campaignNo) status=$($c1.status) prob=$($c1.conversionProbability)"
 Write-Host "  $($c2.campaignNo) status=$($c2.status) prob=$($c2.conversionProbability)"
 Write-Host "  $($c3.campaignNo) status=$($c3.status) prob=$($c3.conversionProbability)"
 
 Write-Host "`n=== deneme4'un kendi kampanyalari (CIHAZ_FIRSATI / TARIFE_YUKSELTME) ===" -ForegroundColor Cyan
-$c4 = (New-Campaign $e4Token "Riskli Kayip - Tarife Teklifi (Uzman4)" "TARIFE_YUKSELTME" "RISKLI_KAYIP" 20 30).data
-$c5 = (New-Campaign $e4Token "Riskli Kayip - Cihaz Firsati (Uzman4)" "CIHAZ_FIRSATI" "RISKLI_KAYIP" 30 30).data
-$c6 = (New-Campaign $e4Token "Pasif - Tarife Yukseltme (Uzman4)" "TARIFE_YUKSELTME" "PASIF" 15 30).data
+$c4 = (New-Campaign $e4Token "Riskli Kayıp - Tarife Teklifi (Uzman4)" "TARIFE_YUKSELTME" "RISKLI_KAYIP" 20 30).data
+$c5 = (New-Campaign $e4Token "Riskli Kayıp - Cihaz Fırsatı (Uzman4)" "CIHAZ_FIRSATI" "RISKLI_KAYIP" 30 30).data
+$c6 = (New-Campaign $e4Token "Pasif - Tarife Yükseltme (Uzman4)" "TARIFE_YUKSELTME" "PASIF" 15 30).data
 Write-Host "  $($c4.campaignNo) status=$($c4.status) prob=$($c4.conversionProbability)"
 Write-Host "  $($c5.campaignNo) status=$($c5.status) prob=$($c5.conversionProbability)"
 Write-Host "  $($c6.campaignNo) status=$($c6.status) prob=$($c6.conversionProbability)"
@@ -102,23 +102,23 @@ if ($c1.status -eq "YENI") {
     $id = CaseFor $c1.campaignNo
     Assign-Case $id $e3Id $supToken
     Move-Case $id "OPTIMIZE_EDILIYOR" $e3Token
-    Move-Case $id "TAMAMLANDI" $e3Token "Sikayet gecmisi incelendi, mevcut siniflandirma dogru bulundu, indirim orani revize edildi."
+    Move-Case $id "TAMAMLANDI" $e3Token "Şikayet geçmişi incelendi, mevcut sınıflandırma doğru bulundu, indirim oranı revize edildi."
     Write-Host "  $($c1.campaignNo) -> TAMAMLANDI (duzeltmesiz, lift 0 beklenir)"
 }
 if ($c2.status -eq "YENI") {
     $id = CaseFor $c2.campaignNo
     Assign-Case $id $e3Id $supToken
-    Reclassify $c2.campaignNo $e3Token "YENI_ABONE" $null "Abone 5 aydir sistemde, AI'nin PASIF etiketi kullanim gecmisiyle uyusmuyor."
+    Reclassify $c2.campaignNo $e3Token "YENI_ABONE" $null "Abone 5 aydır sistemde, AI'nin PASIF etiketi kullanım geçmişiyle uyuşmuyor."
     Move-Case $id "OPTIMIZE_EDILIYOR" $e3Token
-    Move-Case $id "TAMAMLANDI" $e3Token "Segment duzeltmesi sonrasi teklif yeniden hesaplandi."
+    Move-Case $id "TAMAMLANDI" $e3Token "Segment düzeltmesi sonrası teklif yeniden hesaplandı."
     Write-Host "  $($c2.campaignNo) -> TAMAMLANDI (segment PASIF->YENI_ABONE duzeltildi, olculebilir lift beklenir)"
 }
 if ($c3.status -eq "YENI") {
     $id = CaseFor $c3.campaignNo
     Assign-Case $id $e3Id $supToken
-    Reclassify $c3.campaignNo $e3Token $null "EK_PAKET" "Yeni abonede sadakat programindan once ek paket denemesi daha yuksek donusum getiriyor."
+    Reclassify $c3.campaignNo $e3Token $null "EK_PAKET" "Yeni abonede sadakat programından önce ek paket denemesi daha yüksek dönüşüm getiriyor."
     Move-Case $id "OPTIMIZE_EDILIYOR" $e3Token
-    Move-Case $id "TAMAMLANDI" $e3Token "Kampanya turu EK_PAKET'e cevrildi, donusum tahmini yukseldi."
+    Move-Case $id "TAMAMLANDI" $e3Token "Kampanya türü EK_PAKET'e çevrildi, dönüşüm tahmini yükseldi."
     Write-Host "  $($c3.campaignNo) -> TAMAMLANDI (tur SADAKAT->EK_PAKET duzeltildi, olculebilir lift beklenir)"
 }
 
@@ -127,23 +127,23 @@ if ($c4.status -eq "YENI") {
     $id = CaseFor $c4.campaignNo
     Assign-Case $id $e4Id $supToken
     Move-Case $id "OPTIMIZE_EDILIYOR" $e4Token
-    Move-Case $id "TAMAMLANDI" $e4Token "Teklif metni netlestirildi, siniflandirma degistirilmedi."
+    Move-Case $id "TAMAMLANDI" $e4Token "Teklif metni netleştirildi, sınıflandırma değiştirilmedi."
     Write-Host "  $($c4.campaignNo) -> TAMAMLANDI (duzeltmesiz, lift 0 beklenir)"
 }
 if ($c5.status -eq "YENI") {
     $id = CaseFor $c5.campaignNo
     Assign-Case $id $e4Id $supToken
-    Reclassify $c5.campaignNo $e4Token "PASIF" $null "Abone gorusmesinde kayip riski degil dusuk kullanim tespit edildi, segment PASIF'e cekildi."
+    Reclassify $c5.campaignNo $e4Token "PASIF" $null "Abone görüşmesinde kayıp riski değil düşük kullanım tespit edildi, segment PASIF'e çekildi."
     Move-Case $id "OPTIMIZE_EDILIYOR" $e4Token
-    Move-Case $id "TAMAMLANDI" $e4Token "Segment duzeltmesi sonrasi cihaz firsati yeniden fiyatlandi."
+    Move-Case $id "TAMAMLANDI" $e4Token "Segment düzeltmesi sonrası cihaz fırsatı yeniden fiyatlandı."
     Write-Host "  $($c5.campaignNo) -> TAMAMLANDI (segment RISKLI_KAYIP->PASIF duzeltildi, olculebilir lift beklenir)"
 }
 if ($c6.status -eq "YENI") {
     $id = CaseFor $c6.campaignNo
     Assign-Case $id $e4Id $supToken
-    Reclassify $c6.campaignNo $e4Token $null "EK_PAKET" "Pasif abonede tarife yukseltmek yerine kucuk ek paket denemek daha gercekci."
+    Reclassify $c6.campaignNo $e4Token $null "EK_PAKET" "Pasif abonede tarife yükseltmek yerine küçük ek paket denemek daha gerçekçi."
     Move-Case $id "OPTIMIZE_EDILIYOR" $e4Token
-    Move-Case $id "TAMAMLANDI" $e4Token "Kampanya turu EK_PAKET'e cevrildi."
+    Move-Case $id "TAMAMLANDI" $e4Token "Kampanya türü EK_PAKET'e çevrildi."
     Write-Host "  $($c6.campaignNo) -> TAMAMLANDI (tur TARIFE_YUKSELTME->EK_PAKET duzeltildi, olculebilir lift beklenir)"
 }
 

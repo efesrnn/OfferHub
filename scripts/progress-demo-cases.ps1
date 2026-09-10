@@ -69,30 +69,30 @@ Move-Case $caseIds["CMP-2026-000018"] "TEST_EDILIYOR" $expToken
 Write-Host "=== 000019: ... -> TAMAMLANDI ===" -ForegroundColor Cyan
 Assign-Case $caseIds["CMP-2026-000019"]
 Move-Case $caseIds["CMP-2026-000019"] "OPTIMIZE_EDILIYOR" $expToken
-Move-Case $caseIds["CMP-2026-000019"] "TAMAMLANDI" $expToken "Ek paket limiti artirildi, hedef kitleye ozel indirim yeniden hesaplandi."
+Move-Case $caseIds["CMP-2026-000019"] "TAMAMLANDI" $expToken "Ek paket limiti artırıldı, hedef kitleye özel indirim yeniden hesaplandı."
 
 Write-Host "=== 000021: ... -> TAMAMLANDI -> YAYINDA ===" -ForegroundColor Cyan
 Assign-Case $caseIds["CMP-2026-000021"]
 Move-Case $caseIds["CMP-2026-000021"] "OPTIMIZE_EDILIYOR" $expToken
-Move-Case $caseIds["CMP-2026-000021"] "TAMAMLANDI" $expToken "Sadakat programi kosullari netlestirildi, indirim orani optimize edildi."
+Move-Case $caseIds["CMP-2026-000021"] "TAMAMLANDI" $expToken "Sadakat programı koşulları netleştirildi, indirim oranı optimize edildi."
 Move-Case $caseIds["CMP-2026-000021"] "YAYINDA" $supToken
 
 Write-Host "=== 000023: ... -> TAMAMLANDI -> YAYINDA -> ARSIVLENDI (tam yasam dongusu) ===" -ForegroundColor Cyan
 Assign-Case $caseIds["CMP-2026-000023"]
 Move-Case $caseIds["CMP-2026-000023"] "OPTIMIZE_EDILIYOR" $expToken
-Move-Case $caseIds["CMP-2026-000023"] "TAMAMLANDI" $expToken "Tarife yukseltme teklifi pasif abonelere gore yeniden kurgulandi."
+Move-Case $caseIds["CMP-2026-000023"] "TAMAMLANDI" $expToken "Tarife yükseltme teklifi pasif abonelere göre yeniden kurgulandı."
 Move-Case $caseIds["CMP-2026-000023"] "YAYINDA" $supToken
 Move-Case $caseIds["CMP-2026-000023"] "ARSIVLENDI" $supToken
 
 Write-Host "=== 000024: ATANDI + expert segment override ornegi (madde 5 ile ayni ozellik) ===" -ForegroundColor Cyan
 Assign-Case $caseIds["CMP-2026-000024"]
-$reclassifyBody = @{ segment = "RISKLI_KAYIP"; reason = "Abone gorusmelerinde kayip riski isaretleri tespit edildi, AI siniflandirmasi PASIF olarak kalmisti." } | ConvertTo-Json
+$reclassifyBody = @{ segment = "RISKLI_KAYIP"; reason = "Abone görüşmelerinde kayıp riski işaretleri tespit edildi, AI sınıflandırması PASIF olarak kalmıştı." } | ConvertTo-Json
 Invoke-RestMethod -Uri "$GATEWAY/api/v1/campaigns/CMP-2026-000024/classification" -Method Patch -ContentType "application/json" `
     -Headers @{ Authorization = "Bearer $expToken" } -Body $reclassifyBody | Out-Null
-Write-Host "  segment PASIF -> RISKLI_KAYIP olarak duzeltildi, priority floor devreye girmis olmali"
+Write-Host "  segment PASIF -> RISKLI_KAYIP olarak düzeltildi, priority floor devreye girmiş olmalı"
 
 Write-Host "`n=== 000013: dogrudan yayindaki kampanyada supervisor KRITIK oncelik ornegi ===" -ForegroundColor Cyan
-$priorityBody = @{ priority = "KRITIK"; reason = "Yonetim bu kampanyayi bu ceyrekte oncelikli ilan etti." } | ConvertTo-Json
+$priorityBody = @{ priority = "KRITIK"; reason = "Yönetim bu kampanyayı bu çeyrekte öncelikli ilan etti." } | ConvertTo-Json
 Invoke-RestMethod -Uri "$GATEWAY/api/v1/campaigns/CMP-2026-000013/classification" -Method Patch -ContentType "application/json" `
     -Headers @{ Authorization = "Bearer $supToken" } -Body $priorityBody | Out-Null
 
