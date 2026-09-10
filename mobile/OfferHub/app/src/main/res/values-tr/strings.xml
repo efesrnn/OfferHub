@@ -283,7 +283,8 @@
     <string name="admin_profile">Yönetici Profili</string>
     <string name="admin_user_id">Kullanıcı ID</string>
     <string name="admin_role">Rol</string>
-    <string name="admin_profile_pending">users/me profil endpoint’i hazır olduğunda ad ve e-posta gösterilecektir.</string>
+    <string name="admin_profile_pending">Ad ve e-posta yüklenemedi.</string>
+    <string name="admin_name">Ad Soyad</string>
     <string name="admin_home">Ana Sayfa</string>
     <string name="admin_profile_nav">Profil</string>
     <string name="admin_first_name">Ad</string>

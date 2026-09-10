@@ -41,7 +41,10 @@ data class AdminUiState(
     val staffSearchQuery: String = "",
     val staffSearchResults: List<AdminStaff> = emptyList(),
     val isSearchingStaff: Boolean = false,
-    val staffSearchError: UiText? = null
+    val staffSearchError: UiText? = null,
+    val ownProfile: AdminStaff? = null,
+    val isLoadingOwnProfile: Boolean = false,
+    val ownProfileError: UiText? = null
 ) {
     val canLoadMoreAudit: Boolean
         get() = auditLogs.size < auditTotal
@@ -204,6 +207,29 @@ class AdminViewModel(private val repository: AdminRepository) : ViewModel() {
     }
 
     fun loadStaff() = searchStaff(query = "", useDebounce = false)
+
+    /**
+     * The profile screen's own name/email - the admin's own staff record, fetched by the
+     * id already carried in the session, reusing the same lookup the staff list detail
+     * uses rather than a dedicated "/me" endpoint.
+     */
+    fun loadOwnProfile(staffId: String) {
+        if (staffId.isBlank() || _uiState.value.isLoadingOwnProfile) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingOwnProfile = true, ownProfileError = null) }
+            when (val result = repository.findStaff(staffId)) {
+                is AdminResult.Success -> _uiState.update {
+                    it.copy(isLoadingOwnProfile = false, ownProfile = result.value)
+                }
+                is AdminResult.Failure -> _uiState.update {
+                    it.copy(
+                        isLoadingOwnProfile = false,
+                        ownProfileError = result.error.toUiText(R.string.admin_profile_pending)
+                    )
+                }
+            }
+        }
+    }
 
     fun selectStaff(staff: AdminStaff) {
         _uiState.update {

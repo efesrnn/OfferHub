@@ -281,7 +281,8 @@
     <string name="admin_profile">Admin Profile</string>
     <string name="admin_user_id">User ID</string>
     <string name="admin_role">Role</string>
-    <string name="admin_profile_pending">Name and email will be shown when the users/me profile endpoint is available.</string>
+    <string name="admin_profile_pending">Could not load name and email.</string>
+    <string name="admin_name">Name</string>
     <string name="admin_home">Home</string>
     <string name="admin_profile_nav">Profile</string>
     <string name="admin_first_name">First name</string>

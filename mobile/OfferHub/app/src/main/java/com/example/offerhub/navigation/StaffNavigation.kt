@@ -592,10 +592,18 @@ fun NavGraphBuilder.staffRoleGraphs(
     composable(Routes.ADMIN_PROFILE) {
         val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         val profileUser = remember { authState.currentUser }
+        val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
+
+        LaunchedEffect(profileUser?.id) {
+            profileUser?.id?.let(adminViewModel::loadOwnProfile)
+        }
 
         AdminProfileScreen(
             userId = profileUser?.id.orEmpty(),
             role = profileUser?.role ?: "ADMIN",
+            name = adminState.ownProfile?.let { "${it.firstName} ${it.lastName}" },
+            email = adminState.ownProfile?.email,
+            profileError = adminState.ownProfileError?.asString(),
             onLogoutClick = {
                 authViewModel.logout {
                     navController.navigate(Routes.AUTH_CHOICE) {
