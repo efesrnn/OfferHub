@@ -149,6 +149,7 @@ fun NavGraphBuilder.subscriberGraph(
 
     composable(Routes.PROFILE) {
         val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+        val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val profileUser = remember { authState.currentUser }
         val profilePhone = remember {
             profileUser?.phone ?: authState.pendingPhone
@@ -157,11 +158,17 @@ fun NavGraphBuilder.subscriberGraph(
             ?.let { if (it.startsWith("+")) it else "+90 $it" }
             ?: stringResource(R.string.profile_not_available)
 
+        LaunchedEffect(profileUser?.id) {
+            profileUser?.id?.let { subscriberViewModel.loadInsight(it) }
+        }
+
         SubscriberProfileScreen(
             firstName = "",
             lastName = "",
             phone = profilePhone,
             email = stringResource(R.string.profile_not_available),
+            insight = subscriberState.insight,
+            isInsightLoading = subscriberState.isInsightLoading,
             onRetryClick = {},
             onLogoutClick = {
                 authViewModel.logout {

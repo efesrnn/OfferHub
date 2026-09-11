@@ -1,6 +1,7 @@
 package com.example.offerhub.repository
 
 import com.example.offerhub.data.model.Offer
+import com.example.offerhub.data.model.SubscriberInsight
 import com.example.offerhub.data.network.ApiError
 
 sealed interface SubscriberResult<out T> {
@@ -14,4 +15,5 @@ interface SubscriberRepository {
     suspend fun acceptOffer(offerId: String): SubscriberResult<Offer>
     suspend fun declineOffer(offerId: String): SubscriberResult<Offer>
     suspend fun rateOffer(offerId: String, rating: Int): SubscriberResult<Offer>
+    suspend fun getInsight(subscriberId: String): SubscriberResult<SubscriberInsight>
 }

@@ -24,6 +24,11 @@ public class AiController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("/insight/{subscriberId}")
+    public ResponseEntity<ApiResponse<SubscriberInsightResponse>> insight(@PathVariable String subscriberId) {
+        return ResponseEntity.ok(ApiResponse.success(recommendationService.getInsight(subscriberId)));
+    }
+
     @PostMapping("/assign-expert")
     public ResponseEntity<ApiResponse<AssignExpertResponse>> assignExpert(@RequestBody AssignExpertRequest request) {
         AssignExpertResponse response = expertAssignmentService.assign(request.getCaseId(), request.getSegment());

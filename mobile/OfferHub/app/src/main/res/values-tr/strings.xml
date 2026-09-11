@@ -159,6 +159,13 @@
     <string name="profile_email">E-posta</string>
     <string name="profile_not_provided">Belirtilmedi</string>
     <string name="profile_not_available">Kullanılamıyor</string>
+    <string name="profile_ai_title">AI profili</string>
+    <string name="profile_ai_segment_label">Segment</string>
+    <string name="profile_ai_reason_label">Neden</string>
+    <string name="profile_ai_usage_label">Veri kullanımı</string>
+    <string name="profile_ai_spend_label">Aylık harcama</string>
+    <string name="profile_ai_complaints_label">Şikayet (6 ay)</string>
+    <string name="profile_ai_trend_label">Kullanım trendi</string>
     <string name="role_supervisor">Süpervizör</string>
 
     <string name="supervisor_dashboard">Süpervizör Paneli</string>

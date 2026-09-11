@@ -4,6 +4,7 @@ import com.example.offerhub.data.network.ApiResponse
 import com.example.offerhub.data.remote.dto.OfferActionResponse
 import com.example.offerhub.data.remote.dto.OfferDto
 import com.example.offerhub.data.remote.dto.RateOfferRequest
+import com.example.offerhub.data.remote.dto.SubscriberInsightDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -14,6 +15,17 @@ import retrofit2.http.Path
 interface SubscriberApi {
     @GET("api/v1/subscribers/me/offers")
     suspend fun getOffers(): Response<ApiResponse<List<OfferDto>>>
+
+    /**
+     * Campaign Service'teki "/me/" desenini takip etmiyor cunku bu cagri Campaign'e
+     * degil, gateway uzerinden dogrudan AI Service'e gidiyor (api/v1/ai/**) - AI'da
+     * "me" kavramini cozecek bir auth/user context yok, o yuzden subscriberId acikca
+     * yollaniyor (kendi id'imizi kendimiz icin sorguluyoruz, baskasininkini degil).
+     */
+    @GET("api/v1/ai/insight/{subscriberId}")
+    suspend fun getInsight(
+        @Path("subscriberId") subscriberId: String
+    ): Response<ApiResponse<SubscriberInsightDto>>
 
     @GET("api/v1/subscribers/me/offers/{offerId}")
     suspend fun getOfferDetail(

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
+import com.example.offerhub.data.model.SubscriberInsight
 import com.example.offerhub.repository.SubscriberRepository
 import com.example.offerhub.repository.SubscriberResult
 import com.example.offerhub.R
@@ -37,7 +38,9 @@ data class SubscriberUiState(
     val selectedOffer: Offer? = null,
     val loadErrorMessage: UiText? = null,
     val actionErrorMessage: UiText? = null,
-    val isSubmittingAction: Boolean = false
+    val isSubmittingAction: Boolean = false,
+    val insight: SubscriberInsight? = null,
+    val isInsightLoading: Boolean = false
 )
 class SubscriberViewModel(
     private val repository: SubscriberRepository
@@ -71,6 +74,30 @@ class SubscriberViewModel(
                         isLoading = false,
                         loadErrorMessage = errorMessage(result.error.code)
                     )
+                }
+            }
+        }
+    }
+
+    /**
+     * Profil ekraninda gosterilecek. subscriberId, Identity'nin verdigi gercek UUID -
+     * AI Service'te bu ID icin biriktirilmis gercek kullanim verisi yoksa (ki demo
+     * abonelerinde hep boyle), servis subscriberId'nin hash'ine bagli deterministik bir
+     * profil uretiyor - yani her abone icin sabit ama abonelere gore farklilasan bir
+     * segment + aciklama donuyor.
+     */
+    fun loadInsight(subscriberId: String) {
+        if (_uiState.value.isInsightLoading) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isInsightLoading = true) }
+            when (val result = repository.getInsight(subscriberId)) {
+                is SubscriberResult.Success -> _uiState.update {
+                    it.copy(isInsightLoading = false, insight = result.value)
+                }
+                is SubscriberResult.Failure -> _uiState.update {
+                    // Sessiz basarisizlik: bu kart bilgilendirici/ek bir alan, ana profil
+                    // akisini bir hata banner'iyla bozmaya degmez.
+                    it.copy(isInsightLoading = false)
                 }
             }
         }
