@@ -503,4 +503,9 @@
     <string name="expert_level_platinum">Platinum</string>
     <string name="error_gamification">Progress information could not be loaded.</string>
     <string name="supervisor_no_segment_distribution">No segment data available.</string>
+    <string name="admin_identifiers">Identifiers</string>
+    <string name="admin_event_information">Event information</string>
+    <string name="admin_request_information">Request information</string>
+    <string name="admin_personal_information">Personal information</string>
+    <string name="admin_access_information">Access information</string>
 </resources>

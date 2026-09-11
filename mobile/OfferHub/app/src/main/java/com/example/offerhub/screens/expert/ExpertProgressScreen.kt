@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -144,6 +145,7 @@ private fun ProgressContent(
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(profile.badges, key = { it.id }) { badge ->
                         Card(
+                            modifier = Modifier.width(144.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = if (badge.earned) {
                                     MaterialTheme.colorScheme.secondaryContainer
@@ -160,6 +162,7 @@ private fun ProgressContent(
                                 },
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
                                 style = MaterialTheme.typography.labelLarge,
+                                maxLines = 2,
                                 color = if (badge.earned) {
                                     MaterialTheme.colorScheme.onSecondaryContainer
                                 } else {

@@ -605,7 +605,6 @@ fun NavGraphBuilder.staffRoleGraphs(
             role = profileUser?.role ?: "ADMIN",
             name = adminState.ownProfile?.let { "${it.firstName} ${it.lastName}" },
             email = adminState.ownProfile?.email,
-            profileError = adminState.ownProfileError?.asString(),
             onLogoutClick = {
                 authViewModel.logout {
                     navController.navigate(Routes.AUTH_CHOICE) {

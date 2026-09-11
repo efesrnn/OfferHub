@@ -454,14 +454,47 @@ private fun AuditLogDetailSheet(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            AuditDetailRow(stringResource(R.string.admin_log_id), log.id, copyable = true)
-            AuditDetailRow(stringResource(R.string.admin_user_id), log.userId, copyable = true)
-            AuditDetailRow(stringResource(R.string.admin_action), auditCodeLabel(log.action))
-            AuditDetailRow(stringResource(R.string.admin_result), auditCodeLabel(log.result))
-            AuditDetailRow(stringResource(R.string.admin_timestamp), formatAuditTimestamp(log.timestamp))
-            AuditDetailRow(stringResource(R.string.admin_ip_address), log.ip)
-            log.detail?.takeIf { it.isNotBlank() }?.let {
-                AuditDetailRow(stringResource(R.string.admin_detail), it)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text(stringResource(R.string.admin_identifiers), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    AuditDetailRow(stringResource(R.string.admin_log_id), log.id, copyable = true)
+                    AuditDetailRow(stringResource(R.string.admin_user_id), log.userId, copyable = true)
+                }
+            }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text(stringResource(R.string.admin_event_information), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    AuditDetailRow(stringResource(R.string.admin_action), auditCodeLabel(log.action))
+                    AuditDetailRow(stringResource(R.string.admin_result), auditCodeLabel(log.result))
+                    AuditDetailRow(stringResource(R.string.admin_timestamp), formatAuditTimestamp(log.timestamp))
+                }
+            }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text(stringResource(R.string.admin_request_information), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    AuditDetailRow(stringResource(R.string.admin_ip_address), log.ip)
+                    log.detail?.takeIf { it.isNotBlank() }?.let {
+                        AuditDetailRow(stringResource(R.string.admin_detail), it)
+                    }
+                }
             }
         }
     }
