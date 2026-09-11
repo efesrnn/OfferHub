@@ -67,7 +67,9 @@ class AuthRepository(
                     userId = value.user.id,
                     userRole = value.user.role,
                     phone = value.user.phone,
-                    passwordChangeRequired = value.passwordChangeRequired
+                    passwordChangeRequired = value.passwordChangeRequired,
+                    firstName = value.user.firstName,
+                    lastName = value.user.lastName
                 )
             )
         }
@@ -186,6 +188,8 @@ class AuthRepository(
         return RestoredAuthSession(
             user = AuthUser(
                 id = tokens.userId,
+                firstName = tokens.firstName,
+                lastName = tokens.lastName,
                 role = tokens.userRole,
                 phone = tokens.phone
             ),

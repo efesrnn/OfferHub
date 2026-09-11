@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,8 +28,6 @@ import androidx.compose.ui.unit.sp
 import com.example.offerhub.components.SubscriberBottomBar
 import com.example.offerhub.components.OfferHubTopBar
 import com.example.offerhub.R
-import com.example.offerhub.data.model.SubscriberInsight
-import com.example.offerhub.ui.text.adminCodeLabel
 import com.example.offerhub.ui.theme.OfferHubTheme
 
 @Composable
@@ -36,8 +36,6 @@ fun SubscriberProfileScreen(
     lastName: String,
     phone: String,
     email: String?,
-    insight: SubscriberInsight? = null,
-    isInsightLoading: Boolean = false,
     isLoading: Boolean = false,
     errorMessage: String? = null,
     onRetryClick: () -> Unit,
@@ -68,6 +66,7 @@ fun SubscriberProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(
                     horizontal = 24.dp,
                     vertical = 24.dp
@@ -107,13 +106,6 @@ fun SubscriberProfileScreen(
                         lastName = lastName,
                         phone = phone,
                         email = email
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    AiInsightCard(
-                        insight = insight,
-                        isLoading = isInsightLoading
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -192,77 +184,6 @@ private fun ProfileInfoRow(
     }
 }
 
-/**
- * Abonenin AI segmentini VE onu ayirt eden ham sinyalleri gosterir - amac, "PASIF" gibi
- * tek bir etiketin arkasindaki gercek veriyi gorunur kilmak (iki PASIF abone farkli
- * sebeplerle PASIF olabilir). Bilgilendirici/ek bir alan oldugu icin yuklenemezse sessizce
- * hic gorunmez, ana profil akisini bir hata mesajiyla bozmaz.
- */
-@Composable
-private fun AiInsightCard(
-    insight: SubscriberInsight?,
-    isLoading: Boolean
-) {
-    if (isLoading) {
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator(modifier = Modifier.height(20.dp))
-            }
-        }
-        return
-    }
-    if (insight == null) return
-
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.profile_ai_title),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            ProfileInfoRow(
-                label = stringResource(R.string.profile_ai_segment_label),
-                value = adminCodeLabel(insight.segment)
-            )
-
-            ProfileInfoRow(
-                label = stringResource(R.string.profile_ai_reason_label),
-                value = insight.reason
-            )
-
-            ProfileInfoRow(
-                label = stringResource(R.string.profile_ai_usage_label),
-                value = "%.1f GB/ay".format(insight.monthlyDataUsageGb)
-            )
-
-            ProfileInfoRow(
-                label = stringResource(R.string.profile_ai_spend_label),
-                value = "%.0f TL/ay".format(insight.monthlySpendTry)
-            )
-
-            ProfileInfoRow(
-                label = stringResource(R.string.profile_ai_complaints_label),
-                value = insight.complaintCount6m.toString()
-            )
-
-            ProfileInfoRow(
-                label = stringResource(R.string.profile_ai_trend_label),
-                value = if (insight.usageTrend >= 0) "+%.2f".format(insight.usageTrend) else "%.2f".format(insight.usageTrend)
-            )
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun SubscriberProfileScreenPreview() {
@@ -273,18 +194,6 @@ private fun SubscriberProfileScreenPreview() {
             lastName = "Subscriber",
             phone = "+90 555 111 22 33",
             email = "test@offerhub.com",
-            insight = SubscriberInsight(
-                segment = "PASIF",
-                reason = "Veri kullanimi cok dusuk (3.2 GB/ay)",
-                tenureMonths = 4,
-                monthlyDataUsageGb = 3.2,
-                monthlySpendTry = 120.0,
-                complaintCount6m = 0,
-                usageTrend = -0.05,
-                pastAcceptedOffers = 0,
-                pastDeclinedOffers = 0,
-                currentTariff = "EKONOMIK"
-            ),
             onRetryClick = {},
             onLogoutClick = {},
             onHomeClick = {},

@@ -2,7 +2,6 @@ package com.example.offerhub.repository
 
 import com.example.offerhub.data.model.Offer
 import com.example.offerhub.data.model.OfferStatus
-import com.example.offerhub.data.model.SubscriberInsight
 import com.example.offerhub.data.network.ApiError
 import kotlinx.coroutines.delay
 import java.time.Instant
@@ -15,26 +14,6 @@ class MockSubscriberRepository(
     override suspend fun getOffers(): SubscriberResult<List<Offer>> {
         delay(250)
         return SubscriberResult.Success(offers.sortedByDescending { it.score })
-    }
-
-    override suspend fun getInsight(subscriberId: String): SubscriberResult<SubscriberInsight> {
-        delay(150)
-        // Sabit demo/mock değeri - gerçek AI Service'in fallback profil üretimini taklit
-        // etmiyor, sadece mock modda ekranın boş görünmemesi için.
-        return SubscriberResult.Success(
-            SubscriberInsight(
-                segment = "PASIF",
-                reason = "Veri kullanimi cok dusuk (3.2 GB/ay)",
-                tenureMonths = 4,
-                monthlyDataUsageGb = 3.2,
-                monthlySpendTry = 120.0,
-                complaintCount6m = 0,
-                usageTrend = -0.05,
-                pastAcceptedOffers = 0,
-                pastDeclinedOffers = 0,
-                currentTariff = "EKONOMIK"
-            )
-        )
     }
 
     override suspend fun getOfferDetail(offerId: String): SubscriberResult<Offer> =

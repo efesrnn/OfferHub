@@ -1,7 +1,6 @@
 package com.example.offerhub.repository
 
 import com.example.offerhub.data.model.Offer
-import com.example.offerhub.data.model.SubscriberInsight
 import com.example.offerhub.data.network.ApiError
 import com.example.offerhub.data.remote.SubscriberApi
 import com.example.offerhub.data.remote.dto.RateOfferRequest
@@ -72,21 +71,6 @@ class SubscriberRepositoryImpl(
         val offer = envelope?.data?.offer?.toDomain()
         if (response.isSuccessful && envelope?.success == true && offer != null) {
             SubscriberResult.Success(offer)
-        } else {
-            SubscriberResult.Failure(errorFrom(response, envelope?.error))
-        }
-    } catch (_: IOException) {
-        SubscriberResult.Failure(ApiError("NETWORK_ERROR"))
-    } catch (_: Exception) {
-        SubscriberResult.Failure(ApiError("UNKNOWN_ERROR"))
-    }
-
-    override suspend fun getInsight(subscriberId: String): SubscriberResult<SubscriberInsight> = try {
-        val response = api.getInsight(subscriberId)
-        val envelope = response.body()
-        val insight = envelope?.data?.toDomain()
-        if (response.isSuccessful && envelope?.success == true && insight != null) {
-            SubscriberResult.Success(insight)
         } else {
             SubscriberResult.Failure(errorFrom(response, envelope?.error))
         }

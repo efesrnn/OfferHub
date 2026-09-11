@@ -30,6 +30,7 @@ fun NavGraphBuilder.subscriberGraph(
     val openOfferDetail: (String) -> Unit = subscriberViewModel::selectOffer
 
     composable(Routes.SUBSCRIBER_HOME) {
+        val authState by authViewModel.uiState.collectAsStateWithLifecycle()
         val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) { subscriberViewModel.loadOffers() }
         val offers = subscriberState.offers
@@ -38,7 +39,7 @@ fun NavGraphBuilder.subscriberGraph(
             .maxByOrNull { it.acceptedAt.orEmpty() }
         val homeSummary = buildSubscriberHomeSummary(offers)
         SubscriberHomeScreen(
-            firstName = "",
+            firstName = authState.currentUser?.firstName.orEmpty(),
             recommendedOffers = offers
                 .filter { it.status == OfferStatus.PENDING }
                 .sortedByDescending { it.score }
@@ -149,7 +150,6 @@ fun NavGraphBuilder.subscriberGraph(
 
     composable(Routes.PROFILE) {
         val authState by authViewModel.uiState.collectAsStateWithLifecycle()
-        val subscriberState by subscriberViewModel.uiState.collectAsStateWithLifecycle()
         val profileUser = remember { authState.currentUser }
         val profilePhone = remember {
             profileUser?.phone ?: authState.pendingPhone
@@ -158,17 +158,11 @@ fun NavGraphBuilder.subscriberGraph(
             ?.let { if (it.startsWith("+")) it else "+90 $it" }
             ?: stringResource(R.string.profile_not_available)
 
-        LaunchedEffect(profileUser?.id) {
-            profileUser?.id?.let { subscriberViewModel.loadInsight(it) }
-        }
-
         SubscriberProfileScreen(
-            firstName = "",
-            lastName = "",
+            firstName = profileUser?.firstName.orEmpty(),
+            lastName = profileUser?.lastName.orEmpty(),
             phone = profilePhone,
             email = stringResource(R.string.profile_not_available),
-            insight = subscriberState.insight,
-            isInsightLoading = subscriberState.isInsightLoading,
             onRetryClick = {},
             onLogoutClick = {
                 authViewModel.logout {

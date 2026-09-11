@@ -92,7 +92,9 @@ public class AuthService {
                 .orElseThrow(() -> new InvalidOtpException("Abone bulunamadi"));
 
         TokenPair tokens = issueTokens(subscriber.getId(), "SUBSCRIBER");
-        AuthUserResponse user = new AuthUserResponse(subscriber.getId().toString(), "SUBSCRIBER", List.of(), List.of(), false);
+        AuthUserResponse user = new AuthUserResponse(
+                subscriber.getId().toString(), subscriber.getFirstName(), subscriber.getLastName(),
+                "SUBSCRIBER", List.of(), List.of(), false);
 
         return new AuthDataResponse(tokens.accessToken(), tokens.refreshToken(), jwtService.getAccessTokenExpirySeconds(), user);
     }
@@ -128,7 +130,8 @@ public class AuthService {
         TokenPair tokens = issueTokens(staff.getId(), staff.getRole().name());
 
         AuthUserResponse user = new AuthUserResponse(
-                staff.getId().toString(), staff.getRole().name(), staff.getSpecialties(), staff.getRegions(), staff.isMustChangePassword()
+                staff.getId().toString(), staff.getFirstName(), staff.getLastName(), staff.getRole().name(),
+                staff.getSpecialties(), staff.getRegions(), staff.isMustChangePassword()
         );
 
         return new AuthDataResponse(tokens.accessToken(), tokens.refreshToken(), jwtService.getAccessTokenExpirySeconds(), user);
@@ -235,12 +238,17 @@ public class AuthService {
 
     private AuthUserResponse resolveUser(UUID userId, String role) {
         if ("SUBSCRIBER".equals(role)) {
-            return new AuthUserResponse(userId.toString(), role, List.of(), List.of(), false);
+            Subscriber subscriber = subscriberRepository.findById(userId)
+                    .orElseThrow(() -> new InvalidCredentialsException("Kullanici bulunamadi"));
+            return new AuthUserResponse(
+                    userId.toString(), subscriber.getFirstName(), subscriber.getLastName(),
+                    role, List.of(), List.of(), false);
         }
         StaffUser staff = staffUserRepository.findById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException("Kullanici bulunamadi"));
         return new AuthUserResponse(
-                userId.toString(), role, staff.getSpecialties(), staff.getRegions(), staff.isMustChangePassword());
+                userId.toString(), staff.getFirstName(), staff.getLastName(), role,
+                staff.getSpecialties(), staff.getRegions(), staff.isMustChangePassword());
     }
 
     /**

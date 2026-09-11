@@ -32,6 +32,16 @@ class KeystoreTokenStorage(
             } else {
                 remove(USER_PHONE)
             }
+            if (tokens.firstName != null) {
+                putString(USER_FIRST_NAME, encrypt(tokens.firstName))
+            } else {
+                remove(USER_FIRST_NAME)
+            }
+            if (tokens.lastName != null) {
+                putString(USER_LAST_NAME, encrypt(tokens.lastName))
+            } else {
+                remove(USER_LAST_NAME)
+            }
             remove(LEGACY_EXPIRES_IN)
         }
         sessionTokenProvider.update(tokens.accessToken)
@@ -46,15 +56,19 @@ class KeystoreTokenStorage(
         if (expiresAt <= 0L) return@withContext null
         runCatching {
             val phone = preferences.getString(USER_PHONE, null)?.let(::decrypt)
+            val firstName = preferences.getString(USER_FIRST_NAME, null)?.let(::decrypt)
+            val lastName = preferences.getString(USER_LAST_NAME, null)?.let(::decrypt)
             val passwordChangeRequired = preferences.getBoolean(PASSWORD_CHANGE_REQUIRED, false)
             StoredTokens(
-                decrypt(access),
-                decrypt(refresh),
-                expiresAt,
-                userId,
-                userRole,
-                phone,
-                passwordChangeRequired
+                accessToken = decrypt(access),
+                refreshToken = decrypt(refresh),
+                expiresAtEpochSeconds = expiresAt,
+                userId = userId,
+                userRole = userRole,
+                phone = phone,
+                passwordChangeRequired = passwordChangeRequired,
+                firstName = firstName,
+                lastName = lastName
             )
         }.getOrNull()?.also { tokens ->
             sessionTokenProvider.update(tokens.accessToken)
@@ -110,6 +124,8 @@ class KeystoreTokenStorage(
         const val USER_ID = "user_id"
         const val USER_ROLE = "user_role"
         const val USER_PHONE = "user_phone"
+        const val USER_FIRST_NAME = "user_first_name"
+        const val USER_LAST_NAME = "user_last_name"
         const val PASSWORD_CHANGE_REQUIRED = "password_change_required"
         const val KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "offerhub_auth_tokens"

@@ -31,6 +31,8 @@ data class AuthData(
 
 data class AuthUser(
     val id: String,
+    val firstName: String? = null,
+    val lastName: String? = null,
     val role: String,
     val specialties: List<String> = emptyList(),
     val regions: List<String> = emptyList(),
